@@ -9,24 +9,25 @@ import WavyDivider from "@/components/WavyDivider";
 
 export default function Home() {
   return (
-    <div className="flex flex-col ">
+    <div className="flex flex-col">
       <Header />
-      <section id="hero">
-        <HeroSection />
-      </section>
+      <div className="gradient-bg">
+        <section id="hero">
+          <HeroSection />
+        </section>
 
-      <WavyDivider targetId="map" />
+        <WavyDivider targetId="map" />
 
-      <section id="map">
-        <MapSection />
-      </section>
+        <section id="map">
+          <MapSection />
+        </section>
 
-      <WavyDivider targetId="promotion" />
+        <WavyDivider targetId="promotion" />
 
-      <section id="promotion">
-        <PromotionSection />
-      </section>
-
+        <section id="promotion">
+          <PromotionSection />
+        </section>
+      </div>
       <Footer />
     </div>
   );

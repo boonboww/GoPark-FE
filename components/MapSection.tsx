@@ -3,7 +3,7 @@ import CountUp from "react-countup";
 
 export default function MapSection() {
   return (
-    <section className="flex flex-col items-center justify-center py-16 gradient-bg text-center min-h-[70vh]">
+    <section className="flex flex-col items-center justify-center py-16 text-center min-h-[70vh]">
      
       <div className="w-full max-w-xl px-4">
         <img

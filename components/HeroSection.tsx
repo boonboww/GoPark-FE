@@ -44,12 +44,12 @@ export default function HeroSection() {
   };
 
   return (
-    <section className="relative flex-1 gradient-bg flex flex-col items-center justify-center px-4 py-8 min-h-[70vh]">
+    <section className="relative flex-1 flex flex-col items-center justify-center px-4 py-8 min-h-[70vh]">
       {/* Overlay background */}
-      <div className="overlay absolute top-0 left-0 w-full h-full bg-black/40 z-0" />
+      <div className="overlay absolute top-0 left-0 w-full h-full" />
       <div className="content relative z-10">
         {/* Search Box */}
-        <div className="bg-white/95 p-6 rounded-2xl shadow-xl border-2 border-gray-200 w-[360px] transform hover:scale-105 transition-transform duration-300">
+        <div className="bg-white/95 p-6 rounded-2xl w-[360px] transform hover:scale-105 transition-transform duration-300">
           <div className="relative">
             <Input
               placeholder="Where are you going?"
@@ -78,9 +78,10 @@ export default function HeroSection() {
 
         {/* Time Selection */}
         {selectedLocation && (
-          <div className="mt-8 bg-white/95 p-6 rounded-2xl shadow-xl border-2 border-gray-200 w-[360px] transform hover:scale-105 transition-transform duration-300">
+          <div className="mt-8 bg-white/95 p-6 rounded-2xl w-[360px] transform hover:scale-105 transition-transform duration-300">
             <h2 className="text-xl font-semibold text-gray-800 mb-4">
-              Selected: <span className="text-blue-600">{selectedLocation}</span>
+              Selected:{" "}
+              <span className="text-blue-600">{selectedLocation}</span>
             </h2>
 
             <div className="grid grid-cols-2 gap-4">

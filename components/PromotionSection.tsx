@@ -2,7 +2,7 @@
 
 export default function PromotionSection() {
   return (
-    <section className="flex flex-col items-center justify-center py-20 text-center gradient-bg min-h-[70vh]">
+    <section className="flex flex-col items-center justify-center py-20 text-center  min-h-[70vh]">
       {/* Tooltip */}
       <div className="relative mb-8">
         <div className="bg-sky-400 text-white px-6 py-3 rounded-xl text-base font-medium shadow-md">
