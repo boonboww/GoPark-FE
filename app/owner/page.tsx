@@ -162,7 +162,10 @@ export default function OwnerDashboard() {
     initialData.parkingLots
   );
 
-  const [account, setAccount] = useState<Account>(initialData.account);
+  const [account, setAccount] = useState<Account>({
+    ...initialData.account,
+    role: initialData.account.role as "owner" | "staff",
+  });
 
   const ticketManagementData = {
     vehicles: vehicleList.map((v) => ({
