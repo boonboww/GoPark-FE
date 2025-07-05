@@ -1,51 +1,23 @@
+// app/owner/page.tsx
 "use client";
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import CustomerManagement, { Customer } from "@/components/CustomerManagement";
+import CustomerManagement from "@/components/CustomerManagement";
 import VehicleManagement from "@/components/VehicleManagement";
 import TicketManagement from "@/components/TicketManagement";
 import ParkingLotManagement from "@/components/ParkingLotManagement";
 import AccountManagement from "@/components/AccountManagement";
 
-// Type definitions
-interface Vehicle {
-  id: string;
-  licensePlate: string;
-  type: string;
-  owner: string;
-  status: "Parked" | "Not Parked";
-}
+import type {
+  Customer,
+  Vehicle,
+  Ticket,
+  ParkingLot,
+  Account,
+} from "@/types";
 
-interface Ticket {
-  id: string;
-  licensePlate: string;
-  customer: string;
-  type: "Daily" | "Monthly" | "Annual";
-  price: number;
-  floor: string;
-  expiry: string;
-}
-
-interface ParkingLot {
-  id: string;
-  name: string;
-  address: string;
-  capacity: number;
-  pricePerHour: number;
-}
-
-interface Account {
-  id: string;
-  name: string;
-  email: string;
-  phone: string;
-  avatar?: string;
-  role: "owner" | "staff";
-}
-
-// Sample data
 const initialData = {
   customers: [
     {
@@ -70,7 +42,8 @@ const initialData = {
       address: "456 Cau Giay, Hanoi",
       vehicles: ["51G-54321"],
     },
-  ],
+  ] satisfies Customer[],
+
   vehicles: [
     {
       id: "V1",
@@ -93,7 +66,8 @@ const initialData = {
       owner: "Tran Thi B",
       status: "Parked",
     },
-  ],
+  ] satisfies Vehicle[],
+
   tickets: [
     {
       id: "T001",
@@ -113,7 +87,8 @@ const initialData = {
       floor: "2",
       expiry: "2025-07-30",
     },
-  ],
+  ] satisfies Ticket[],
+
   parkingLots: [
     {
       id: "P1",
@@ -129,50 +104,33 @@ const initialData = {
       capacity: 50,
       pricePerHour: 15000,
     },
-  ],
+  ] satisfies ParkingLot[],
+
   account: {
     id: "A1",
     name: "Owner Name",
     email: "owner@example.com",
     phone: "0901234567",
     role: "owner",
-  },
+  } satisfies Account,
 };
 
 export default function OwnerDashboard() {
-  const [customerList, setCustomerList] = useState<Customer[]>(
-    initialData.customers
-  );
-
-  const [vehicleList, setVehicleList] = useState<Vehicle[]>(
-    initialData.vehicles.map((v) => ({
-      ...v,
-      status: v.status as "Parked" | "Not Parked",
-    }))
-  );
-
-  const [ticketList, setTicketList] = useState<Ticket[]>(
-    initialData.tickets.map((t) => ({
-      ...t,
-      type: t.type as "Daily" | "Monthly" | "Annual",
-    }))
-  );
-
-  const [parkingLotList, setParkingLotList] = useState<ParkingLot[]>(
-    initialData.parkingLots
-  );
-
-  const [account, setAccount] = useState<Account>({
-    ...initialData.account,
-    role: initialData.account.role as "owner" | "staff",
-  });
+  const [customerList, setCustomerList] = useState<Customer[]>(initialData.customers);
+  const [vehicleList, setVehicleList] = useState<Vehicle[]>(initialData.vehicles);
+  const [ticketList, setTicketList] = useState<Ticket[]>(initialData.tickets);
+  const [parkingLotList, setParkingLotList] = useState<ParkingLot[]>(initialData.parkingLots);
+  const [account, setAccount] = useState<Account>(initialData.account);
 
   const ticketManagementData = {
     vehicles: vehicleList.map((v) => ({
       id: v.id,
       licensePlate: v.licensePlate,
     })),
-    customers: customerList.map((c) => ({ id: c.id, name: c.fullName })),
+    customers: customerList.map((c) => ({
+      id: c.id,
+      name: c.fullName,
+    })),
   };
 
   return (
@@ -235,7 +193,10 @@ export default function OwnerDashboard() {
           </TabsContent>
 
           <TabsContent value="account">
-            <AccountManagement account={account} setAccount={setAccount} />
+            <AccountManagement
+              account={account}
+              setAccount={setAccount}
+            />
           </TabsContent>
         </div>
       </Tabs>
