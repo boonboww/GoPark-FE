@@ -1,119 +1,164 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import debounce from "lodash.debounce";
+import { toast } from "sonner";
+
+interface LocationSuggestion {
+  id: string;
+  name: string;
+}
+
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000";
 
 export default function HeroSection() {
   const router = useRouter();
   const [location, setLocation] = useState("");
-  const [selectedLocation, setSelectedLocation] = useState<string | null>(null);
-  const [suggestions, setSuggestions] = useState<string[]>([]);
+  const [selectedLocation, setSelectedLocation] = useState<LocationSuggestion | null>(null);
+  const [suggestions, setSuggestions] = useState<LocationSuggestion[]>([]);
   const [arriving, setArriving] = useState<Date>(new Date());
-  const [leaving, setLeaving] = useState<Date>(
-    new Date(new Date().getTime() + 60 * 60 * 1000)
-  );
+  const [leaving, setLeaving] = useState<Date>(() => {
+    const date = new Date();
+    date.setHours(date.getHours() + 1);
+    return date;
+  });
+  const [isSearching, setIsSearching] = useState(false);
 
-  const allLocations = [
-    "Hồ Chí Minh",
-    "Hà Nội",
-    "Đà Nẵng",
-    "Biên Hòa",
-    "Nha Trang",
-    "Huế",
-    "Cần Thơ",
-  ];
+  const allLocations: LocationSuggestion[] = useMemo(() => [
+    { id: "hcm", name: "Hồ Chí Minh" },
+    { id: "hn", name: "Hà Nội" },
+    { id: "dn", name: "Đà Nẵng" },
+    { id: "bh", name: "Biên Hòa" },
+    { id: "nt", name: "Nha Trang" },
+    { id: "hue", name: "Huế" },
+    { id: "ct", name: "Cần Thơ" },
+  ], []);
+
+  // Debounced search function
+  const handleLocationSearch = useCallback(
+    debounce((value: string) => {
+      if (value.length > 0) {
+        const filtered = allLocations.filter((loc) =>
+          loc.name.toLowerCase().includes(value.toLowerCase())
+        );
+        setSuggestions(filtered);
+      } else {
+        setSuggestions([]);
+      }
+    }, 300),
+    [allLocations]
+  );
 
   const handleLocationChange = (value: string) => {
     setLocation(value);
-    if (value.length > 0) {
-      const filtered = allLocations.filter((loc) =>
-        loc.toLowerCase().includes(value.toLowerCase())
-      );
-      setSuggestions(filtered);
-    } else {
-      setSuggestions([]);
-    }
+    handleLocationSearch(value);
   };
 
-  const handleSelectLocation = (loc: string) => {
+  const handleSelectLocation = (loc: LocationSuggestion) => {
     setSelectedLocation(loc);
-    setLocation(loc);
+    setLocation(loc.name);
     setSuggestions([]);
   };
 
-  const handleFindParking = () => {
+  const handleFindParking = async () => {
     if (!selectedLocation) {
-      alert("Vui lòng chọn một thành phố!");
+      toast.warning("Vui lòng chọn một thành phố");
       return;
     }
-    router.push(
-      `/CitiMap?city=${encodeURIComponent(selectedLocation)}&arriving=${encodeURIComponent(
-        arriving.toISOString()
-      )}&leaving=${encodeURIComponent(leaving.toISOString())}`
-    );
+
+    setIsSearching(true);
+    
+    try {
+      const res = await fetch(
+        `${API_BASE_URL}/api/v1/search/city?location=${selectedLocation.name}`
+      );
+      
+      if (!res.ok) {
+        throw new Error(`HTTP error! status: ${res.status}`);
+      }
+
+      const data = await res.json();
+      
+      if (data.data && data.data.length > 0) {
+        router.push(
+          `/CitiMap?city=${encodeURIComponent(selectedLocation.name)}&arriving=${encodeURIComponent(
+            arriving.toISOString()
+          )}&leaving=${encodeURIComponent(leaving.toISOString())}`
+        );
+      } else {
+        toast.info("Không tìm thấy bãi đỗ nào ở thành phố này");
+      }
+    } catch (error) {
+      console.error("Error fetching parking lots:", error);
+      toast.error("Có lỗi xảy ra khi tìm kiếm bãi đỗ");
+    } finally {
+      setIsSearching(false);
+    }
   };
 
   return (
     <section className="relative flex-1 flex flex-col items-center justify-center px-4 py-8 min-h-[70vh]">
       <div className="overlay absolute top-0 left-0 w-full h-full bg-black/50" />
       <div className="content relative z-10">
-        <div className="bg-white/95 p-6 rounded-2xl w-[360px] transform hover:scale-105 transition-transform duration-300">
+        <div className="bg-white/95 p-6 rounded-2xl w-full max-w-md transform hover:scale-105 transition-transform duration-300">
           <div className="relative">
             <Input
-              placeholder="Where are you going?"
+              placeholder="Nhập thành phố bạn muốn đến"
               value={location}
               onChange={(e) => handleLocationChange(e.target.value)}
               className="font-bold text-base placeholder:font-bold placeholder:text-base w-full"
               autoComplete="off"
             />
             {suggestions.length > 0 && (
-              <ul className="absolute z-10 bg-white border w-full mt-2 rounded-lg shadow-lg">
-                {suggestions.map((sug, index) => (
+              <ul className="absolute z-10 bg-white border w-full mt-2 rounded-lg shadow-lg max-h-60 overflow-auto">
+                {suggestions.map((sug) => (
                   <li
-                    key={index}
+                    key={sug.id}
                     className="px-4 py-3 hover:bg-gray-100 cursor-pointer text-gray-700 hover:text-blue-600 transition-colors duration-200"
                     onClick={() => handleSelectLocation(sug)}
                   >
-                    {sug}
+                    {sug.name}
                   </li>
                 ))}
               </ul>
             )}
           </div>
         </div>
+
         {selectedLocation && (
-          <div className="mt-8 bg-white/95 p-6 rounded-2xl w-[360px] transform hover:scale-105 transition-transform duration-300">
+          <div className="mt-8 bg-white/95 p-6 rounded-2xl w-full max-w-md transform hover:scale-105 transition-transform duration-300">
             <h2 className="text-xl font-semibold text-gray-800 mb-4">
-              Selected: <span className="text-blue-600">{selectedLocation}</span>
+              Đã chọn: <span className="text-blue-600">{selectedLocation.name}</span>
             </h2>
-            <div className="grid grid-cols-2 gap-4">
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="text-sm font-medium text-gray-600 block mb-1">
-                  Arriving - Date
+                  Ngày đến
                 </label>
                 <DatePicker
                   selected={arriving}
-                  onChange={(date: Date | null) => {
-                    if (!date) return;
+                  onChange={(date: Date) => {
                     const newDate = new Date(date);
                     newDate.setHours(arriving.getHours());
                     newDate.setMinutes(arriving.getMinutes());
                     setArriving(newDate);
                   }}
-                  dateFormat="yyyy-MM-dd"
+                  dateFormat="dd/MM/yyyy"
                   className="w-full border border-gray-300 px-3 py-2 rounded-lg focus:ring-2 focus:ring-blue-400"
                 />
+                
                 <label className="text-sm font-medium text-gray-600 block mt-4 mb-1">
-                  Arriving - Time
+                  Giờ đến
                 </label>
                 <DatePicker
                   selected={arriving}
-                  onChange={(time: Date | null) => {
-                    if (!time) return;
+                  onChange={(time: Date) => {
                     const newTime = new Date(arriving);
                     newTime.setHours(time.getHours());
                     newTime.setMinutes(time.getMinutes());
@@ -123,33 +168,33 @@ export default function HeroSection() {
                   showTimeSelectOnly
                   timeIntervals={15}
                   timeCaption="Time"
-                  dateFormat="h:mm aa"
+                  dateFormat="HH:mm"
                   className="w-full border border-gray-300 px-3 py-2 rounded-lg focus:ring-2 focus:ring-blue-400"
                 />
               </div>
+              
               <div>
                 <label className="text-sm font-medium text-gray-600 block mb-1">
-                  Leaving - Date
+                  Ngày rời
                 </label>
                 <DatePicker
                   selected={leaving}
-                  onChange={(date: Date | null) => {
-                    if (!date) return;
+                  onChange={(date: Date) => {
                     const newDate = new Date(date);
                     newDate.setHours(leaving.getHours());
                     newDate.setMinutes(leaving.getMinutes());
                     setLeaving(newDate);
                   }}
-                  dateFormat="yyyy-MM-dd"
+                  dateFormat="dd/MM/yyyy"
                   className="w-full border border-gray-300 px-3 py-2 rounded-lg focus:ring-2 focus:ring-blue-400"
                 />
+                
                 <label className="text-sm font-medium text-gray-600 block mt-4 mb-1">
-                  Leaving - Time
+                  Giờ rời
                 </label>
                 <DatePicker
                   selected={leaving}
-                  onChange={(time: Date | null) => {
-                    if (!time) return;
+                  onChange={(time: Date) => {
                     const newTime = new Date(leaving);
                     newTime.setHours(time.getHours());
                     newTime.setMinutes(time.getMinutes());
@@ -159,16 +204,18 @@ export default function HeroSection() {
                   showTimeSelectOnly
                   timeIntervals={15}
                   timeCaption="Time"
-                  dateFormat="h:mm aa"
+                  dateFormat="HH:mm"
                   className="w-full border border-gray-300 px-3 py-2 rounded-lg focus:ring-2 focus:ring-blue-400"
                 />
               </div>
             </div>
+
             <Button
-              onClick={handleFindParking}
               className="mt-6 w-full bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white font-semibold py-3 rounded-lg transition-all duration-300"
+              onClick={handleFindParking}
+              disabled={isSearching}
             >
-              Find Parking
+              {isSearching ? "Đang tìm kiếm..." : "Tìm bãi đỗ"}
             </Button>
           </div>
         )}
