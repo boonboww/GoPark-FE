@@ -140,7 +140,6 @@ const initialData = {
 };
 
 export default function OwnerDashboard() {
-  // State management
   const [customerList, setCustomerList] = useState<Customer[]>(
     initialData.customers
   );
@@ -152,7 +151,12 @@ export default function OwnerDashboard() {
     }))
   );
 
-  const [ticketList, setTicketList] = useState<Ticket[]>(initialData.tickets);
+  const [ticketList, setTicketList] = useState<Ticket[]>(
+    initialData.tickets.map((t) => ({
+      ...t,
+      type: t.type as "Daily" | "Monthly" | "Annual",
+    }))
+  );
 
   const [parkingLotList, setParkingLotList] = useState<ParkingLot[]>(
     initialData.parkingLots
