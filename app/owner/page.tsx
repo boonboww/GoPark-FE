@@ -144,16 +144,22 @@ export default function OwnerDashboard() {
   const [customerList, setCustomerList] = useState<Customer[]>(
     initialData.customers
   );
+
   const [vehicleList, setVehicleList] = useState<Vehicle[]>(
-    initialData.vehicles
+    initialData.vehicles.map((v) => ({
+      ...v,
+      status: v.status as "Parked" | "Not Parked",
+    }))
   );
+
   const [ticketList, setTicketList] = useState<Ticket[]>(initialData.tickets);
+
   const [parkingLotList, setParkingLotList] = useState<ParkingLot[]>(
     initialData.parkingLots
   );
+
   const [account, setAccount] = useState<Account>(initialData.account);
 
-  // Prepare data for TicketManagement
   const ticketManagementData = {
     vehicles: vehicleList.map((v) => ({
       id: v.id,
