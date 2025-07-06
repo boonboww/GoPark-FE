@@ -135,7 +135,6 @@ const CitiMap = () => {
     }
     const url = `https://www.google.com/maps/dir/?api=1&origin=${userCoords[0]},${userCoords[1]}&destination=${lat},${lon}&travelmode=driving`;
     window.open(url, "_blank");
-    console.log(url);
   }, [userCoords]);
 
   if (loading) {
