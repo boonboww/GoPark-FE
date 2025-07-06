@@ -30,13 +30,13 @@ export default function HeroSection() {
   const [isSearching, setIsSearching] = useState(false);
 
   const allLocations: LocationSuggestion[] = useMemo(() => [
-    { id: "hcm", name: "Hồ Chí Minh" },
-    { id: "hn", name: "Hà Nội" },
-    { id: "dn", name: "Đà Nẵng" },
-    { id: "bh", name: "Biên Hòa" },
+    { id: "hcm", name: "Ho Chi Minh" },
+    { id: "hn", name: "Hanoi" },
+    { id: "dn", name: "Da Nang" },
+    { id: "bh", name: "Bien Hoa" },
     { id: "nt", name: "Nha Trang" },
-    { id: "hue", name: "Huế" },
-    { id: "ct", name: "Cần Thơ" },
+    { id: "hue", name: "Hue" },
+    { id: "ct", name: "Can Tho" },
   ], []);
 
   const handleLocationSearch = useCallback(
@@ -66,7 +66,7 @@ export default function HeroSection() {
 
   const handleFindParking = async () => {
     if (!selectedLocation) {
-      toast.warning("Vui lòng chọn một thành phố");
+      toast.warning("Please select a city");
       return;
     }
 
@@ -90,11 +90,11 @@ export default function HeroSection() {
           )}&leaving=${encodeURIComponent(leaving.toISOString())}`
         );
       } else {
-        toast.info("Không tìm thấy bãi đỗ nào ở thành phố này");
+        toast.info("No parking lots found in this city");
       }
     } catch (error) {
       console.error("Error fetching parking lots:", error);
-      toast.error("Có lỗi xảy ra khi tìm kiếm bãi đỗ");
+      toast.error("An error occurred while searching for parking");
     } finally {
       setIsSearching(false);
     }
@@ -102,19 +102,19 @@ export default function HeroSection() {
 
   return (
     <section className="relative z-10 flex flex-col items-center justify-center h-full text-center px-4">
-      {/* Giới thiệu chữ */}
+      {/* Header text */}
       <h1 className="text-3xl md:text-5xl font-bold text-white drop-shadow-md mb-4">
-        Tìm Bãi Đỗ Xe Nhanh Chóng & Tiện Lợi
+        Find Parking Quickly & Conveniently
       </h1>
       <p className="text-white text-lg md:text-xl mb-8 drop-shadow-sm max-w-2xl">
-        Đặt trước bãi đỗ an toàn trên toàn quốc, dễ dàng chỉ với vài cú nhấp chuột.
+        Reserve safe parking spots nationwide with just a few clicks.
       </p>
 
-      {/* Form Tìm kiếm */}
+      {/* Search Form */}
       <div className="bg-white/95 p-6 rounded-2xl w-full max-w-md transform hover:scale-105 transition-transform duration-300">
         <div className="relative">
           <Input
-            placeholder="Nhập tên thành phố..."
+            placeholder="Enter city name..."
             value={location}
             onChange={(e) => handleLocationChange(e.target.value)}
             className="font-bold text-base placeholder:font-bold placeholder:text-base w-full"
@@ -139,13 +139,13 @@ export default function HeroSection() {
       {selectedLocation && (
         <div className="mt-8 bg-white/95 p-6 rounded-2xl w-full max-w-md transform hover:scale-105 transition-transform duration-300">
           <h2 className="text-xl font-semibold text-gray-800 mb-4">
-            Đã chọn: <span className="text-blue-600">{selectedLocation.name}</span>
+            Selected: <span className="text-blue-600">{selectedLocation.name}</span>
           </h2>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="text-sm font-medium text-gray-600 block mb-1">
-                Ngày đến
+                Arrival Date
               </label>
               <DatePicker
                 selected={arriving}
@@ -161,7 +161,7 @@ export default function HeroSection() {
               />
 
               <label className="text-sm font-medium text-gray-600 block mt-4 mb-1">
-                Giờ đến
+                Arrival Time
               </label>
               <DatePicker
                 selected={arriving}
@@ -183,7 +183,7 @@ export default function HeroSection() {
 
             <div>
               <label className="text-sm font-medium text-gray-600 block mb-1">
-                Ngày rời
+                Departure Date
               </label>
               <DatePicker
                 selected={leaving}
@@ -199,7 +199,7 @@ export default function HeroSection() {
               />
 
               <label className="text-sm font-medium text-gray-600 block mt-4 mb-1">
-                Giờ rời
+                Departure Time
               </label>
               <DatePicker
                 selected={leaving}
@@ -225,7 +225,7 @@ export default function HeroSection() {
             onClick={handleFindParking}
             disabled={isSearching}
           >
-            {isSearching ? "Đang tìm kiếm..." : "Tìm bãi đỗ"}
+            {isSearching ? "Searching..." : "Find Parking"}
           </Button>
         </div>
       )}
