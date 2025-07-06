@@ -14,7 +14,7 @@ interface LocationSuggestion {
   name: string;
 }
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000";
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
 export default function HeroSection() {
   const router = useRouter();
@@ -66,7 +66,7 @@ export default function HeroSection() {
 
   const handleFindParking = async () => {
     if (!selectedLocation) {
-      toast.warning("Vui lòng chọn một thành phố");
+      toast.warning("Please select a city");
       return;
     }
 
@@ -225,7 +225,7 @@ export default function HeroSection() {
             onClick={handleFindParking}
             disabled={isSearching}
           >
-            {isSearching ? "Đang tìm kiếm..." : "Tìm bãi đỗ"}
+            {isSearching ? "Searching..." : "Find Parking"}
           </Button>
         </div>
       )}
