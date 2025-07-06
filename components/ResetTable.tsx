@@ -15,13 +15,18 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { sendResetPasswordEmail } from "@/app/account/reset/password/actions"
 
+interface ResetTableProps extends React.ComponentPropsWithoutRef<"div"> {
+  successMessage?: string;
+}
+
 export function ResetTable({
   className,
+  successMessage,
   ...props
-}: React.ComponentPropsWithoutRef<"div">) {
+}: ResetTableProps) {
   const [email, setEmail] = useState("");
   const [error, setError] = useState("");
-  const [message, setMessage] = useState("");
+  const [message, setMessage] = useState(successMessage || "");
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
@@ -38,8 +43,10 @@ export function ResetTable({
     if (res.success) {
       setMessage("📧 Please check your email to reset your password.");
       setEmail("");
+      // Redirect với tham số success
+      router.push("/account/reset?success=true");
     } else {
-      setError(res.error);
+      setError(res.error || "An unknown error occurred.");
     }
   };
 

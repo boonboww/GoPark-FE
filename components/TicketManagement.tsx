@@ -1,8 +1,6 @@
-// components/TicketManagement.tsx
 "use client";
 
 import { useState } from "react";
-import { Ticket, Vehicle, Customer } from "@/app/owner/type"; // Adjust the import path as necessary
 import {
   Card,
   CardContent,
@@ -21,74 +19,51 @@ import {
   TableHead,
 } from "@/components/ui/table";
 import { Search } from "lucide-react";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
 import TicketForm from "./TicketForm";
-
-interface TicketManagementProps {
-  tickets: Ticket[];
-  setTickets: React.Dispatch<React.SetStateAction<Ticket[]>>;
-  vehicles: Pick<Vehicle, 'id' | 'licensePlate'>[];
-  customers: Pick<Customer, 'id' | 'fullName'>[];
-}
+import type { Ticket, TicketManagementProps } from "@/app/owner/types";
 
 export default function TicketManagement({ 
   tickets, 
-  setTickets,
+  setTickets, 
   vehicles, 
   customers 
 }: TicketManagementProps) {
-  const [searchTerm, setSearchTerm] = useState("");
-  const [editingTicket, setEditingTicket] = useState<Ticket | null>(null);
-  const [showForm, setShowForm] = useState(false);
+  const [searchTerm, setSearchTerm] = useState<string>("");
+  const [editingTicket, setEditingTicket] = useState<Ticket | undefined>(undefined);
 
-  // Handle add new ticket
-  const handleAddTicket = (ticketData: Omit<Ticket, 'id'>) => {
+  const handleAddTicket = (ticketData: Omit<Ticket, "id">) => {
     const newTicket: Ticket = {
       ...ticketData,
-      id: `T${Date.now()}`,
-      price: Number(ticketData.price)
+      id: `T${Date.now()}`
     };
     setTickets([...tickets, newTicket]);
-    setShowForm(false);
   };
 
-  // Handle update ticket
+  const handleEditTicket = (ticket: Ticket) => {
+    setEditingTicket(ticket);
+  };
+
   const handleUpdateTicket = (updatedTicket: Ticket) => {
     setTickets(tickets.map(t => t.id === updatedTicket.id ? updatedTicket : t));
-    setEditingTicket(null);
+    setEditingTicket(undefined);
   };
 
-  // Handle delete ticket
   const handleDeleteTicket = (id: string) => {
     setTickets(tickets.filter(t => t.id !== id));
+    if (editingTicket?.id === id) {
+      setEditingTicket(undefined);
+    }
   };
 
-  // Filter tickets based on search term
   const filteredTickets = tickets.filter(ticket =>
     ticket.licensePlate.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    ticket.customer.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    ticket.type.toLowerCase().includes(searchTerm.toLowerCase())
+    ticket.customer.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  // Format date for display
   const formatDate = (dateString: string) => {
     if (!dateString) return "-";
     const date = new Date(dateString);
     return date.toLocaleDateString('vi-VN');
-  };
-
-  // Format currency
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('vi-VN', {
-      style: 'currency',
-      currency: 'VND'
-    }).format(amount);
   };
 
   return (
@@ -96,74 +71,45 @@ export default function TicketManagement({
       <CardHeader>
         <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
           <div>
-            <CardTitle className="text-2xl font-bold">Ticket Management</CardTitle>
+            <CardTitle className="text-2xl font-bold">Quản lý Vé</CardTitle>
             <CardDescription>
-              {tickets.length} ticket{tickets.length !== 1 ? 's' : ''} found
+              Tổng số: {tickets.length} vé
             </CardDescription>
           </div>
           
-          <div className="flex flex-col md:flex-row gap-4">
-            <div className="relative w-full md:w-64">
-              <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Search tickets..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-9"
-              />
-            </div>
-            <Dialog open={showForm} onOpenChange={setShowForm}>
-              <DialogTrigger asChild>
-                <Button>Add Ticket</Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Add New Ticket</DialogTitle>
-                </DialogHeader>
-                <TicketForm
-                  vehicles={vehicles}
-                  customers={customers}
-                  onSubmit={handleAddTicket}
-                  onCancel={() => setShowForm(false)}
-                />
-              </DialogContent>
-            </Dialog>
+          <div className="relative w-full md:w-64">
+            <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Tìm kiếm vé..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-9"
+            />
           </div>
         </div>
       </CardHeader>
 
       <CardContent className="p-6 space-y-6">
-        {/* Edit Ticket Dialog */}
-        <Dialog open={!!editingTicket} onOpenChange={() => setEditingTicket(null)}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Edit Ticket</DialogTitle>
-            </DialogHeader>
-            {editingTicket && (
-              <TicketForm
-                ticket={editingTicket}
-                vehicles={vehicles}
-                customers={customers}
-                onSubmit={handleUpdateTicket}
-                onCancel={() => setEditingTicket(null)}
-              />
-            )}
-          </DialogContent>
-        </Dialog>
+        <TicketForm
+          vehicles={vehicles}
+          customers={customers}
+          onSubmit={handleAddTicket}
+          editingTicket={editingTicket}
+          onUpdate={handleUpdateTicket}
+        />
 
-        {/* Tickets Table */}
         <div className="rounded-md border">
           <Table>
             <TableHeader>
               <TableRow>
                 <TableHead className="w-[100px]">ID</TableHead>
-                <TableHead>License Plate</TableHead>
-                <TableHead>Customer</TableHead>
-                <TableHead>Type</TableHead>
-                <TableHead className="text-right">Price</TableHead>
-                <TableHead>Floor</TableHead>
-                <TableHead>Expiry</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
+                <TableHead>Biển số</TableHead>
+                <TableHead>Khách hàng</TableHead>
+                <TableHead>Loại vé</TableHead>
+                <TableHead className="text-right">Giá (VND)</TableHead>
+                <TableHead>Tầng</TableHead>
+                <TableHead>Hết hạn</TableHead>
+                <TableHead className="text-right">Thao tác</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -181,11 +127,11 @@ export default function TicketManagement({
                             ? 'bg-purple-100 text-purple-800' 
                             : 'bg-green-100 text-green-800'
                       }`}>
-                        {ticket.type}
+                        {ticket.type === 'Daily' ? 'Ngày' : ticket.type === 'Monthly' ? 'Tháng' : 'Năm'}
                       </span>
                     </TableCell>
                     <TableCell className="text-right">
-                      {formatCurrency(ticket.price)}
+                      {ticket.price.toLocaleString('vi-VN')}
                     </TableCell>
                     <TableCell>{ticket.floor}</TableCell>
                     <TableCell>{formatDate(ticket.expiry)}</TableCell>
@@ -193,16 +139,16 @@ export default function TicketManagement({
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => setEditingTicket(ticket)}
+                        onClick={() => handleEditTicket(ticket)}
                       >
-                        Edit
+                        Sửa
                       </Button>
                       <Button
                         variant="destructive"
                         size="sm"
                         onClick={() => handleDeleteTicket(ticket.id)}
                       >
-                        Delete
+                        Xóa
                       </Button>
                     </TableCell>
                   </TableRow>
@@ -211,8 +157,8 @@ export default function TicketManagement({
                 <TableRow>
                   <TableCell colSpan={8} className="h-24 text-center">
                     {tickets.length === 0 
-                      ? "No tickets available. Create your first ticket!" 
-                      : "No tickets match your search."}
+                      ? "Chưa có vé nào" 
+                      : "Không tìm thấy vé phù hợp"}
                   </TableCell>
                 </TableRow>
               )}

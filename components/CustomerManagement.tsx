@@ -2,7 +2,6 @@
 "use client";
 
 import { useState } from "react";
-import { Customer } from "@/app/owner/type"; // Adjust the import path as necessary
 import {
   Card,
   CardContent,
@@ -29,11 +28,7 @@ import {
 import { Input } from "@/components/ui/input";
 import CustomerForm from "./CustomerForm";
 import VehicleForm from "./VehicleForm";
-
-interface CustomerManagementProps {
-  customers: Customer[];
-  setCustomers: React.Dispatch<React.SetStateAction<Customer[]>>;
-}
+import type { Customer, CustomerManagementProps } from "@/app/owner/types";
 
 export default function CustomerManagement({ 
   customers, 
@@ -45,34 +40,35 @@ export default function CustomerManagement({
   const [searchTerm, setSearchTerm] = useState("");
 
   const handleAddCustomer = (customer: Omit<Customer, "id" | "vehicles">) => {
-    const newCustomer: Customer = {
-      ...customer,
-      id: `C${customers.length + 1}`,
-      vehicles: []
-    };
-    setCustomers([...customers, newCustomer]);
-    alert("Customer added successfully");
+    setCustomers([
+      ...customers, 
+      { 
+        ...customer, 
+        id: `C${customers.length + 1}`, 
+        vehicles: [] 
+      }
+    ]);
   };
 
   const handleEditCustomer = (customer: Customer) => {
     setCustomers(customers.map((c) => (c.id === customer.id ? customer : c)));
     setEditingCustomer(null);
-    alert("Customer updated successfully");
   };
 
   const handleDeleteCustomer = (id: string) => {
     setCustomers(customers.filter((c) => c.id !== id));
-    alert("Customer deleted successfully");
   };
 
-  const handleAddVehicle = (vehicle: { licensePlate: string; type: string }, customerId: string) => {
+  const handleAddVehicle = (
+    vehicle: { licensePlate: string; type: string }, 
+    customerId: string
+  ) => {
     setCustomers(customers.map((c) => 
       c.id === customerId 
-        ? { ...c, vehicles: [...c.vehicles, vehicle.licensePlate] }
+        ? { ...c, vehicles: [...c.vehicles, `${vehicle.licensePlate} (${vehicle.type})`] }
         : c
     ));
     setAddingVehicleFor(null);
-    alert("Vehicle added to customer successfully");
   };
 
   const filteredCustomers = customers.filter((c) =>
@@ -177,11 +173,12 @@ export default function CustomerManagement({
                 <TableCell>{customer.fullName}</TableCell>
                 <TableCell>{customer.email}</TableCell>
                 <TableCell>{customer.phoneNumber}</TableCell>
-                <TableCell className="flex gap-2">
+                <TableCell>
                   <Button
                     size="sm"
                     variant="outline"
                     onClick={() => setViewingVehicles(customer)}
+                    className="mr-2"
                   >
                     View Vehicles
                   </Button>
@@ -189,6 +186,7 @@ export default function CustomerManagement({
                     size="sm"
                     variant="outline"
                     onClick={() => setAddingVehicleFor(customer)}
+                    className="mr-2"
                   >
                     Add Vehicle
                   </Button>
@@ -196,6 +194,7 @@ export default function CustomerManagement({
                     size="sm"
                     variant="outline"
                     onClick={() => setEditingCustomer(customer)}
+                    className="mr-2"
                   >
                     Edit
                   </Button>

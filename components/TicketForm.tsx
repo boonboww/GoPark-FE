@@ -1,3 +1,5 @@
+"use client";
+
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,118 +18,87 @@ import {
   SelectContent,
   SelectItem,
 } from "@/components/ui/select";
-
-// Interface definitions
-interface Vehicle {
-  id: string;
-  licensePlate: string;
-}
-
-interface Customer {
-  id: string;
-  name: string;
-}
-
-interface Ticket {
-  licensePlate: string;
-  customer: string;
-  type: "Daily" | "Monthly" | "Annual";
-  price: string;
-  floor: string;
-  expiry: string;
-}
-
-interface TicketFormProps {
-  vehicles: Vehicle[];
-  customers: Customer[];
-  onSubmit: (ticket: Ticket) => void;
-  editingTicket?: Ticket | null;
-  onUpdate?: (ticket: Ticket) => void;
-}
+import type { Ticket, TicketFormProps } from "@/app/owner/types";
 
 export default function TicketForm({ 
   vehicles = [], 
   customers = [], 
   onSubmit, 
-  editingTicket = null, 
+  editingTicket, 
   onUpdate 
 }: TicketFormProps) {
-  // State initialization
-  const [ticket, setTicket] = useState<Ticket>({
+  const [ticket, setTicket] = useState<Omit<Ticket, "id">>({
     licensePlate: "",
     customer: "",
     type: "Daily",
-    price: "",
+    price: 0,
     floor: "",
     expiry: "",
   });
 
-  // Effect to handle editing mode
+  const [open, setOpen] = useState(false);
+
   useEffect(() => {
     if (editingTicket) {
-      setTicket(editingTicket);
+      const { id, ...rest } = editingTicket;
+      setTicket(rest);
     } else {
-      resetForm();
+      setTicket({
+        licensePlate: "",
+        customer: "",
+        type: "Daily",
+        price: 0,
+        floor: "",
+        expiry: "",
+      });
     }
-  }, [editingTicket]);
+  }, [editingTicket, open]);
 
-  // Helper function to reset form
-  const resetForm = () => {
-    setTicket({
-      licensePlate: "",
-      customer: "",
-      type: "Daily",
-      price: "",
-      floor: "",
-      expiry: "",
-    });
-  };
-
-  // Form submission handler
-  const handleSubmit = () => {
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
     if (editingTicket && onUpdate) {
-      onUpdate(ticket);
+      onUpdate({ ...ticket, id: editingTicket.id });
     } else {
       onSubmit(ticket);
-      resetForm();
     }
+    setOpen(false);
   };
 
-  // Input change handler
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { id, value } = e.target;
-    setTicket(prev => ({ ...prev, [id]: value }));
+    setTicket(prev => ({ 
+      ...prev, 
+      [id]: id === "price" ? Number(value) : value 
+    }));
   };
 
-  // Select change handler for ticket type
-  const handleTypeChange = (value: "Daily" | "Monthly" | "Annual") => {
-    setTicket(prev => ({ ...prev, type: value }));
+  const handleSelectChange = (field: keyof Omit<Ticket, "id">, value: string) => {
+    setTicket(prev => ({ ...prev, [field]: value }));
   };
 
-  // Check if form is valid for submission
-  const isFormValid = ticket.licensePlate && ticket.customer && ticket.type;
+  const isFormValid = !!ticket.licensePlate && !!ticket.customer && !!ticket.type;
 
   return (
-    <Dialog>
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button className="mb-6 text-white">
-          {editingTicket ? "Edit Ticket" : "Create Ticket"}
+        <Button className="mb-4">
+          {editingTicket ? "Sửa vé" : "Thêm vé mới"}
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>{editingTicket ? "Edit Ticket" : "Create New Ticket"}</DialogTitle>
+          <DialogTitle>{editingTicket ? "Sửa vé" : "Thêm vé mới"}</DialogTitle>
         </DialogHeader>
-        <div className="space-y-4">
-          {/* License Plate Select */}
+        <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <Label htmlFor="licensePlate">License Plate</Label>
+            <Label htmlFor="licensePlate">Biển số xe</Label>
             <Select
               value={ticket.licensePlate}
-              onValueChange={(value) => setTicket({ ...ticket, licensePlate: value })}
+              onValueChange={(value) => handleSelectChange("licensePlate", value)}
+              required
             >
               <SelectTrigger>
-                <SelectValue placeholder="Select license plate" />
+                <SelectValue placeholder="Chọn biển số" />
               </SelectTrigger>
               <SelectContent>
                 {vehicles.map((vehicle) => (
@@ -139,15 +110,15 @@ export default function TicketForm({
             </Select>
           </div>
 
-          {/* Customer Select */}
           <div>
-            <Label htmlFor="customer">Customer</Label>
+            <Label htmlFor="customer">Khách hàng</Label>
             <Select
               value={ticket.customer}
-              onValueChange={(value) => setTicket({ ...ticket, customer: value })}
+              onValueChange={(value) => handleSelectChange("customer", value)}
+              required
             >
               <SelectTrigger>
-                <SelectValue placeholder="Select customer" />
+                <SelectValue placeholder="Chọn khách hàng" />
               </SelectTrigger>
               <SelectContent>
                 {customers.map((customer) => (
@@ -159,69 +130,67 @@ export default function TicketForm({
             </Select>
           </div>
 
-          {/* Ticket Type Select */}
           <div>
-            <Label htmlFor="type">Ticket Type</Label>
+            <Label htmlFor="type">Loại vé</Label>
             <Select
               value={ticket.type}
-              onValueChange={handleTypeChange}
+              onValueChange={(value) => handleSelectChange("type", value)}
+              required
             >
               <SelectTrigger>
-                <SelectValue placeholder="Select ticket type" />
+                <SelectValue placeholder="Chọn loại vé" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="Daily">Daily</SelectItem>
-                <SelectItem value="Monthly">Monthly</SelectItem>
-                <SelectItem value="Annual">Annual</SelectItem>
+                <SelectItem value="Daily">Vé ngày</SelectItem>
+                <SelectItem value="Monthly">Vé tháng</SelectItem>
+                <SelectItem value="Annual">Vé năm</SelectItem>
               </SelectContent>
             </Select>
           </div>
 
-          {/* Price Input */}
           <div>
-            <Label htmlFor="price">Price (VND)</Label>
+            <Label htmlFor="price">Giá vé (VND)</Label>
             <Input
               id="price"
               type="number"
               value={ticket.price}
               onChange={handleInputChange}
-              placeholder="Enter price"
               min="0"
+              step="1000"
+              required
             />
           </div>
 
-          {/* Floor Input */}
           <div>
-            <Label htmlFor="floor">Floor</Label>
+            <Label htmlFor="floor">Tầng đỗ</Label>
             <Input
               id="floor"
               value={ticket.floor}
               onChange={handleInputChange}
-              placeholder="Enter floor number"
+              required
             />
           </div>
 
-          {/* Expiry Date Input */}
           <div>
-            <Label htmlFor="expiry">Expiry Date</Label>
+            <Label htmlFor="expiry">Ngày hết hạn</Label>
             <Input
               id="expiry"
               type="date"
               value={ticket.expiry}
               onChange={handleInputChange}
               min={new Date().toISOString().split('T')[0]}
+              required
             />
           </div>
 
-          {/* Submit Button */}
           <Button 
-            onClick={handleSubmit} 
-            className="w-full"
+            type="submit"
+            className="w-full mt-4"
             disabled={!isFormValid}
           >
-            {editingTicket ? "Update Ticket" : "Create Ticket"}
+            {editingTicket ? "Cập nhật vé" : "Thêm vé"}
           </Button>
-        </div>
+        </form>
       </DialogContent>
     </Dialog>
   );

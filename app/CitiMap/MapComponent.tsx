@@ -1,8 +1,9 @@
 "use client";
 import { useEffect, useMemo } from "react";
+import dynamic from "next/dynamic";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
-import { Parking, CITY_CENTERS } from "@/app/CitiMap/types"; 
+import { Parking, CITY_CENTERS } from "./types";
 
 interface MapComponentProps {
   parkings: Parking[];
@@ -11,7 +12,7 @@ interface MapComponentProps {
   onMarkerClick: (parking: Parking) => void;
 }
 
-export const MapComponent = ({ 
+const MapComponent = ({ 
   parkings, 
   city, 
   onMapInit,
@@ -27,7 +28,10 @@ export const MapComponent = ({
   }), []);
 
   useEffect(() => {
-    // Initialize map
+    if (typeof window === "undefined") {
+      return;
+    }
+
     const center = CITY_CENTERS[city] || [10.762622, 106.660172];
     const mapInstance = L.map("map").setView(center, 13);
     
@@ -38,7 +42,6 @@ export const MapComponent = ({
     mapInstance.zoomControl.setPosition("topright");
     onMapInit(mapInstance);
 
-    // Add markers
     parkings.forEach((p) => {
       const [longitude, latitude] = p.location.coordinates;
       const popupContent = `
@@ -47,10 +50,7 @@ export const MapComponent = ({
               class="w-full h-24 object-cover mb-2 rounded-md">
           <strong class="text-base">${p.name}</strong><br>
           <span class="text-gray-600">Địa chỉ: ${p.address}</span><br>
-          <span class="text-gray-600">Giá: ${p.pricePerHour.toLocaleString()} VNĐ/giờ</span><br>
-          <button class="mt-2 inline-block bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600">
-            Xem chi tiết
-          </button>
+          <span class="text-gray-600">Giá: ${p.pricePerHour.toLocaleString()} VNĐ/giờ</span>
         </div>
       `;
 
@@ -58,9 +58,7 @@ export const MapComponent = ({
         .addTo(mapInstance)
         .bindPopup(popupContent);
 
-      marker.on("popupopen", () => {
-        onMarkerClick(p);
-      });
+      marker.on("popupopen", () => onMarkerClick(p));
     });
 
     return () => {
@@ -70,3 +68,5 @@ export const MapComponent = ({
 
   return <div id="map" className="w-full h-full"></div>;
 };
+
+export default dynamic(() => Promise.resolve(MapComponent), { ssr: false });
