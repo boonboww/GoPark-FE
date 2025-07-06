@@ -13,7 +13,7 @@ interface ParkingDetailProps {
 export const ParkingDetail = ({ parking, arriving, leaving, onBack, onNavigate }: ParkingDetailProps) => (
   <div>
     <button onClick={onBack} className="flex items-center mb-4 text-blue-600 hover:text-blue-800 transition-colors">
-      <ArrowLeft className="w-5 h-5 mr-2"/> Quay lại danh sách
+      <ArrowLeft className="w-5 h-5 mr-2"/> Back to List
     </button>
 
     <div className="border border-gray-200 p-6 rounded-xl shadow-lg bg-white">
@@ -23,10 +23,10 @@ export const ParkingDetail = ({ parking, arriving, leaving, onBack, onNavigate }
       <h3 className="text-2xl font-bold text-gray-800 mb-3">{parking.name}</h3>
       
       <div className="space-y-2 text-gray-600">
-        <p className="text-sm"><span className="font-medium">Địa chỉ:</span> {parking.address}</p>
-        <p className="text-sm"><span className="font-medium">Giá:</span> {parking.pricePerHour.toLocaleString()} VNĐ/giờ</p>
+        <p className="text-sm"><span className="font-medium">Address</span> {parking.address}</p>
+        <p className="text-sm"><span className="font-medium">Price:</span> {parking.pricePerHour.toLocaleString()} VNĐ/hour</p>
         <p className="text-sm">
-          <span className="font-medium">Trạng thái:</span>{" "}
+          <span className="font-medium">Status:</span>{" "}
           <span className={parking.isActive ? "text-green-600 font-bold" : "text-red-600 font-bold"}>
             {parking.isActive ? "Còn trống" : "Hết chỗ"}
           </span>
@@ -51,14 +51,14 @@ export const ParkingDetail = ({ parking, arriving, leaving, onBack, onNavigate }
         
         {arriving && (
           <p className="text-sm">
-            <span className="font-medium">Thời gian đến:</span>{" "}
+            <span className="font-medium">Arrival Time:</span>{" "}
             {arriving.toLocaleString("vi-VN", { dateStyle: "short", timeStyle: "short" })}
           </p>
         )}
         
         {leaving && (
           <p className="text-sm">
-            <span className="font-medium">Thời gian rời:</span>{" "}
+            <span className="font-medium">Departure Time:</span>{" "}
             {leaving.toLocaleString("vi-VN", { dateStyle: "short", timeStyle: "short" })}
           </p>
         )}
@@ -66,7 +66,7 @@ export const ParkingDetail = ({ parking, arriving, leaving, onBack, onNavigate }
 
       <button onClick={onNavigate}
         className="mt-6 w-full bg-gradient-to-r from-blue-500 to-indigo-600 text-white py-3 rounded-lg hover:from-blue-600 hover:to-indigo-700 transition-all">
-        Chỉ đường
+        Get Directions
       </button>
     </div>
   </div>

@@ -30,13 +30,13 @@ export default function HeroSection() {
   const [isSearching, setIsSearching] = useState(false);
 
   const allLocations: LocationSuggestion[] = useMemo(() => [
-    { id: "hcm", name: "Ho Chi Minh" },
-    { id: "hn", name: "Hanoi" },
-    { id: "dn", name: "Da Nang" },
-    { id: "bh", name: "Bien Hoa" },
+    { id: "hcm", name: "Hồ Chí Minh" },
+    { id: "hn", name: "Hà Nội" },
+    { id: "dn", name: "Đà Nẵng" },
+    { id: "bh", name: "Biên Hòa" },
     { id: "nt", name: "Nha Trang" },
-    { id: "hue", name: "Hue" },
-    { id: "ct", name: "Can Tho" },
+    { id: "hue", name: "Huế" },
+    { id: "ct", name: "Cần Thơ" },
   ], []);
 
   const handleLocationSearch = useCallback(
@@ -66,7 +66,7 @@ export default function HeroSection() {
 
   const handleFindParking = async () => {
     if (!selectedLocation) {
-      toast.warning("Please select a city");
+      toast.warning("Vui lòng chọn một thành phố");
       return;
     }
 
@@ -90,11 +90,11 @@ export default function HeroSection() {
           )}&leaving=${encodeURIComponent(leaving.toISOString())}`
         );
       } else {
-        toast.info("No parking lots found in this city");
+        toast.info("No parking spots found in this city");
       }
     } catch (error) {
       console.error("Error fetching parking lots:", error);
-      toast.error("An error occurred while searching for parking");
+      toast.error("An error occurred while searching for parking spots. Please try again later");
     } finally {
       setIsSearching(false);
     }
@@ -102,19 +102,19 @@ export default function HeroSection() {
 
   return (
     <section className="relative z-10 flex flex-col items-center justify-center h-full text-center px-4">
-      {/* Header text */}
+      {/* Giới thiệu chữ */}
       <h1 className="text-3xl md:text-5xl font-bold text-white drop-shadow-md mb-4">
-        Find Parking Quickly & Conveniently
+        Smart Parking – Fast, Easy & Reliable
       </h1>
       <p className="text-white text-lg md:text-xl mb-8 drop-shadow-sm max-w-2xl">
-        Reserve safe parking spots nationwide with just a few clicks.
+        Reserve safe parking nationwide — easily with just a few clicks
       </p>
 
-      {/* Search Form */}
+      {/* Form Tìm kiếm */}
       <div className="bg-white/95 p-6 rounded-2xl w-full max-w-md transform hover:scale-105 transition-transform duration-300">
         <div className="relative">
           <Input
-            placeholder="Enter city name..."
+            placeholder="Search by city..."
             value={location}
             onChange={(e) => handleLocationChange(e.target.value)}
             className="font-bold text-base placeholder:font-bold placeholder:text-base w-full"
@@ -225,7 +225,7 @@ export default function HeroSection() {
             onClick={handleFindParking}
             disabled={isSearching}
           >
-            {isSearching ? "Searching..." : "Find Parking"}
+            {isSearching ? "Đang tìm kiếm..." : "Tìm bãi đỗ"}
           </Button>
         </div>
       )}

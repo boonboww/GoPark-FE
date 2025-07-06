@@ -43,11 +43,11 @@ const CitiMap = () => {
         setFilteredParkings(validParkings);
 
         if (validParkings.length === 0) {
-          toast.info("Không tìm thấy bãi đỗ nào ở thành phố này");
+          toast.info("Sorry, no parking spots found in this city");
         }
       } catch (error) {
         console.error("Error fetching parking lots:", error);
-        toast.error("Có lỗi xảy ra khi tải dữ liệu bãi đỗ");
+        toast.error("An error occurred while loading parking data. Please try again later.");
       } finally {
         setLoading(false);
       }
@@ -58,7 +58,7 @@ const CitiMap = () => {
 
   const findNearbyParkings = useCallback(async () => {
     if (!navigator.geolocation) {
-      toast.warning("Trình duyệt không hỗ trợ định vị");
+      toast.warning("This browser doesn't support location services.");
       return;
     }
 
@@ -102,11 +102,11 @@ const CitiMap = () => {
       setSelectedParking(null);
 
       if (nearby.length === 0) {
-        toast.info("Không có bãi đỗ nào trong bán kính 3km");
+        toast.info("Sorry, we couldn't find any parking within 3km.");
       }
     } catch (err) {
       console.error(err);
-      toast.error("Không thể lấy vị trí. Vui lòng bật GPS.");
+      toast.error("Failed to detect your location. Please enable location services.");
     } finally {
       setIsLocating(false);
     }
@@ -130,7 +130,7 @@ const CitiMap = () => {
 
   const navigateToParking = useCallback((lat: number, lon: number) => {
     if (!userCoords) {
-      toast.warning("Vui lòng định vị vị trí của bạn trước");
+      toast.warning("Please enable location services first");
       return;
     }
     const url = `https://www.google.com/maps/dir/?api=1&origin=${userCoords[0]},${userCoords[1]}&destination=${lat},${lon}&travelmode=driving`;

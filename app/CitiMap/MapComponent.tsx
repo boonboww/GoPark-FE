@@ -50,7 +50,7 @@ const MapComponent = ({
               class="w-full h-24 object-cover mb-2 rounded-md">
           <strong class="text-base">${p.name}</strong><br>
           <span class="text-gray-600">Địa chỉ: ${p.address}</span><br>
-          <span class="text-gray-600">Giá: ${p.pricePerHour.toLocaleString()} VNĐ/giờ</span>
+          <span class="text-gray-600">Giá: ${p.pricePerHour.toLocaleString()} VNĐ/hour</span>
         </div>
       `;
 
