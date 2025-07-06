@@ -15,7 +15,7 @@ const Header = () => {
   }, []);
 
   return (
-    <header className="w-full px-6 py-4 flex justify-between items-center bg-white shadow">
+    <header className="w-full fixed z-[100] left-0 top-0 px-6 py-4 flex justify-between items-center bg-white shadow">
    
       <div className="text-2xl font-bold cursor-pointer" onClick={() => router.push("/")}>
         <img src="/logo.png" alt="GoPark Logo" className="h-10" />
