@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Customer } from "@/components/CustomerManagement";
+import type { Customer } from "@/app/owner/types"; // Sửa dòng import này
 import { useState } from "react";
 
 interface CustomerFormProps {

@@ -3,17 +3,13 @@ import { useState, useEffect, useCallback } from "react";
 import { useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import { Menu, X, LocateFixed, Loader2 } from "lucide-react";
-import { MapComponent } from "@/app/CitiMap/MapComponent";
-import { ParkingDetail } from "@/app/CitiMap/ParkingDetail";
-import { ParkingList } from "@/app/CitiMap/ParkingList";
-import * as L from "leaflet";
-import {
-  Parking,
-  API_BASE_URL,
-  DEFAULT_RADIUS_KM,
-} from "./types";
+import MapComponent from "./MapComponent";
+import { ParkingDetail } from "./ParkingDetail";
+import { ParkingList } from "./ParkingList";
+import { Parking, API_BASE_URL, DEFAULT_RADIUS_KM } from "./types";
+import L from "leaflet";
 
-export default function CitiMap() {
+const CitiMap = () => {
   const searchParams = useSearchParams();
   const city = searchParams.get("city")?.toLowerCase() || "";
   const arriving = searchParams.get("arriving") ? new Date(searchParams.get("arriving")!) : null;
@@ -81,21 +77,17 @@ export default function CitiMap() {
 
       map?.setView([latitude, longitude], 14);
 
-      // Tạo icon user
       const userIcon = L.icon({
-        iconUrl: "/user-location.png", // Đặt file PNG trong public
+        iconUrl: "/user-location.png",
         iconSize: [30, 30],
         iconAnchor: [15, 15],
       });
 
-      if (userMarker) {
-        map?.removeLayer(userMarker);
-      }
+      if (userMarker) map?.removeLayer(userMarker);
 
       const marker = L.marker([latitude, longitude], { icon: userIcon }).addTo(map!);
       setUserMarker(marker);
 
-      // Lọc bãi gần
       const nearby = parkings.filter((p) => {
         const dist = getDistanceFromLatLonInKm(
           latitude,
@@ -120,12 +112,7 @@ export default function CitiMap() {
     }
   }, [map, parkings, userMarker]);
 
-  const getDistanceFromLatLonInKm = (
-    lat1: number,
-    lon1: number,
-    lat2: number,
-    lon2: number
-  ) => {
+  const getDistanceFromLatLonInKm = (lat1: number, lon1: number, lat2: number, lon2: number) => {
     const R = 6371;
     const dLat = deg2rad(lat2 - lat1);
     const dLon = deg2rad(lon2 - lon1);
@@ -154,7 +141,7 @@ export default function CitiMap() {
     return (
       <div className="flex items-center justify-center h-screen">
         <div className="flex flex-col items-center">
-          <Loader2 className="w-12 h-12 animate-spin text-blue-500 mb-4" />
+          <Loader2 className="w-12 h-12 animate-spin text-blue-500 mb-4"/>
           <span className="text-lg font-medium">Đang tải dữ liệu bãi đỗ...</span>
         </div>
       </div>
@@ -165,12 +152,10 @@ export default function CitiMap() {
     <div className="flex h-screen bg-gray-100 relative">
       {isPanelOpen && (
         <div className="fixed top-0 left-0 w-full sm:w-96 h-full z-[1000] bg-white bg-opacity-95 backdrop-blur-sm p-4 border-r border-gray-200 shadow-lg overflow-y-auto">
-          <button
-            onClick={() => setIsPanelOpen(false)}
+          <button onClick={() => setIsPanelOpen(false)}
             className="absolute top-4 right-4 text-gray-600 hover:text-gray-800 transition-colors"
-            aria-label="Close panel"
-          >
-            <X className="w-6 h-6" />
+            aria-label="Close panel">
+            <X className="w-6 h-6"/>
           </button>
 
           {selectedParking ? (
@@ -199,26 +184,18 @@ export default function CitiMap() {
 
       <div className="w-full h-full relative">
         {!isPanelOpen && (
-          <button
-            onClick={() => setIsPanelOpen(true)}
+          <button onClick={() => setIsPanelOpen(true)}
             className="absolute top-4 left-4 z-[1000] bg-white p-2 rounded-md shadow-md hover:bg-gray-100 transition-colors"
-            aria-label="Open panel"
-          >
-            <Menu className="w-6 h-6 text-gray-600" />
+            aria-label="Open panel">
+            <Menu className="w-6 h-6 text-gray-600"/>
           </button>
         )}
 
-        <button
-          onClick={findNearbyParkings}
+        <button onClick={findNearbyParkings}
           className="absolute top-4 right-4 z-[1000] bg-white p-2 rounded-md shadow-md hover:bg-gray-100 transition-colors"
           aria-label="Locate me"
-          disabled={isLocating}
-        >
-          {isLocating ? (
-            <Loader2 className="w-6 h-6 animate-spin" />
-          ) : (
-            <LocateFixed className="w-6 h-6 text-blue-500" />
-          )}
+          disabled={isLocating}>
+          {isLocating ? <Loader2 className="w-6 h-6 animate-spin"/> : <LocateFixed className="w-6 h-6 text-blue-500"/>}
         </button>
 
         <MapComponent
@@ -230,4 +207,6 @@ export default function CitiMap() {
       </div>
     </div>
   );
-}
+};
+
+export default CitiMap;

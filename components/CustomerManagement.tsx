@@ -1,3 +1,6 @@
+// components/CustomerManagement.tsx
+"use client";
+
 import { useState } from "react";
 import {
   Card,
@@ -25,56 +28,47 @@ import {
 import { Input } from "@/components/ui/input";
 import CustomerForm from "./CustomerForm";
 import VehicleForm from "./VehicleForm";
+import type { Customer, CustomerManagementProps } from "@/app/owner/types";
 
-// Define interface for customer
-export interface Customer {
-  id: string;
-  fullName: string;
-  idNumber: string;
-  dateOfBirth: string;
-  gender: string;
-  email: string;
-  phoneNumber: string;
-  address: string;
-  vehicles: string[];
-}
-
-// Define interface for props
-interface CustomerManagementProps {
-  customers: Customer[];
-  setCustomers: React.Dispatch<React.SetStateAction<Customer[]>>;
-}
-
-export default function CustomerManagement({ customers, setCustomers }: CustomerManagementProps) {
+export default function CustomerManagement({ 
+  customers, 
+  setCustomers 
+}: CustomerManagementProps) {
   const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null);
   const [viewingVehicles, setViewingVehicles] = useState<Customer | null>(null);
   const [addingVehicleFor, setAddingVehicleFor] = useState<Customer | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
 
-  const handleAddCustomer = (customer: Customer) => {
-    setCustomers([...customers, { ...customer, id: `C${customers.length + 1}`, vehicles: [] }]);
-    alert("Customer added");
+  const handleAddCustomer = (customer: Omit<Customer, "id" | "vehicles">) => {
+    setCustomers([
+      ...customers, 
+      { 
+        ...customer, 
+        id: `C${customers.length + 1}`, 
+        vehicles: [] 
+      }
+    ]);
   };
 
   const handleEditCustomer = (customer: Customer) => {
     setCustomers(customers.map((c) => (c.id === customer.id ? customer : c)));
     setEditingCustomer(null);
-    alert("Customer updated");
   };
 
   const handleDeleteCustomer = (id: string) => {
     setCustomers(customers.filter((c) => c.id !== id));
-    alert("Customer deleted");
   };
 
-  const handleAddVehicle = (vehicle: { licensePlate: string; type: string }, customerId: string) => {
+  const handleAddVehicle = (
+    vehicle: { licensePlate: string; type: string }, 
+    customerId: string
+  ) => {
     setCustomers(customers.map((c) => 
       c.id === customerId 
         ? { ...c, vehicles: [...c.vehicles, `${vehicle.licensePlate} (${vehicle.type})`] }
         : c
     ));
     setAddingVehicleFor(null);
-    alert("Vehicle added");
   };
 
   const filteredCustomers = customers.filter((c) =>

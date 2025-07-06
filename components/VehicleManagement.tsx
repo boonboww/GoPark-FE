@@ -1,3 +1,4 @@
+// components/VehicleManagement.tsx
 "use client";
 
 import {
@@ -15,57 +16,33 @@ import {
   SelectItem,
 } from "@/components/ui/select";
 import { useState } from "react";
+import type { 
+  Vehicle, 
+  Floor, 
+  ParkingSlot,
+  VehicleManagementProps 
+} from "@/app/owner/types";
 
-interface Vehicle {
-  id: string;
-  licensePlate: string;
-  type: string;
-  owner: string;
-  status: "Parked" | "Reserved" | "Available";
-  plateImage?: string;
-}
-
-interface ParkingSlot {
-  number: number;
-  status: "available" | "occupied" | "reserved";
-  vehicle?: Vehicle;
-}
-
-interface Floor {
-  number: number;
-  slots: ParkingSlot[];
-}
-
-interface VehicleManagementProps {
-  vehicles: Vehicle[];
-}
-
-export default function VehicleManagement({ vehicles }: VehicleManagementProps) {
+export default function VehicleManagement({ 
+  vehicles, 
+  setVehicles,
+  customers 
+}: VehicleManagementProps) {
   const [selectedFloor, setSelectedFloor] = useState<number>(1);
-
-  // ✅ Khởi tạo: Tất cả available, chỉ một số reserved
   const [parkingFloors, setParkingFloors] = useState<Floor[]>(() => [
     {
       number: 1,
-      slots: Array.from({ length: 20 }, (_, i) => {
-        const isReserved = Math.random() < 0.3; // 30% reserved, 70% available
-        return {
-          number: i + 1,
-          status: isReserved ? "reserved" : "available",
-          vehicle: undefined,
-        };
-      }),
+      slots: Array.from({ length: 20 }, (_, i) => ({
+        number: i + 1,
+        status: Math.random() < 0.3 ? "reserved" : "available" as const,
+      })),
     },
     {
       number: 2,
-      slots: Array.from({ length: 20 }, (_, i) => {
-        const isReserved = Math.random() < 0.3; // 30% reserved
-        return {
-          number: i + 1,
-          status: isReserved ? "reserved" : "available",
-          vehicle: undefined,
-        };
-      }),
+      slots: Array.from({ length: 20 }, (_, i) => ({
+        number: i + 1,
+        status: Math.random() < 0.3 ? "reserved" : "available" as const,
+      })),
     },
   ]);
 
@@ -74,10 +51,8 @@ export default function VehicleManagement({ vehicles }: VehicleManagementProps) 
   const [qrCodeUrl, setQrCodeUrl] = useState<string | null>(null);
   const [showModal, setShowModal] = useState(false);
 
-  const currentFloor =
-    parkingFloors.find((floor) => floor.number === selectedFloor) || parkingFloors[0];
+  const currentFloor = parkingFloors.find((floor) => floor.number === selectedFloor) || parkingFloors[0];
 
-  // ✅ Danh sách xe đỗ (tính từ slots occupied)
   const parkedVehicles = parkingFloors
     .flatMap((floor) => floor.slots)
     .filter((slot) => slot.status === "occupied" && slot.vehicle)
