@@ -1,4 +1,8 @@
+// components/TicketManagement.tsx
+"use client";
+
 import { useState } from "react";
+import { Ticket, Vehicle, Customer } from "@/app/owner/type"; // Adjust the import path as necessary
 import {
   Card,
   CardContent,
@@ -17,64 +21,50 @@ import {
   TableHead,
 } from "@/components/ui/table";
 import { Search } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import TicketForm from "./TicketForm";
-
-// Type definitions
-interface Vehicle {
-  id: string;
-  licensePlate: string;
-}
-
-interface Customer {
-  id: string;
-  name: string;
-}
-
-interface Ticket {
-  id: string;
-  licensePlate: string;
-  customer: string;
-  type: "Daily" | "Monthly" | "Annual";
-  price: string;
-  floor: string;
-  expiry: string;
-}
 
 interface TicketManagementProps {
   tickets: Ticket[];
   setTickets: React.Dispatch<React.SetStateAction<Ticket[]>>;
-  vehicles: Vehicle[];
-  customers: Customer[];
+  vehicles: Pick<Vehicle, 'id' | 'licensePlate'>[];
+  customers: Pick<Customer, 'id' | 'fullName'>[];
 }
 
 export default function TicketManagement({ 
   tickets, 
-  setTickets, 
+  setTickets,
   vehicles, 
   customers 
 }: TicketManagementProps) {
-  // State management
-  const [searchTerm, setSearchTerm] = useState<string>("");
+  const [searchTerm, setSearchTerm] = useState("");
   const [editingTicket, setEditingTicket] = useState<Ticket | null>(null);
+  const [showForm, setShowForm] = useState(false);
 
-  // Handler functions
+  // Handle add new ticket
   const handleAddTicket = (ticketData: Omit<Ticket, 'id'>) => {
     const newTicket: Ticket = {
       ...ticketData,
-      id: `T${Date.now()}` // Better ID generation using timestamp
+      id: `T${Date.now()}`,
+      price: Number(ticketData.price)
     };
     setTickets([...tickets, newTicket]);
+    setShowForm(false);
   };
 
-  const handleEditTicket = (ticket: Ticket) => {
-    setEditingTicket(ticket);
-  };
-
+  // Handle update ticket
   const handleUpdateTicket = (updatedTicket: Ticket) => {
     setTickets(tickets.map(t => t.id === updatedTicket.id ? updatedTicket : t));
     setEditingTicket(null);
   };
 
+  // Handle delete ticket
   const handleDeleteTicket = (id: string) => {
     setTickets(tickets.filter(t => t.id !== id));
   };
@@ -82,19 +72,28 @@ export default function TicketManagement({
   // Filter tickets based on search term
   const filteredTickets = tickets.filter(ticket =>
     ticket.licensePlate.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    ticket.customer.toLowerCase().includes(searchTerm.toLowerCase())
+    ticket.customer.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    ticket.type.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   // Format date for display
   const formatDate = (dateString: string) => {
     if (!dateString) return "-";
     const date = new Date(dateString);
-    return date.toLocaleDateString();
+    return date.toLocaleDateString('vi-VN');
+  };
+
+  // Format currency
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('vi-VN', {
+      style: 'currency',
+      currency: 'VND'
+    }).format(amount);
   };
 
   return (
     <Card className="shadow-lg">
-      <CardHeader >
+      <CardHeader>
         <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
           <div>
             <CardTitle className="text-2xl font-bold">Ticket Management</CardTitle>
@@ -103,27 +102,56 @@ export default function TicketManagement({
             </CardDescription>
           </div>
           
-          <div className="relative w-full md:w-64">
-            <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Search tickets..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-9"
-            />
+          <div className="flex flex-col md:flex-row gap-4">
+            <div className="relative w-full md:w-64">
+              <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search tickets..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-9"
+              />
+            </div>
+            <Dialog open={showForm} onOpenChange={setShowForm}>
+              <DialogTrigger asChild>
+                <Button>Add Ticket</Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Add New Ticket</DialogTitle>
+                </DialogHeader>
+                <TicketForm
+                  vehicles={vehicles}
+                  customers={customers}
+                  onSubmit={handleAddTicket}
+                  onCancel={() => setShowForm(false)}
+                />
+              </DialogContent>
+            </Dialog>
           </div>
         </div>
       </CardHeader>
 
       <CardContent className="p-6 space-y-6">
-        <TicketForm
-          vehicles={vehicles}
-          customers={customers}
-          onSubmit={handleAddTicket}
-          editingTicket={editingTicket}
-          onUpdate={handleUpdateTicket}
-        />
+        {/* Edit Ticket Dialog */}
+        <Dialog open={!!editingTicket} onOpenChange={() => setEditingTicket(null)}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Edit Ticket</DialogTitle>
+            </DialogHeader>
+            {editingTicket && (
+              <TicketForm
+                ticket={editingTicket}
+                vehicles={vehicles}
+                customers={customers}
+                onSubmit={handleUpdateTicket}
+                onCancel={() => setEditingTicket(null)}
+              />
+            )}
+          </DialogContent>
+        </Dialog>
 
+        {/* Tickets Table */}
         <div className="rounded-md border">
           <Table>
             <TableHeader>
@@ -157,7 +185,7 @@ export default function TicketManagement({
                       </span>
                     </TableCell>
                     <TableCell className="text-right">
-                      {parseInt(ticket.price).toLocaleString()} VND
+                      {formatCurrency(ticket.price)}
                     </TableCell>
                     <TableCell>{ticket.floor}</TableCell>
                     <TableCell>{formatDate(ticket.expiry)}</TableCell>
@@ -165,7 +193,7 @@ export default function TicketManagement({
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => handleEditTicket(ticket)}
+                        onClick={() => setEditingTicket(ticket)}
                       >
                         Edit
                       </Button>

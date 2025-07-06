@@ -1,5 +1,8 @@
+// components/VehicleManagement.tsx
 "use client";
 
+import { useState } from "react";
+import { Vehicle, Customer, ParkingSlot, Floor } from "@/app/owner/type"; // Adjust the import path as necessary
 import {
   Card,
   CardContent,
@@ -14,94 +17,93 @@ import {
   SelectContent,
   SelectItem,
 } from "@/components/ui/select";
-import { useState } from "react";
-
-interface Vehicle {
-  id: string;
-  licensePlate: string;
-  type: string;
-  owner: string;
-  status: "Parked" | "Reserved" | "Available";
-  plateImage?: string;
-}
-
-interface ParkingSlot {
-  number: number;
-  status: "available" | "occupied" | "reserved";
-  vehicle?: Vehicle;
-}
-
-interface Floor {
-  number: number;
-  slots: ParkingSlot[];
-}
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import VehicleForm from "./VehicleForm";
 
 interface VehicleManagementProps {
   vehicles: Vehicle[];
+  setVehicles: React.Dispatch<React.SetStateAction<Vehicle[]>>;
+  customers: Customer[];
 }
 
-export default function VehicleManagement({ vehicles }: VehicleManagementProps) {
+export default function VehicleManagement({ 
+  vehicles, 
+  setVehicles,
+  customers
+}: VehicleManagementProps) {
   const [selectedFloor, setSelectedFloor] = useState<number>(1);
-
-  // ✅ Khởi tạo: Tất cả available, chỉ một số reserved
-  const [parkingFloors, setParkingFloors] = useState<Floor[]>(() => [
-    {
-      number: 1,
-      slots: Array.from({ length: 20 }, (_, i) => {
-        const isReserved = Math.random() < 0.3; // 30% reserved, 70% available
-        return {
-          number: i + 1,
-          status: isReserved ? "reserved" : "available",
-          vehicle: undefined,
-        };
-      }),
-    },
-    {
-      number: 2,
-      slots: Array.from({ length: 20 }, (_, i) => {
-        const isReserved = Math.random() < 0.3; // 30% reserved
-        return {
-          number: i + 1,
-          status: isReserved ? "reserved" : "available",
-          vehicle: undefined,
-        };
-      }),
-    },
-  ]);
-
   const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null);
   const [selectedSlot, setSelectedSlot] = useState<ParkingSlot | null>(null);
   const [qrCodeUrl, setQrCodeUrl] = useState<string | null>(null);
-  const [showModal, setShowModal] = useState(false);
+  const [showDetailsModal, setShowDetailsModal] = useState(false);
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
 
-  const currentFloor =
-    parkingFloors.find((floor) => floor.number === selectedFloor) || parkingFloors[0];
+  // Initialize parking floors with sample data
+  const [parkingFloors, setParkingFloors] = useState<Floor[]>(() => [
+    {
+      number: 1,
+      slots: Array.from({ length: 20 }, (_, i) => ({
+        number: i + 1,
+        status: Math.random() < 0.3 ? "reserved" : "available",
+        vehicle: undefined,
+      })),
+    },
+    {
+      number: 2,
+      slots: Array.from({ length: 20 }, (_, i) => ({
+        number: i + 1,
+        status: Math.random() < 0.3 ? "reserved" : "available",
+        vehicle: undefined,
+      })),
+    },
+  ]);
 
-  // ✅ Danh sách xe đỗ (tính từ slots occupied)
+  // Get current floor data
+  const currentFloor = parkingFloors.find((floor) => floor.number === selectedFloor) || parkingFloors[0];
+
+  // Get list of currently parked vehicles
   const parkedVehicles = parkingFloors
     .flatMap((floor) => floor.slots)
     .filter((slot) => slot.status === "occupied" && slot.vehicle)
     .map((slot) => slot.vehicle!);
 
+  // Filter vehicles based on search term
+  const filteredVehicles = vehicles.filter(vehicle =>
+    vehicle.licensePlate.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    vehicle.owner.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    vehicle.type.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  // Get color for slot status
   const getStatusColor = (status: string) => {
     switch (status) {
       case "available":
-        return "bg-green-500";
+        return "bg-green-500 hover:bg-green-600";
       case "occupied":
-        return "bg-red-500";
+        return "bg-red-500 hover:bg-red-600";
       case "reserved":
-        return "bg-yellow-500";
+        return "bg-yellow-500 hover:bg-yellow-600";
       default:
-        return "bg-gray-500";
+        return "bg-gray-500 hover:bg-gray-600";
     }
   };
 
+  // Handle slot click event
   const handleSlotClick = (slot: ParkingSlot) => {
     if (slot.status === "occupied" && slot.vehicle) {
       setSelectedVehicle(slot.vehicle);
       setSelectedSlot(slot);
       generateQRCode(slot.vehicle.id);
-      setShowModal(true);
+      setShowDetailsModal(true);
     } else if (slot.status === "reserved") {
       const reservedVehicle: Vehicle = {
         id: `RES-${slot.number}`,
@@ -113,16 +115,18 @@ export default function VehicleManagement({ vehicles }: VehicleManagementProps) 
       setSelectedVehicle(reservedVehicle);
       setSelectedSlot(slot);
       generateQRCode(reservedVehicle.id);
-      setShowModal(true);
+      setShowDetailsModal(true);
     }
   };
 
+  // Generate fake QR code
   const generateQRCode = (id: string) => {
     const fakeQR = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${id}-${Date.now()}`;
     setQrCodeUrl(fakeQR);
   };
 
-  const handleConfirm = () => {
+  // Confirm parking action
+  const handleConfirmParking = () => {
     if (selectedSlot && selectedVehicle) {
       setParkingFloors((prevFloors) =>
         prevFloors.map((floor) => {
@@ -137,7 +141,7 @@ export default function VehicleManagement({ vehicles }: VehicleManagementProps) 
                   vehicle: {
                     ...selectedVehicle,
                     status: "Parked",
-                    plateImage: `/bienso.png`,
+                    plateImage: "/bienso.png",
                   },
                 };
               }
@@ -146,174 +150,311 @@ export default function VehicleManagement({ vehicles }: VehicleManagementProps) 
           };
         })
       );
+      setShowDetailsModal(false);
     }
-    setShowModal(false);
+  };
+
+  // Add new vehicle
+  const handleAddVehicle = (vehicleData: Omit<Vehicle, "id">) => {
+    const newVehicle: Vehicle = {
+      ...vehicleData,
+      id: `V${vehicles.length + 1}`,
+      status: "Available"
+    };
+    setVehicles([...vehicles, newVehicle]);
+    setShowAddModal(false);
+  };
+
+  // Delete vehicle
+  const handleDeleteVehicle = (id: string) => {
+    setVehicles(vehicles.filter(v => v.id !== id));
   };
 
   return (
     <div className="space-y-6">
+      {/* Main Card */}
       <Card>
         <CardHeader>
-          <div className="flex justify-between items-center">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
-              <CardTitle>Parking Slots</CardTitle>
-              <CardDescription>View and manage parking slots</CardDescription>
+              <CardTitle className="text-2xl font-bold">Vehicle Management</CardTitle>
+              <CardDescription>Manage all registered vehicles and parking slots</CardDescription>
             </div>
-            <Select
-              value={selectedFloor.toString()}
-              onValueChange={(value) => setSelectedFloor(parseInt(value))}
-            >
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Select floor" />
-              </SelectTrigger>
-              <SelectContent>
-                {parkingFloors.map((floor) => (
-                  <SelectItem key={floor.number} value={floor.number.toString()}>
-                    Floor {floor.number}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <div className="flex flex-col md:flex-row gap-4">
+              <Input
+                placeholder="Search vehicles..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full md:w-64"
+              />
+              <div className="flex gap-4">
+                <Select
+                  value={selectedFloor.toString()}
+                  onValueChange={(value) => setSelectedFloor(parseInt(value))}
+                >
+                  <SelectTrigger className="w-[120px]">
+                    <SelectValue placeholder="Select floor" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {parkingFloors.map((floor) => (
+                      <SelectItem key={floor.number} value={floor.number.toString()}>
+                        Floor {floor.number}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Dialog open={showAddModal} onOpenChange={setShowAddModal}>
+                  <DialogTrigger asChild>
+                    <Button className="whitespace-nowrap">Add Vehicle</Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Add New Vehicle</DialogTitle>
+                    </DialogHeader>
+                    <VehicleForm
+                      customers={customers}
+                      onSubmit={handleAddVehicle}
+                      onCancel={() => setShowAddModal(false)}
+                    />
+                  </DialogContent>
+                </Dialog>
+              </div>
+            </div>
           </div>
         </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-5 gap-4">
-            {currentFloor.slots.map((slot) => (
-              <div
-                key={slot.number}
-                onClick={() => handleSlotClick(slot)}
-                className={`p-4 rounded-lg text-white text-center ${getStatusColor(
-                  slot.status
-                )} h-24 flex flex-col justify-center items-center cursor-pointer`}
-                title={`Slot ${slot.number} - ${slot.status}`}
-              >
-                <div className="font-bold">{slot.number}</div>
-                {slot.status === "occupied" && slot.vehicle && (
-                  <div className="text-xs mt-1 truncate w-full">
-                    {slot.vehicle.licensePlate}
-                  </div>
-                )}
+
+        <CardContent className="space-y-6">
+          {/* Parking Slots Grid */}
+          <div>
+            <h3 className="font-medium mb-2">Parking Slots - Floor {selectedFloor}</h3>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+              {currentFloor.slots.map((slot) => (
+                <div
+                  key={slot.number}
+                  onClick={() => handleSlotClick(slot)}
+                  className={`p-3 rounded-lg text-white text-center ${getStatusColor(
+                    slot.status
+                  )} h-20 flex flex-col justify-center items-center cursor-pointer transition-all`}
+                  title={`Slot ${slot.number} - ${slot.status}`}
+                >
+                  <div className="font-bold text-sm">Slot {slot.number}</div>
+                  {slot.status === "occupied" && slot.vehicle && (
+                    <div className="text-xs mt-1 truncate w-full">
+                      {slot.vehicle.licensePlate}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+
+            {/* Legend */}
+            <div className="flex flex-wrap gap-4 mt-4">
+              <div className="flex items-center gap-2">
+                <div className="w-4 h-4 bg-green-500 rounded-full"></div>
+                <span className="text-sm">Available</span>
               </div>
-            ))}
+              <div className="flex items-center gap-2">
+                <div className="w-4 h-4 bg-yellow-500 rounded-full"></div>
+                <span className="text-sm">Reserved</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-4 h-4 bg-red-500 rounded-full"></div>
+                <span className="text-sm">Occupied</span>
+              </div>
+            </div>
           </div>
-          <div className="mt-4 flex gap-4">
-            <div className="flex items-center gap-2">
-              <div className="w-4 h-4 bg-green-500 rounded-full"></div>
-              <span>Available</span>
+
+          {/* Currently Parked Vehicles */}
+          {parkedVehicles.length > 0 && (
+            <div className="mt-6">
+              <h3 className="font-medium mb-2">Currently Parked Vehicles</h3>
+              <div className="overflow-x-auto">
+                <table className="min-w-full border border-gray-200">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">License Plate</th>
+                      <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
+                      <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Owner</th>
+                      <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Location</th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {parkedVehicles.map((vehicle) => {
+                      const slot = parkingFloors
+                        .flatMap(floor => floor.slots)
+                        .find(s => s.vehicle?.id === vehicle.id);
+                      
+                      return (
+                        <tr key={vehicle.id}>
+                          <td className="px-4 py-2 whitespace-nowrap text-sm font-medium text-gray-900">
+                            {vehicle.licensePlate}
+                          </td>
+                          <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-500">
+                            {vehicle.type}
+                          </td>
+                          <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-500">
+                            {vehicle.owner}
+                          </td>
+                          <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-500">
+                            {slot ? `Floor ${selectedFloor}, Slot ${slot.number}` : 'Unknown'}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
             </div>
-            <div className="flex items-center gap-2">
-              <div className="w-4 h-4 bg-yellow-500 rounded-full"></div>
-              <span>Reserved</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-4 h-4 bg-red-500 rounded-full"></div>
-              <span>Occupied</span>
+          )}
+
+          {/* All Vehicles Table */}
+          <div className="mt-6">
+            <h3 className="font-medium mb-2">All Registered Vehicles</h3>
+            <div className="overflow-x-auto">
+              <table className="min-w-full border border-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">License Plate</th>
+                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
+                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Owner</th>
+                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {filteredVehicles.length > 0 ? (
+                    filteredVehicles.map((vehicle) => (
+                      <tr key={vehicle.id}>
+                        <td className="px-4 py-2 whitespace-nowrap text-sm font-medium text-gray-900">
+                          {vehicle.licensePlate}
+                        </td>
+                        <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-500">
+                          {vehicle.type}
+                        </td>
+                        <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-500">
+                          {vehicle.owner}
+                        </td>
+                        <td className="px-4 py-2 whitespace-nowrap">
+                          <span className={`px-2 py-1 rounded-full text-xs ${
+                            vehicle.status === "Parked" 
+                              ? "bg-green-100 text-green-800" 
+                              : vehicle.status === "Reserved" 
+                                ? "bg-yellow-100 text-yellow-800" 
+                                : "bg-blue-100 text-blue-800"
+                          }`}>
+                            {vehicle.status}
+                          </span>
+                        </td>
+                        <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-500">
+                          <Button
+                            variant="destructive"
+                            size="sm"
+                            onClick={() => handleDeleteVehicle(vehicle.id)}
+                          >
+                            Delete
+                          </Button>
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan={5} className="px-4 py-4 text-center text-sm text-gray-500">
+                        No vehicles found
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
             </div>
           </div>
         </CardContent>
       </Card>
 
-      {parkedVehicles.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Parked Vehicles</CardTitle>
-            <CardDescription>Danh sách xe đã đỗ</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="overflow-x-auto">
-              <table className="min-w-full border border-gray-300">
-                <thead>
-                  <tr className="bg-gray-100 text-left">
-                    <th className="px-4 py-2 border">ID</th>
-                    <th className="px-4 py-2 border">Owner</th>
-                    <th className="px-4 py-2 border">License Plate</th>
-                    <th className="px-4 py-2 border">Type</th>
-                    <th className="px-4 py-2 border">Image</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {parkedVehicles.map((v) => (
-                    <tr key={v.id} className="border-t">
-                      <td className="px-4 py-2 border">{v.id}</td>
-                      <td className="px-4 py-2 border">{v.owner}</td>
-                      <td className="px-4 py-2 border">{v.licensePlate}</td>
-                      <td className="px-4 py-2 border">{v.type}</td>
-                      <td className="px-4 py-2 border">
-                        {v.plateImage && (
-                          <img src={v.plateImage} alt="Plate" className="w-20 rounded" />
-                        )}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {showModal && selectedVehicle && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded-lg w-[400px] relative">
-            <button
-              className="absolute top-2 right-2 text-gray-500"
-              onClick={() => setShowModal(false)}
-            >
-              ✕
-            </button>
-            <h2 className="text-lg font-bold mb-2">Vehicle Details</h2>
-            <div className="mb-2">
-              <strong>Ticket ID:</strong> {selectedVehicle.id}
-            </div>
-            <div className="mb-2">
-              <strong>Owner:</strong> {selectedVehicle.owner}
-            </div>
-            <div className="mb-2">
-              <strong>License Plate:</strong> {selectedVehicle.licensePlate}
-            </div>
-            <div className="mb-4 flex gap-4 items-start">
-              {selectedVehicle.plateImage && (
-                <div className="flex-1">
-                  <strong>Plate Image:</strong>
-                  <img
-                    src={selectedVehicle.plateImage}
-                    alt="Plate"
-                    className="mt-1 w-full max-w-[120px] rounded shadow"
-                  />
+      {/* Vehicle Details Modal */}
+      {showDetailsModal && selectedVehicle && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg w-full max-w-md">
+            <div className="p-6">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-xl font-bold">Vehicle Details</h2>
+                <button 
+                  onClick={() => setShowDetailsModal(false)} 
+                  className="text-gray-500 hover:text-gray-700"
+                >
+                  ✕
+                </button>
+              </div>
+              
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-sm font-medium text-gray-500">License Plate</p>
+                    <p className="mt-1 text-sm font-medium">{selectedVehicle.licensePlate}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-gray-500">Type</p>
+                    <p className="mt-1 text-sm font-medium">{selectedVehicle.type}</p>
+                  </div>
                 </div>
-              )}
-              <div className="flex-1">
-                <strong>QR Code:</strong>
-                <div className="mt-2">
-                  {qrCodeUrl ? (
-                    <img
-                      src={qrCodeUrl}
-                      alt="QR Code"
-                      className="w-full max-w-[150px]"
-                    />
-                  ) : (
-                    <span>Loading QR Code...</span>
+
+                <div>
+                  <p className="text-sm font-medium text-gray-500">Owner</p>
+                  <p className="mt-1 text-sm font-medium">{selectedVehicle.owner}</p>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-sm font-medium text-gray-500">Status</p>
+                    <p className="mt-1 text-sm font-medium">{selectedVehicle.status}</p>
+                  </div>
+                  {selectedSlot && (
+                    <div>
+                      <p className="text-sm font-medium text-gray-500">Location</p>
+                      <p className="mt-1 text-sm font-medium">
+                        Floor {selectedFloor}, Slot {selectedSlot.number}
+                      </p>
+                    </div>
                   )}
                 </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  {selectedVehicle.plateImage && (
+                    <div>
+                      <p className="text-sm font-medium text-gray-500">Plate Image</p>
+                      <img 
+                        src={selectedVehicle.plateImage} 
+                        alt="License plate" 
+                        className="mt-2 w-full h-auto border rounded"
+                      />
+                    </div>
+                  )}
+                  
+                  <div>
+                    <p className="text-sm font-medium text-gray-500">QR Code</p>
+                    {qrCodeUrl ? (
+                      <img 
+                        src={qrCodeUrl} 
+                        alt="QR Code" 
+                        className="mt-2 w-full h-auto border rounded"
+                      />
+                    ) : (
+                      <div className="mt-2 w-full aspect-square border rounded flex items-center justify-center text-gray-500">
+                        Loading QR code...
+                      </div>
+                    )}
+                  </div>
+                </div>
+                
+                {selectedSlot?.status === "reserved" && (
+                  <Button 
+                    onClick={handleConfirmParking}
+                    className="w-full mt-4"
+                  >
+                    Confirm Parking
+                  </Button>
+                )}
               </div>
             </div>
-            <div className="mb-2">
-              <strong>
-                {selectedSlot?.status === "reserved"
-                  ? "Booking Time"
-                  : "Check-in Time"}
-                :
-              </strong>{" "}
-              2025-07-05 09:00
-            </div>
-            {selectedSlot?.status === "reserved" && (
-              <button
-                onClick={handleConfirm}
-                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-              >
-                Xác nhận
-              </button>
-            )}
           </div>
         </div>
       )}

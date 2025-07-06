@@ -1,4 +1,8 @@
+// components/CustomerManagement.tsx
+"use client";
+
 import { useState } from "react";
+import { Customer } from "@/app/owner/type"; // Adjust the import path as necessary
 import {
   Card,
   CardContent,
@@ -26,55 +30,49 @@ import { Input } from "@/components/ui/input";
 import CustomerForm from "./CustomerForm";
 import VehicleForm from "./VehicleForm";
 
-// Define interface for customer
-export interface Customer {
-  id: string;
-  fullName: string;
-  idNumber: string;
-  dateOfBirth: string;
-  gender: string;
-  email: string;
-  phoneNumber: string;
-  address: string;
-  vehicles: string[];
-}
-
-// Define interface for props
 interface CustomerManagementProps {
   customers: Customer[];
   setCustomers: React.Dispatch<React.SetStateAction<Customer[]>>;
 }
 
-export default function CustomerManagement({ customers, setCustomers }: CustomerManagementProps) {
+export default function CustomerManagement({ 
+  customers, 
+  setCustomers 
+}: CustomerManagementProps) {
   const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null);
   const [viewingVehicles, setViewingVehicles] = useState<Customer | null>(null);
   const [addingVehicleFor, setAddingVehicleFor] = useState<Customer | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
 
-  const handleAddCustomer = (customer: Customer) => {
-    setCustomers([...customers, { ...customer, id: `C${customers.length + 1}`, vehicles: [] }]);
-    alert("Customer added");
+  const handleAddCustomer = (customer: Omit<Customer, "id" | "vehicles">) => {
+    const newCustomer: Customer = {
+      ...customer,
+      id: `C${customers.length + 1}`,
+      vehicles: []
+    };
+    setCustomers([...customers, newCustomer]);
+    alert("Customer added successfully");
   };
 
   const handleEditCustomer = (customer: Customer) => {
     setCustomers(customers.map((c) => (c.id === customer.id ? customer : c)));
     setEditingCustomer(null);
-    alert("Customer updated");
+    alert("Customer updated successfully");
   };
 
   const handleDeleteCustomer = (id: string) => {
     setCustomers(customers.filter((c) => c.id !== id));
-    alert("Customer deleted");
+    alert("Customer deleted successfully");
   };
 
   const handleAddVehicle = (vehicle: { licensePlate: string; type: string }, customerId: string) => {
     setCustomers(customers.map((c) => 
       c.id === customerId 
-        ? { ...c, vehicles: [...c.vehicles, `${vehicle.licensePlate} (${vehicle.type})`] }
+        ? { ...c, vehicles: [...c.vehicles, vehicle.licensePlate] }
         : c
     ));
     setAddingVehicleFor(null);
-    alert("Vehicle added");
+    alert("Vehicle added to customer successfully");
   };
 
   const filteredCustomers = customers.filter((c) =>
@@ -179,12 +177,11 @@ export default function CustomerManagement({ customers, setCustomers }: Customer
                 <TableCell>{customer.fullName}</TableCell>
                 <TableCell>{customer.email}</TableCell>
                 <TableCell>{customer.phoneNumber}</TableCell>
-                <TableCell>
+                <TableCell className="flex gap-2">
                   <Button
                     size="sm"
                     variant="outline"
                     onClick={() => setViewingVehicles(customer)}
-                    className="mr-2"
                   >
                     View Vehicles
                   </Button>
@@ -192,7 +189,6 @@ export default function CustomerManagement({ customers, setCustomers }: Customer
                     size="sm"
                     variant="outline"
                     onClick={() => setAddingVehicleFor(customer)}
-                    className="mr-2"
                   >
                     Add Vehicle
                   </Button>
@@ -200,7 +196,6 @@ export default function CustomerManagement({ customers, setCustomers }: Customer
                     size="sm"
                     variant="outline"
                     onClick={() => setEditingCustomer(customer)}
-                    className="mr-2"
                   >
                     Edit
                   </Button>

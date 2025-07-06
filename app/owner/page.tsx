@@ -9,14 +9,7 @@ import VehicleManagement from "@/components/VehicleManagement";
 import TicketManagement from "@/components/TicketManagement";
 import ParkingLotManagement from "@/components/ParkingLotManagement";
 import AccountManagement from "@/components/AccountManagement";
-
-import type {
-  Customer,
-  Vehicle,
-  Ticket,
-  ParkingLot,
-  Account,
-} from "@/types";
+import { Customer, Vehicle, Ticket, ParkingLot, Account } from "@/app/owner/type";
 
 const initialData = {
   customers: [

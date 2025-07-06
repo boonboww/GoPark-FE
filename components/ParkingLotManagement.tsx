@@ -1,4 +1,8 @@
+// components/ParkingLotManagement.tsx
+"use client";
+
 import { useState } from "react";
+import { ParkingLot } from "@/app/owner/type"; // Adjust the import path as necessary
 import {
   Card,
   CardContent,
@@ -9,8 +13,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { DropzoneUpload } from "@/components/DropzoneUpload";
-import Image from "next/image";
 import {
   Dialog,
   DialogContent,
@@ -25,15 +27,8 @@ import {
   SelectContent,
   SelectItem,
 } from "@/components/ui/select";
-
-interface ParkingLot {
-  id: string;
-  name: string;
-  address: string;
-  capacity: number;
-  pricePerHour: number;
-  image?: string;
-}
+import { DropzoneUpload } from "@/components/DropzoneUpload";
+import Image from "next/image";
 
 interface ParkingLotManagementProps {
   parkingLots: ParkingLot[];
@@ -47,28 +42,40 @@ export default function ParkingLotManagement({
   const [selectedLotId, setSelectedLotId] = useState<string>(
     parkingLots[0]?.id || ""
   );
-  const [image, setImage] = useState<File | null>(null);
+  const [imageFile, setImageFile] = useState<File | null>(null);
   const [newParkingLot, setNewParkingLot] = useState<Omit<ParkingLot, "id">>({
     name: "",
     address: "",
     capacity: 0,
     pricePerHour: 0,
   });
+  const [showAddDialog, setShowAddDialog] = useState(false);
 
   const selectedLot = parkingLots.find((lot) => lot.id === selectedLotId);
 
+  // Handle add new parking lot
   const handleAddParkingLot = () => {
+    if (!newParkingLot.name || !newParkingLot.address) {
+      alert("Please fill in all required fields");
+      return;
+    }
+
     const newLot: ParkingLot = {
       ...newParkingLot,
       id: `P${Date.now()}`,
       capacity: Number(newParkingLot.capacity),
       pricePerHour: Number(newParkingLot.pricePerHour),
+      ...(imageFile && { image: URL.createObjectURL(imageFile) }),
     };
+
     setParkingLots([...parkingLots, newLot]);
-    setNewParkingLot({ name: "", address: "", capacity: 0, pricePerHour: 0 });
     setSelectedLotId(newLot.id);
+    setNewParkingLot({ name: "", address: "", capacity: 0, pricePerHour: 0 });
+    setImageFile(null);
+    setShowAddDialog(false);
   };
 
+  // Handle update parking lot
   const handleUpdateParkingLot = () => {
     if (!selectedLotId) return;
 
@@ -77,22 +84,49 @@ export default function ParkingLotManagement({
         if (lot.id === selectedLotId) {
           return {
             ...lot,
-            ...(image && { image: URL.createObjectURL(image) }),
+            ...(imageFile && { image: URL.createObjectURL(imageFile) }),
           };
         }
         return lot;
       })
     );
-    setImage(null);
-    alert("Parking lot updated successfully");
+    setImageFile(null);
   };
 
+  // Handle delete parking lot
   const handleDeleteParkingLot = (id: string) => {
+    if (!confirm("Are you sure you want to delete this parking lot?")) return;
+    
     setParkingLots(parkingLots.filter((lot) => lot.id !== id));
     if (selectedLotId === id) {
       setSelectedLotId(parkingLots[0]?.id || "");
     }
-    alert("Parking lot deleted successfully");
+  };
+
+  // Handle input change for new parking lot
+  const handleNewLotInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { id, value } = e.target;
+    setNewParkingLot({
+      ...newParkingLot,
+      [id]: id === "name" || id === "address" ? value : Number(value),
+    });
+  };
+
+  // Handle input change for existing parking lot
+  const handleLotInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { id, value } = e.target;
+    if (!selectedLotId) return;
+
+    setParkingLots(
+      parkingLots.map((lot) =>
+        lot.id === selectedLotId
+          ? {
+              ...lot,
+              [id]: id === "name" || id === "address" ? value : Number(value),
+            }
+          : lot
+      )
+    );
   };
 
   return (
@@ -104,75 +138,77 @@ export default function ParkingLotManagement({
         <CardDescription>Add, edit, and manage parking lots</CardDescription>
       </CardHeader>
       <CardContent className="p-6 space-y-6">
-        <div className="flex justify-between items-center">
-          <Dialog>
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+          <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
             <DialogTrigger asChild>
               <Button>Add New Parking Lot</Button>
             </DialogTrigger>
-            <DialogContent>
+            <DialogContent className="max-w-md">
               <DialogHeader>
                 <DialogTitle>Create New Parking Lot</DialogTitle>
               </DialogHeader>
               <div className="space-y-4">
                 <div>
-                  <Label htmlFor="lotName">Name</Label>
+                  <Label htmlFor="name">Name *</Label>
                   <Input
-                    id="lotName"
+                    id="name"
                     value={newParkingLot.name}
-                    onChange={(e) =>
-                      setNewParkingLot({
-                        ...newParkingLot,
-                        name: e.target.value,
-                      })
-                    }
+                    onChange={handleNewLotInputChange}
+                    required
                   />
                 </div>
                 <div>
-                  <Label htmlFor="lotAddress">Address</Label>
+                  <Label htmlFor="address">Address *</Label>
                   <Input
-                    id="lotAddress"
+                    id="address"
                     value={newParkingLot.address}
-                    onChange={(e) =>
-                      setNewParkingLot({
-                        ...newParkingLot,
-                        address: e.target.value,
-                      })
-                    }
+                    onChange={handleNewLotInputChange}
+                    required
                   />
                 </div>
                 <div>
-                  <Label htmlFor="lotCapacity">Capacity</Label>
+                  <Label htmlFor="capacity">Capacity</Label>
                   <Input
-                    id="lotCapacity"
+                    id="capacity"
                     type="number"
                     min="1"
                     value={newParkingLot.capacity}
-                    onChange={(e) =>
-                      setNewParkingLot({
-                        ...newParkingLot,
-                        capacity: Number(e.target.value),
-                      })
-                    }
+                    onChange={handleNewLotInputChange}
                   />
                 </div>
                 <div>
-                  <Label htmlFor="lotPricePerHour">Hourly Rate (VND)</Label>
+                  <Label htmlFor="pricePerHour">Hourly Rate (VND)</Label>
                   <Input
-                    id="lotPricePerHour"
+                    id="pricePerHour"
                     type="number"
                     min="0"
                     value={newParkingLot.pricePerHour}
-                    onChange={(e) =>
-                      setNewParkingLot({
-                        ...newParkingLot,
-                        pricePerHour: Number(e.target.value),
-                      })
-                    }
+                    onChange={handleNewLotInputChange}
                   />
+                </div>
+                <div>
+                  <Label>Upload Image</Label>
+                  <DropzoneUpload
+                    onFilesAccepted={(files) => setImageFile(files[0])}
+                    accept="image/*"
+                    maxFiles={1}
+                  />
+                  {imageFile && (
+                    <div className="mt-2">
+                      <Image
+                        src={URL.createObjectURL(imageFile)}
+                        alt="Parking lot preview"
+                        width={200}
+                        height={150}
+                        className="rounded border"
+                      />
+                    </div>
+                  )}
                 </div>
                 <Button
                   onClick={handleAddParkingLot}
                   disabled={!newParkingLot.name || !newParkingLot.address}
+                  className="w-full"
                 >
                   Create Parking Lot
                 </Button>
@@ -180,11 +216,15 @@ export default function ParkingLotManagement({
             </DialogContent>
           </Dialog>
 
-          <div className="w-64">
+          <div className="w-full md:w-64">
             <Label>Select Parking Lot</Label>
-            <Select value={selectedLotId} onValueChange={setSelectedLotId}>
+            <Select
+              value={selectedLotId}
+              onValueChange={setSelectedLotId}
+              disabled={parkingLots.length === 0}
+            >
               <SelectTrigger>
-                <SelectValue placeholder="Select a parking lot" />
+                <SelectValue placeholder={parkingLots.length === 0 ? "No parking lots" : "Select a parking lot"} />
               </SelectTrigger>
               <SelectContent>
                 {parkingLots.map((lot) => (
@@ -201,92 +241,59 @@ export default function ParkingLotManagement({
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-4">
               <div>
-                <Label htmlFor="lotNameEdit">Name</Label>
+                <Label htmlFor="name">Name</Label>
                 <Input
-                  id="lotNameEdit"
+                  id="name"
                   value={selectedLot.name}
-                  onChange={(e) => {
-                    setParkingLots(
-                      parkingLots.map((lot) =>
-                        lot.id === selectedLotId
-                          ? { ...lot, name: e.target.value }
-                          : lot
-                      )
-                    );
-                  }}
+                  onChange={handleLotInputChange}
                 />
               </div>
               <div>
-                <Label htmlFor="lotAddressEdit">Address</Label>
+                <Label htmlFor="address">Address</Label>
                 <Input
-                  id="lotAddressEdit"
+                  id="address"
                   value={selectedLot.address}
-                  onChange={(e) => {
-                    setParkingLots(
-                      parkingLots.map((lot) =>
-                        lot.id === selectedLotId
-                          ? { ...lot, address: e.target.value }
-                          : lot
-                      )
-                    );
-                  }}
+                  onChange={handleLotInputChange}
                 />
               </div>
               <div>
-                <Label htmlFor="lotCapacityEdit">Capacity</Label>
+                <Label htmlFor="capacity">Capacity</Label>
                 <Input
-                  id="lotCapacityEdit"
+                  id="capacity"
                   type="number"
                   min="1"
                   value={selectedLot.capacity}
-                  onChange={(e) => {
-                    setParkingLots(
-                      parkingLots.map((lot) =>
-                        lot.id === selectedLotId
-                          ? { ...lot, capacity: Number(e.target.value) }
-                          : lot
-                      )
-                    );
-                  }}
+                  onChange={handleLotInputChange}
                 />
               </div>
               <div>
-                <Label htmlFor="lotPricePerHourEdit">Hourly Rate (VND)</Label>
+                <Label htmlFor="pricePerHour">Hourly Rate (VND)</Label>
                 <Input
-                  id="lotPricePerHourEdit"
+                  id="pricePerHour"
                   type="number"
                   min="0"
                   value={selectedLot.pricePerHour}
-                  onChange={(e) => {
-                    setParkingLots(
-                      parkingLots.map((lot) =>
-                        lot.id === selectedLotId
-                          ? { ...lot, pricePerHour: Number(e.target.value) }
-                          : lot
-                      )
-                    );
-                  }}
+                  onChange={handleLotInputChange}
                 />
               </div>
             </div>
 
             <div className="space-y-4">
               <div>
-                <Label>Upload Image</Label>
+                <Label>Upload New Image</Label>
                 <DropzoneUpload
-                  onFilesAccepted={(files) => setImage(files[0])}
+                  onFilesAccepted={(files) => setImageFile(files[0])}
                   accept="image/*"
                   maxFiles={1}
                 />
               </div>
 
-              {(image || selectedLot.image) && (
+              {(imageFile || selectedLot.image) && (
                 <div className="mt-4">
-                  <div className="relative h-64 w-full rounded-lg border shadow overflow-hidden">
+                  <Label>Parking Lot Image</Label>
+                  <div className="relative h-48 w-full rounded-lg border shadow overflow-hidden mt-2">
                     <Image
-                      src={
-                        image ? URL.createObjectURL(image) : selectedLot.image!
-                      }
+                      src={imageFile ? URL.createObjectURL(imageFile) : selectedLot.image!}
                       alt="Parking lot preview"
                       fill
                       className="object-cover"
@@ -296,7 +303,12 @@ export default function ParkingLotManagement({
               )}
 
               <div className="flex gap-4 pt-4">
-                <Button onClick={handleUpdateParkingLot}>Save Changes</Button>
+                <Button 
+                  onClick={handleUpdateParkingLot}
+                  disabled={!imageFile}
+                >
+                  Save Changes
+                </Button>
                 <Button
                   variant="destructive"
                   onClick={() => handleDeleteParkingLot(selectedLotId)}
@@ -305,6 +317,12 @@ export default function ParkingLotManagement({
                 </Button>
               </div>
             </div>
+          </div>
+        )}
+
+        {parkingLots.length === 0 && (
+          <div className="text-center py-8">
+            <p className="text-gray-500">No parking lots available. Add your first parking lot.</p>
           </div>
         )}
       </CardContent>
