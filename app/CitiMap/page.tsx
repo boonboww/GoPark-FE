@@ -6,9 +6,10 @@ import { Menu, X, LocateFixed, Loader2 } from "lucide-react";
 import { MapComponent } from "@/app/CitiMap/MapComponent";
 import { ParkingDetail } from "@/app/CitiMap/ParkingDetail";
 import { ParkingList } from "@/app/CitiMap/ParkingList";
-import { 
-  Parking, 
-  API_BASE_URL, 
+import * as L from "leaflet";
+import {
+  Parking,
+  API_BASE_URL,
   DEFAULT_RADIUS_KM,
 } from "./types";
 
@@ -20,6 +21,7 @@ export default function CitiMap() {
 
   const [map, setMap] = useState<L.Map | null>(null);
   const [userCoords, setUserCoords] = useState<[number, number] | null>(null);
+  const [userMarker, setUserMarker] = useState<L.Marker | null>(null);
   const [selectedParking, setSelectedParking] = useState<Parking | null>(null);
   const [parkings, setParkings] = useState<Parking[]>([]);
   const [filteredParkings, setFilteredParkings] = useState<Parking[]>([]);
@@ -27,7 +29,6 @@ export default function CitiMap() {
   const [loading, setLoading] = useState(true);
   const [isLocating, setIsLocating] = useState(false);
 
-  // Fetch parkings data
   useEffect(() => {
     if (!city) return;
 
@@ -35,10 +36,7 @@ export default function CitiMap() {
       setLoading(true);
       try {
         const res = await fetch(`${API_BASE_URL}/api/v1/search/city?location=${city}`);
-        
-        if (!res.ok) {
-          throw new Error(`HTTP error! status: ${res.status}`);
-        }
+        if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
 
         const response = await res.json();
         const validParkings = response.data.filter(
@@ -62,7 +60,6 @@ export default function CitiMap() {
     fetchParkings();
   }, [city]);
 
-  // Find nearby parkings
   const findNearbyParkings = useCallback(async () => {
     if (!navigator.geolocation) {
       toast.warning("Trình duyệt không hỗ trợ định vị");
@@ -70,7 +67,7 @@ export default function CitiMap() {
     }
 
     setIsLocating(true);
-    
+
     try {
       const position = await new Promise<GeolocationPosition>((resolve, reject) => {
         navigator.geolocation.getCurrentPosition(resolve, reject, {
@@ -81,11 +78,24 @@ export default function CitiMap() {
 
       const { latitude, longitude } = position.coords;
       setUserCoords([latitude, longitude]);
-      
-      // Center map
+
       map?.setView([latitude, longitude], 14);
 
-      // Filter parkings within radius
+      // Tạo icon user
+      const userIcon = L.icon({
+        iconUrl: "/user-location.png", // Đặt file PNG trong public
+        iconSize: [30, 30],
+        iconAnchor: [15, 15],
+      });
+
+      if (userMarker) {
+        map?.removeLayer(userMarker);
+      }
+
+      const marker = L.marker([latitude, longitude], { icon: userIcon }).addTo(map!);
+      setUserMarker(marker);
+
+      // Lọc bãi gần
       const nearby = parkings.filter((p) => {
         const dist = getDistanceFromLatLonInKm(
           latitude,
@@ -108,9 +118,8 @@ export default function CitiMap() {
     } finally {
       setIsLocating(false);
     }
-  }, [map, parkings]);
+  }, [map, parkings, userMarker]);
 
-  // Calculate distance between coordinates
   const getDistanceFromLatLonInKm = (
     lat1: number,
     lon1: number,
@@ -132,7 +141,6 @@ export default function CitiMap() {
 
   const deg2rad = (deg: number) => deg * (Math.PI / 180);
 
-  // Navigate to parking using Google Maps
   const navigateToParking = useCallback((lat: number, lon: number) => {
     if (!userCoords) {
       toast.warning("Vui lòng định vị vị trí của bạn trước");
@@ -155,7 +163,6 @@ export default function CitiMap() {
 
   return (
     <div className="flex h-screen bg-gray-100 relative">
-      {/* Side Panel */}
       {isPanelOpen && (
         <div className="fixed top-0 left-0 w-full sm:w-96 h-full z-[1000] bg-white bg-opacity-95 backdrop-blur-sm p-4 border-r border-gray-200 shadow-lg overflow-y-auto">
           <button
@@ -167,7 +174,7 @@ export default function CitiMap() {
           </button>
 
           {selectedParking ? (
-            <ParkingDetail 
+            <ParkingDetail
               parking={selectedParking}
               arriving={arriving}
               leaving={leaving}
@@ -178,7 +185,7 @@ export default function CitiMap() {
               )}
             />
           ) : (
-            <ParkingList 
+            <ParkingList
               city={city}
               parkings={filteredParkings}
               isLocating={isLocating}
@@ -190,7 +197,6 @@ export default function CitiMap() {
         </div>
       )}
 
-      {/* Map */}
       <div className="w-full h-full relative">
         {!isPanelOpen && (
           <button
@@ -215,7 +221,7 @@ export default function CitiMap() {
           )}
         </button>
 
-        <MapComponent 
+        <MapComponent
           parkings={filteredParkings}
           city={city}
           onMapInit={setMap}

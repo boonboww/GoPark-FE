@@ -1,33 +1,57 @@
 "use client";
 
-import Footer from "@/components/Footer";
 import Header from "@/components/Header";
+import Footer from "@/components/Footer";
 import HeroSection from "@/components/HeroSection";
 import MapSection from "@/components/MapSection";
 import PromotionSection from "@/components/PromotionSection";
+import ContactSection from "@/components/ContactSection";
+import HowItWorksSection from "@/components/HowItWorksSection";
+import TestimonialsSection from "@/components/TestimonialsSection";
 import WavyDivider from "@/components/WavyDivider";
 
 export default function Home() {
   return (
     <div className="flex flex-col">
       <Header />
-      <div className="gradient-bg">
-        <section id="hero">
-          <HeroSection />
-        </section>
 
-        <WavyDivider targetId="map" />
-
-        <section id="map">
-          <MapSection />
-        </section>
-
-        <WavyDivider targetId="promotion" />
-
-        <section id="promotion">
-          <PromotionSection />
-        </section>
+      {/* Hero Section với overlay ngoài */}
+      <div
+        className="relative w-full h-[500px] md:h-[600px] bg-cover bg-center"
+        style={{ backgroundImage: "url('/b1.jpg')" }}
+      >
+        {/* Overlay phủ nền nhưng không phủ nội dung */}
+        <div className="absolute inset-0 bg-black/40"></div>
+        
+        {/* Nội dung Hero */}
+        <HeroSection />
       </div>
+
+      <WavyDivider targetId="how" />
+      <section id="how">
+        <HowItWorksSection />
+      </section>
+
+      <WavyDivider targetId="map" />
+      <section id="map">
+        <MapSection />
+      </section>
+
+      <WavyDivider targetId="promotion" />
+      <section id="promotion">
+        <PromotionSection />
+      </section>
+
+      <WavyDivider targetId="test" />
+      <section id="test">
+        <TestimonialsSection />
+      </section>
+
+      <WavyDivider targetId="contact" />
+      <section id="contact">
+        <ContactSection />
+      </section>
+
       <Footer />
     </div>
   );

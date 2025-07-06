@@ -39,7 +39,6 @@ export default function HeroSection() {
     { id: "ct", name: "Cần Thơ" },
   ], []);
 
-  // Debounced search function
   const handleLocationSearch = useCallback(
     debounce((value: string) => {
       if (value.length > 0) {
@@ -72,18 +71,18 @@ export default function HeroSection() {
     }
 
     setIsSearching(true);
-    
+
     try {
       const res = await fetch(
         `${API_BASE_URL}/api/v1/search/city?location=${selectedLocation.name}`
       );
-      
+
       if (!res.ok) {
         throw new Error(`HTTP error! status: ${res.status}`);
       }
 
       const data = await res.json();
-      
+
       if (data.data && data.data.length > 0) {
         router.push(
           `/CitiMap?city=${encodeURIComponent(selectedLocation.name)}&arriving=${encodeURIComponent(
@@ -102,124 +101,134 @@ export default function HeroSection() {
   };
 
   return (
-    <section className="relative flex-1 flex flex-col items-center justify-center px-4 py-8 min-h-[70vh]">
-      <div className="overlay absolute top-0 left-0 w-full h-full bg-black/50" />
-      <div className="content relative z-10">
-        <div className="bg-white/95 p-6 rounded-2xl w-full max-w-md transform hover:scale-105 transition-transform duration-300">
-          <div className="relative">
-            <Input
-              placeholder="Nhập thành phố bạn muốn đến"
-              value={location}
-              onChange={(e) => handleLocationChange(e.target.value)}
-              className="font-bold text-base placeholder:font-bold placeholder:text-base w-full"
-              autoComplete="off"
-            />
-            {suggestions.length > 0 && (
-              <ul className="absolute z-10 bg-white border w-full mt-2 rounded-lg shadow-lg max-h-60 overflow-auto">
-                {suggestions.map((sug) => (
-                  <li
-                    key={sug.id}
-                    className="px-4 py-3 hover:bg-gray-100 cursor-pointer text-gray-700 hover:text-blue-600 transition-colors duration-200"
-                    onClick={() => handleSelectLocation(sug)}
-                  >
-                    {sug.name}
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
-        </div>
+    <section className="relative z-10 flex flex-col items-center justify-center h-full text-center px-4">
+      {/* Giới thiệu chữ */}
+      <h1 className="text-3xl md:text-5xl font-bold text-white drop-shadow-md mb-4">
+        Tìm Bãi Đỗ Xe Nhanh Chóng & Tiện Lợi
+      </h1>
+      <p className="text-white text-lg md:text-xl mb-8 drop-shadow-sm max-w-2xl">
+        Đặt trước bãi đỗ an toàn trên toàn quốc, dễ dàng chỉ với vài cú nhấp chuột.
+      </p>
 
-        {selectedLocation && (
-          <div className="mt-8 bg-white/95 p-6 rounded-2xl w-full max-w-md transform hover:scale-105 transition-transform duration-300">
-            <h2 className="text-xl font-semibold text-gray-800 mb-4">
-              Đã chọn: <span className="text-blue-600">{selectedLocation.name}</span>
-            </h2>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="text-sm font-medium text-gray-600 block mb-1">
-                  Ngày đến
-                </label>
-                <DatePicker
-                  selected={arriving}
-                  onChange={(date: Date) => {
-                    const newDate = new Date(date);
-                    newDate.setHours(arriving.getHours());
-                    newDate.setMinutes(arriving.getMinutes());
-                    setArriving(newDate);
-                  }}
-                  dateFormat="dd/MM/yyyy"
-                  className="w-full border border-gray-300 px-3 py-2 rounded-lg focus:ring-2 focus:ring-blue-400"
-                />
-                
-                <label className="text-sm font-medium text-gray-600 block mt-4 mb-1">
-                  Giờ đến
-                </label>
-                <DatePicker
-                  selected={arriving}
-                  onChange={(time: Date) => {
-                    const newTime = new Date(arriving);
-                    newTime.setHours(time.getHours());
-                    newTime.setMinutes(time.getMinutes());
-                    setArriving(newTime);
-                  }}
-                  showTimeSelect
-                  showTimeSelectOnly
-                  timeIntervals={15}
-                  timeCaption="Time"
-                  dateFormat="HH:mm"
-                  className="w-full border border-gray-300 px-3 py-2 rounded-lg focus:ring-2 focus:ring-blue-400"
-                />
-              </div>
-              
-              <div>
-                <label className="text-sm font-medium text-gray-600 block mb-1">
-                  Ngày rời
-                </label>
-                <DatePicker
-                  selected={leaving}
-                  onChange={(date: Date) => {
-                    const newDate = new Date(date);
-                    newDate.setHours(leaving.getHours());
-                    newDate.setMinutes(leaving.getMinutes());
-                    setLeaving(newDate);
-                  }}
-                  dateFormat="dd/MM/yyyy"
-                  className="w-full border border-gray-300 px-3 py-2 rounded-lg focus:ring-2 focus:ring-blue-400"
-                />
-                
-                <label className="text-sm font-medium text-gray-600 block mt-4 mb-1">
-                  Giờ rời
-                </label>
-                <DatePicker
-                  selected={leaving}
-                  onChange={(time: Date) => {
-                    const newTime = new Date(leaving);
-                    newTime.setHours(time.getHours());
-                    newTime.setMinutes(time.getMinutes());
-                    setLeaving(newTime);
-                  }}
-                  showTimeSelect
-                  showTimeSelectOnly
-                  timeIntervals={15}
-                  timeCaption="Time"
-                  dateFormat="HH:mm"
-                  className="w-full border border-gray-300 px-3 py-2 rounded-lg focus:ring-2 focus:ring-blue-400"
-                />
-              </div>
+      {/* Form Tìm kiếm */}
+      <div className="bg-white/95 p-6 rounded-2xl w-full max-w-md transform hover:scale-105 transition-transform duration-300">
+        <div className="relative">
+          <Input
+            placeholder="Nhập tên thành phố..."
+            value={location}
+            onChange={(e) => handleLocationChange(e.target.value)}
+            className="font-bold text-base placeholder:font-bold placeholder:text-base w-full"
+            autoComplete="off"
+          />
+          {suggestions.length > 0 && (
+            <ul className="absolute z-10 bg-white border w-full mt-2 rounded-lg shadow-lg max-h-60 overflow-auto">
+              {suggestions.map((sug) => (
+                <li
+                  key={sug.id}
+                  className="px-4 py-3 hover:bg-gray-100 cursor-pointer text-gray-700 hover:text-blue-600 transition-colors duration-200"
+                  onClick={() => handleSelectLocation(sug)}
+                >
+                  {sug.name}
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      </div>
+
+      {selectedLocation && (
+        <div className="mt-8 bg-white/95 p-6 rounded-2xl w-full max-w-md transform hover:scale-105 transition-transform duration-300">
+          <h2 className="text-xl font-semibold text-gray-800 mb-4">
+            Đã chọn: <span className="text-blue-600">{selectedLocation.name}</span>
+          </h2>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="text-sm font-medium text-gray-600 block mb-1">
+                Ngày đến
+              </label>
+              <DatePicker
+                selected={arriving}
+                onChange={(date: Date | null) => {
+                  if (!date) return;
+                  const newDate = new Date(date);
+                  newDate.setHours(arriving.getHours());
+                  newDate.setMinutes(arriving.getMinutes());
+                  setArriving(newDate);
+                }}
+                dateFormat="dd/MM/yyyy"
+                className="w-full border border-gray-300 px-3 py-2 rounded-lg focus:ring-2 focus:ring-blue-400"
+              />
+
+              <label className="text-sm font-medium text-gray-600 block mt-4 mb-1">
+                Giờ đến
+              </label>
+              <DatePicker
+                selected={arriving}
+                onChange={(time: Date | null) => {
+                  if (!time) return;
+                  const newTime = new Date(arriving);
+                  newTime.setHours(time.getHours());
+                  newTime.setMinutes(time.getMinutes());
+                  setArriving(newTime);
+                }}
+                showTimeSelect
+                showTimeSelectOnly
+                timeIntervals={15}
+                timeCaption="Time"
+                dateFormat="HH:mm"
+                className="w-full border border-gray-300 px-3 py-2 rounded-lg focus:ring-2 focus:ring-blue-400"
+              />
             </div>
 
-            <Button
-              className="mt-6 w-full bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white font-semibold py-3 rounded-lg transition-all duration-300"
-              onClick={handleFindParking}
-              disabled={isSearching}
-            >
-              {isSearching ? "Đang tìm kiếm..." : "Tìm bãi đỗ"}
-            </Button>
+            <div>
+              <label className="text-sm font-medium text-gray-600 block mb-1">
+                Ngày rời
+              </label>
+              <DatePicker
+                selected={leaving}
+                onChange={(date: Date | null) => {
+                  if (!date) return;
+                  const newDate = new Date(date);
+                  newDate.setHours(leaving.getHours());
+                  newDate.setMinutes(leaving.getMinutes());
+                  setLeaving(newDate);
+                }}
+                dateFormat="dd/MM/yyyy"
+                className="w-full border border-gray-300 px-3 py-2 rounded-lg focus:ring-2 focus:ring-blue-400"
+              />
+
+              <label className="text-sm font-medium text-gray-600 block mt-4 mb-1">
+                Giờ rời
+              </label>
+              <DatePicker
+                selected={leaving}
+                onChange={(time: Date | null) => {
+                  if (!time) return;
+                  const newTime = new Date(leaving);
+                  newTime.setHours(time.getHours());
+                  newTime.setMinutes(time.getMinutes());
+                  setLeaving(newTime);
+                }}
+                showTimeSelect
+                showTimeSelectOnly
+                timeIntervals={15}
+                timeCaption="Time"
+                dateFormat="HH:mm"
+                className="w-full border border-gray-300 px-3 py-2 rounded-lg focus:ring-2 focus:ring-blue-400"
+              />
+            </div>
           </div>
-        )}
-      </div>
+
+          <Button
+            className="mt-6 w-full bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white font-semibold py-3 rounded-lg transition-all duration-300"
+            onClick={handleFindParking}
+            disabled={isSearching}
+          >
+            {isSearching ? "Đang tìm kiếm..." : "Tìm bãi đỗ"}
+          </Button>
+        </div>
+      )}
     </section>
   );
 }
