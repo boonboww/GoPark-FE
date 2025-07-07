@@ -17,7 +17,7 @@ interface ApiError extends Error {
 
 export async function sendResetPasswordEmail(email: string): Promise<ResetResponse> {
   try {
-    const res = await API.post("/users/forgotPassword", { email });
+    const res = await API.post("/api/v1/users/forgotPassword", { email });
     
     return {
       success: res.status >= 200 && res.status < 300,
