@@ -15,9 +15,9 @@ export default function Home() {
     <div className="flex flex-col">
       <Header />
 
-      {/* Hero Section với overlay ngoài */}
+      {/* Hero Section với overlay ngoài, đẩy xuống dưới sidebar */}
       <div
-        className="relative w-full h-[500px] md:h-[600px] bg-cover bg-center"
+        className="relative w-full h-[500px] md:h-[600px] bg-cover bg-center mt-16 md:mt-0"
         style={{ backgroundImage: "url('/b1.jpg')" }}
       >
         {/* Overlay phủ nền nhưng không phủ nội dung */}
