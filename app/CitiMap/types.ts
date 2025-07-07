@@ -23,7 +23,7 @@ export interface Parking {
   updatedAt?: string;
 }
 
-export const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000";
+export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 export const DEFAULT_RADIUS_KM = 3;
 
 export const CITY_CENTERS: Record<string, [number, number]> = {
