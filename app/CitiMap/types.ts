@@ -27,11 +27,11 @@ export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 export const DEFAULT_RADIUS_KM = 3;
 
 export const CITY_CENTERS: Record<string, [number, number]> = {
-  "hồ chí minh": [10.762622, 106.660172],
-  "hà nội": [21.028511, 105.804817],
-  "đà nẵng": [16.054407, 108.202167],
-  "biên hòa": [10.957413, 106.842687],
+  "ho chi minh": [10.762622, 106.660172],
+  "ha noi": [21.028511, 105.804817],
+  "da nang": [16.054407, 108.202167],
+  "bien hoa": [10.957413, 106.842687],
   "nha trang": [12.238791, 109.196749],
-  "huế": [16.463713, 107.590866],
-  "cần thơ": [10.045162, 105.746857],
+  "hue": [16.463713, 107.590866],
+  "can tho": [10.045162, 105.746857],
 };
