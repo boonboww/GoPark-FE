@@ -51,7 +51,7 @@ export default function SignupForm() {
       if (token && typeof window !== "undefined") {
         localStorage.setItem("token", token);
       }
-      router.push("/api/v1/account/login?success=1");
+      router.push("/account/login?success=1");
     } catch (err: unknown) {
       if (
         err &&
