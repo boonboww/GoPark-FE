@@ -21,10 +21,10 @@ const MapComponent = ({
   const parkingIcon = useMemo(
     () =>
       L.icon({
-        iconUrl: "/marker-icon.png",
-        iconSize: [25, 41],
-        iconAnchor: [12, 41],
-        popupAnchor: [1, -34],
+        iconUrl: "/marker-icon.png", // ảnh PNG trong thư mục /public
+        iconSize: [40, 40], // ⬅️ tăng kích thước để to hơn
+        iconAnchor: [20, 40], // ⬅️ neo icon tại đỉnh nhọn giữa chân (center-bottom)
+        popupAnchor: [0, -40], // ⬅️ điều chỉnh vị trí popup nếu cần
       }),
     []
   );
