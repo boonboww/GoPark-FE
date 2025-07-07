@@ -46,12 +46,12 @@ export default function SignupForm() {
     e.preventDefault();
 
     try {
-      const res = await API.post("/users/signup", formData);
+      const res = await API.post("/api/v1/users/signup", formData);
       const token = res.data?.token;
       if (token && typeof window !== "undefined") {
         localStorage.setItem("token", token);
       }
-      router.push("/account/login?success=1");
+      router.push("/api/v1/account/login?success=1");
     } catch (err: unknown) {
       if (
         err &&
