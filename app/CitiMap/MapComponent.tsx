@@ -23,7 +23,7 @@ const MapComponent = ({
     iconSize: [25, 41],
     iconAnchor: [12, 41],
     popupAnchor: [1, -34],
-    shadowUrl: "/marker-shadow.png",
+    shadowUrl: "/marker-icon.png",
     shadowSize: [41, 41],
   }), []);
 
