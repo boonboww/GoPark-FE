@@ -12,20 +12,22 @@ interface MapComponentProps {
   onMarkerClick: (parking: Parking) => void;
 }
 
-const MapComponent = ({ 
-  parkings, 
-  city, 
+const MapComponent = ({
+  parkings,
+  city,
   onMapInit,
-  onMarkerClick
+  onMarkerClick,
 }: MapComponentProps) => {
-  const parkingIcon = useMemo(() => L.icon({
-    iconUrl: "/marker-icon.png",
-    iconSize: [25, 41],
-    iconAnchor: [12, 41],
-    popupAnchor: [1, -34],
-    shadowUrl: "/marker-icon.png",
-    shadowSize: [41, 41],
-  }), []);
+  const parkingIcon = useMemo(
+    () =>
+      L.icon({
+        iconUrl: "/marker-icon.png",
+        iconSize: [25, 41],
+        iconAnchor: [12, 41],
+        popupAnchor: [1, -34],
+      }),
+    []
+  );
 
   useEffect(() => {
     if (typeof window === "undefined") {
@@ -34,9 +36,10 @@ const MapComponent = ({
 
     const center = CITY_CENTERS[city] || [10.762622, 106.660172];
     const mapInstance = L.map("map").setView(center, 13);
-    
+
     L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+      attribution:
+        '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
     }).addTo(mapInstance);
 
     mapInstance.zoomControl.setPosition("topright");
