@@ -17,17 +17,17 @@ export const ParkingCard = ({
     onClick={() => onSelect(parking)}
   >
     <img
-      src={parking.avtImage || "/default-parking.jpg"}
+      src={parking.avtImage || "/bg.jpg"}
       alt={parking.name}
       className="w-full h-24 object-cover mb-2 rounded"
     />
     <h3 className="font-semibold text-gray-800">{parking.name}</h3>
     <p className="text-sm text-gray-600">Địa chỉ: {parking.address}</p>
     <p className="text-sm text-gray-600">
-      Giá: {parking.pricePerHour.toLocaleString()} VNĐ/giờ
+      Giá: {parking.pricePerHour.toLocaleString()} VNĐ/hour
     </p>
     <p className="text-sm">
-      Trạng thái:{" "}
+      Status:{" "}
       <span
         className={
           parking.isActive

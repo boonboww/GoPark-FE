@@ -17,7 +17,7 @@ export const ParkingDetail = ({ parking, arriving, leaving, onBack, onNavigate }
     </button>
 
     <div className="border border-gray-200 p-6 rounded-xl shadow-lg bg-white">
-      <img src={parking.avtImage || "/default-parking.jpg"} alt={parking.name}
+      <img src={parking.avtImage || "/bg.jpg"} alt={parking.name}
         className="w-full h-64 object-cover rounded-lg mb-4"/>
       
       <h3 className="text-2xl font-bold text-gray-800 mb-3">{parking.name}</h3>
