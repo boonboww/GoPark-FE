@@ -114,7 +114,7 @@ export default function MapSection() {
         whileInView={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.8, delay: 0.6 }}
         viewport={{ once: true }}
-        className="mt-14 px-8 py-4 bg-gradient-to-r from-sky-500 to-blue-600 text-white font-semibold rounded-full shadow-lg hover:scale-105 hover:shadow-2xl transition transform duration-300 z-10"
+        className="mt-14 px-8 py-4 bg-gradient-to-r cursor-pointer from-sky-500 to-blue-600 text-white font-semibold rounded-full shadow-lg hover:scale-105 hover:shadow-2xl transition transform duration-300 z-10"
       >
         Find map
       </motion.button>

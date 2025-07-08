@@ -2,8 +2,11 @@
 
 import { FaArrowRight } from "react-icons/fa";
 import { motion } from "framer-motion";
+import { useRouter } from "next/navigation";
 
 export default function PromotionSection() {
+  const router = useRouter();
+
   return (
     <section className="relative flex flex-col items-center justify-center py-24 px-4 text-center min-h-[70vh] overflow-hidden bg-gradient-to-b from-white to-sky-50">
       {/* Decorative Blur Circles */}
@@ -42,7 +45,8 @@ export default function PromotionSection() {
         whileInView={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.8, delay: 0.5 }}
         viewport={{ once: true }}
-        className="flex items-center gap-3 bg-gradient-to-r from-sky-400 to-sky-500 text-white px-8 py-3 rounded-full text-lg font-medium shadow-lg hover:scale-105 hover:shadow-xl transition duration-300"
+        onClick={() => router.push("/business")}
+        className="flex items-center cursor-pointer gap-3 bg-gradient-to-r from-sky-400 to-sky-500 text-white px-8 py-3 rounded-full text-lg font-medium shadow-lg hover:scale-105 hover:shadow-xl transition duration-300"
       >
         Join Us <FaArrowRight />
       </motion.button>
