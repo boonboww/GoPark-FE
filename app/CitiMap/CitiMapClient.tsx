@@ -12,8 +12,12 @@ import L from "leaflet";
 const CitiMap = () => {
   const searchParams = useSearchParams();
   const city = searchParams.get("city")?.toLowerCase() || "";
-  const arriving = searchParams.get("arriving") ? new Date(searchParams.get("arriving")!) : null;
-  const leaving = searchParams.get("leaving") ? new Date(searchParams.get("leaving")!) : null;
+  const arriving = searchParams.get("arriving")
+    ? new Date(searchParams.get("arriving")!)
+    : null;
+  const leaving = searchParams.get("leaving")
+    ? new Date(searchParams.get("leaving")!)
+    : null;
 
   const [map, setMap] = useState<L.Map | null>(null);
   const [userCoords, setUserCoords] = useState<[number, number] | null>(null);
@@ -31,7 +35,9 @@ const CitiMap = () => {
     const fetchParkings = async () => {
       setLoading(true);
       try {
-        const res = await fetch(`${API_BASE_URL}/api/v1/search/city?location=${city}`);
+        const res = await fetch(
+          `${API_BASE_URL}/api/v1/search/city?location=${city}`
+        );
         if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
 
         const response = await res.json();
@@ -47,7 +53,9 @@ const CitiMap = () => {
         }
       } catch (error) {
         console.error("Error fetching parking lots:", error);
-        toast.error("An error occurred while loading parking data. Please try again later.");
+        toast.error(
+          "An error occurred while loading parking data. Please try again later."
+        );
       } finally {
         setLoading(false);
       }
@@ -65,28 +73,34 @@ const CitiMap = () => {
     setIsLocating(true);
 
     try {
-      const position = await new Promise<GeolocationPosition>((resolve, reject) => {
-        navigator.geolocation.getCurrentPosition(resolve, reject, {
-          enableHighAccuracy: true,
-          timeout: 10000,
-        });
-      });
+      const position = await new Promise<GeolocationPosition>(
+        (resolve, reject) => {
+          navigator.geolocation.getCurrentPosition(resolve, reject, {
+            enableHighAccuracy: true,
+            timeout: 10000,
+          });
+        }
+      );
 
       const { latitude, longitude } = position.coords;
       setUserCoords([latitude, longitude]);
 
-      map?.setView([latitude, longitude], 14);
+      if (map) {
+        map.setView([latitude, longitude], 15);
 
-      const userIcon = L.icon({
-        iconUrl: "/user-location.png",
-        iconSize: [30, 30],
-        iconAnchor: [15, 15],
-      });
+        const userIcon = L.icon({
+          iconUrl: "/user-location.png",
+          iconSize: [30, 30],
+          iconAnchor: [15, 15],
+        });
 
-      if (userMarker) map?.removeLayer(userMarker);
-
-      const marker = L.marker([latitude, longitude], { icon: userIcon }).addTo(map!);
-      setUserMarker(marker);
+        if (userMarker) {
+          userMarker.setLatLng([latitude, longitude]).addTo(map);
+        } else {
+          const newMarker = L.marker([latitude, longitude], { icon: userIcon }).addTo(map);
+          setUserMarker(newMarker);
+        }
+      }
 
       const nearby = parkings.filter((p) => {
         const dist = getDistanceFromLatLonInKm(
@@ -106,13 +120,20 @@ const CitiMap = () => {
       }
     } catch (err) {
       console.error(err);
-      toast.error("Failed to detect your location. Please enable location services.");
+      toast.error(
+        "Failed to detect your location. Please enable location services."
+      );
     } finally {
       setIsLocating(false);
     }
   }, [map, parkings, userMarker]);
 
-  const getDistanceFromLatLonInKm = (lat1: number, lon1: number, lat2: number, lon2: number) => {
+  const getDistanceFromLatLonInKm = (
+    lat1: number,
+    lon1: number,
+    lat2: number,
+    lon2: number
+  ) => {
     const R = 6371;
     const dLat = deg2rad(lat2 - lat1);
     const dLon = deg2rad(lon2 - lon1);
@@ -128,21 +149,37 @@ const CitiMap = () => {
 
   const deg2rad = (deg: number) => deg * (Math.PI / 180);
 
-  const navigateToParking = useCallback((lat: number, lon: number) => {
-    if (!userCoords) {
-      toast.warning("Please enable location services first");
-      return;
+  const navigateToParking = useCallback(
+    (lat: number, lon: number) => {
+      if (!userCoords) {
+        toast.warning("Please enable location services first");
+        return;
+      }
+      const url = `https://www.google.com/maps/dir/?api=1&origin=${userCoords[0]},${userCoords[1]}&destination=${lat},${lon}&travelmode=driving`;
+      window.open(url, "_blank");
+    },
+    [userCoords]
+  );
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (isPanelOpen) {
+      document.body.classList.add("panel-open");
+      document.body.classList.remove("panel-closed");
+    } else {
+      document.body.classList.add("panel-closed");
+      document.body.classList.remove("panel-open");
     }
-    const url = `https://www.google.com/maps/dir/?api=1&origin=${userCoords[0]},${userCoords[1]}&destination=${lat},${lon}&travelmode=driving`;
-    window.open(url, "_blank");
-  }, [userCoords]);
+  }, [isPanelOpen]);
 
   if (loading) {
     return (
       <div className="flex items-center justify-center h-screen">
         <div className="flex flex-col items-center">
-          <Loader2 className="w-12 h-12 animate-spin text-blue-500 mb-4"/>
-          <span className="text-lg font-medium">Đang tải dữ liệu bãi đỗ...</span>
+          <Loader2 className="w-12 h-12 animate-spin text-blue-500 mb-4" />
+          <span className="text-lg font-medium">
+            Đang tải dữ liệu bãi đỗ...
+          </span>
         </div>
       </div>
     );
@@ -152,10 +189,12 @@ const CitiMap = () => {
     <div className="flex h-screen bg-gray-100 relative">
       {isPanelOpen && (
         <div className="fixed top-0 left-0 w-full sm:w-96 h-full z-[1000] bg-white bg-opacity-95 backdrop-blur-sm p-4 border-r border-gray-200 shadow-lg overflow-y-auto">
-          <button onClick={() => setIsPanelOpen(false)}
+          <button
+            onClick={() => setIsPanelOpen(false)}
             className="absolute top-4 right-4 text-gray-600 hover:text-gray-800 transition-colors"
-            aria-label="Close panel">
-            <X className="w-6 h-6"/>
+            aria-label="Close panel"
+          >
+            <X className="w-6 h-6" />
           </button>
 
           {selectedParking ? (
@@ -164,10 +203,12 @@ const CitiMap = () => {
               arriving={arriving}
               leaving={leaving}
               onBack={() => setSelectedParking(null)}
-              onNavigate={() => navigateToParking(
-                selectedParking.location.coordinates[1],
-                selectedParking.location.coordinates[0]
-              )}
+              onNavigate={() =>
+                navigateToParking(
+                  selectedParking.location.coordinates[1],
+                  selectedParking.location.coordinates[0]
+                )
+              }
             />
           ) : (
             <ParkingList
@@ -184,19 +225,29 @@ const CitiMap = () => {
 
       <div className="w-full h-full relative">
         {!isPanelOpen && (
-          <button onClick={() => setIsPanelOpen(true)}
-            className="absolute top-4 left-4 z-[1000] bg-white p-2 rounded-md shadow-md hover:bg-gray-100 transition-colors"
-            aria-label="Open panel">
-            <Menu className="w-6 h-6 text-gray-600"/>
-          </button>
-        )}
+          <>
+            <button
+              onClick={() => setIsPanelOpen(true)}
+              className="absolute top-4 left-4 z-[1000] bg-white p-2 rounded-md shadow-md hover:bg-gray-100 transition-colors"
+              aria-label="Open panel"
+            >
+              <Menu className="w-6 h-6 text-gray-600" />
+            </button>
 
-        <button onClick={findNearbyParkings}
-          className="absolute top-4 right-4 z-[1000] bg-white p-2 rounded-md shadow-md hover:bg-gray-100 transition-colors"
-          aria-label="Locate me"
-          disabled={isLocating}>
-          {isLocating ? <Loader2 className="w-6 h-6 animate-spin"/> : <LocateFixed className="w-6 h-6 text-blue-500"/>}
-        </button>
+            <button
+              onClick={findNearbyParkings}
+              className="absolute top-4 right-4 md:top-4 md:right-4 z-[1000] bg-white p-2 rounded-md shadow-md hover:bg-gray-100 transition-colors locate-btn"
+              aria-label="Locate me"
+              disabled={isLocating}
+            >
+              {isLocating ? (
+                <Loader2 className="w-6 h-6 animate-spin" />
+              ) : (
+                <LocateFixed className="w-6 h-6  text-blue-500" />
+              )}
+            </button>
+          </>
+        )}
 
         <MapComponent
           parkings={filteredParkings}

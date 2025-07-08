@@ -45,6 +45,17 @@ html {
 }
 
 
+@media (max-width: 767px) {
+  body.panel-open .leaflet-control-zoom {
+    display: none !important;
+  }
+  body.panel-closed .leaflet-control-zoom {
+    display: block !important;
+  }
+}
+
+
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);

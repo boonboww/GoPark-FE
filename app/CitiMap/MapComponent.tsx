@@ -21,18 +21,16 @@ const MapComponent = ({
   const parkingIcon = useMemo(
     () =>
       L.icon({
-        iconUrl: "/marker-icon.png", // ảnh PNG trong thư mục /public
-        iconSize: [40, 40], // ⬅️ tăng kích thước để to hơn
-        iconAnchor: [20, 40], // ⬅️ neo icon tại đỉnh nhọn giữa chân (center-bottom)
-        popupAnchor: [0, -40], // ⬅️ điều chỉnh vị trí popup nếu cần
+        iconUrl: "/marker-icon.png",
+        iconSize: [40, 40],
+        iconAnchor: [20, 40],
+        popupAnchor: [0, -40],
       }),
     []
   );
 
   useEffect(() => {
-    if (typeof window === "undefined") {
-      return;
-    }
+    if (typeof window === "undefined") return;
 
     const center = CITY_CENTERS[city] || [10.762622, 106.660172];
     const mapInstance = L.map("map").setView(center, 13);
@@ -43,6 +41,16 @@ const MapComponent = ({
     }).addTo(mapInstance);
 
     mapInstance.zoomControl.setPosition("topright");
+
+    const zoomControl = document.querySelector(
+      ".leaflet-control-zoom"
+    ) as HTMLElement;
+
+    if (zoomControl) {
+      zoomControl.style.top = "4rem"; // Dời xuống dưới Locate
+      zoomControl.style.right = "0.7rem";
+    }
+
     onMapInit(mapInstance);
 
     parkings.forEach((p) => {
