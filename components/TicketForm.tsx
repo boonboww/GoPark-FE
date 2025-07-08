@@ -82,23 +82,23 @@ export default function TicketForm({
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button className="mb-4">
-          {editingTicket ? "Sửa vé" : "Thêm vé mới"}
+          {editingTicket ? "Edit Ticket" : "Add New Ticket"}
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>{editingTicket ? "Sửa vé" : "Thêm vé mới"}</DialogTitle>
+          <DialogTitle>{editingTicket ? "Edit Ticket" : "Add New Ticket"}</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <Label htmlFor="licensePlate">Biển số xe</Label>
+            <Label htmlFor="licensePlate">License Plate</Label>
             <Select
               value={ticket.licensePlate}
               onValueChange={(value) => handleSelectChange("licensePlate", value)}
               required
             >
               <SelectTrigger>
-                <SelectValue placeholder="Chọn biển số" />
+                <SelectValue placeholder="Select a license plate" />
               </SelectTrigger>
               <SelectContent>
                 {vehicles.map((vehicle) => (
@@ -111,14 +111,14 @@ export default function TicketForm({
           </div>
 
           <div>
-            <Label htmlFor="customer">Khách hàng</Label>
+            <Label htmlFor="customer">Customer</Label>
             <Select
               value={ticket.customer}
               onValueChange={(value) => handleSelectChange("customer", value)}
               required
             >
               <SelectTrigger>
-                <SelectValue placeholder="Chọn khách hàng" />
+                <SelectValue placeholder="Select a customer" />
               </SelectTrigger>
               <SelectContent>
                 {customers.map((customer) => (
@@ -131,25 +131,25 @@ export default function TicketForm({
           </div>
 
           <div>
-            <Label htmlFor="type">Loại vé</Label>
+            <Label htmlFor="type">Ticket Type</Label>
             <Select
               value={ticket.type}
               onValueChange={(value) => handleSelectChange("type", value)}
               required
             >
               <SelectTrigger>
-                <SelectValue placeholder="Chọn loại vé" />
+                <SelectValue placeholder="Select a ticket type" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="Daily">Vé ngày</SelectItem>
-                <SelectItem value="Monthly">Vé tháng</SelectItem>
-                <SelectItem value="Annual">Vé năm</SelectItem>
+                <SelectItem value="Daily">Daily Ticket</SelectItem>
+                <SelectItem value="Monthly">Monthly Ticket</SelectItem>
+                <SelectItem value="Annual">Annual Ticket</SelectItem>
               </SelectContent>
             </Select>
           </div>
 
           <div>
-            <Label htmlFor="price">Giá vé (VND)</Label>
+            <Label htmlFor="price">Ticket Price (VND)</Label>
             <Input
               id="price"
               type="number"
@@ -162,7 +162,7 @@ export default function TicketForm({
           </div>
 
           <div>
-            <Label htmlFor="floor">Tầng đỗ</Label>
+            <Label htmlFor="floor">Parking Floor</Label>
             <Input
               id="floor"
               value={ticket.floor}
@@ -172,13 +172,13 @@ export default function TicketForm({
           </div>
 
           <div>
-            <Label htmlFor="expiry">Ngày hết hạn</Label>
+            <Label htmlFor="expiry">Expiry Date</Label>
             <Input
               id="expiry"
               type="date"
               value={ticket.expiry}
               onChange={handleInputChange}
-              min={new Date().toISOString().split('T')[0]}
+              min={new Date().toISOString().split("T")[0]}
               required
             />
           </div>
@@ -188,7 +188,7 @@ export default function TicketForm({
             className="w-full mt-4"
             disabled={!isFormValid}
           >
-            {editingTicket ? "Cập nhật vé" : "Thêm vé"}
+            {editingTicket ? "Update Ticket" : "Add Ticket"}
           </Button>
         </form>
       </DialogContent>

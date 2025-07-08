@@ -46,11 +46,11 @@ export function DropzoneUpload({
     rejections.forEach(({ errors }) => {
       errors.forEach((error) => {
         if (error.code === 'file-too-large') {
-          messages.push(`File vượt quá kích thước tối đa ${maxSize / (1024 * 1024)}MB`);
+          messages.push(`File exceeds the maximum size of ${maxSize / (1024 * 1024)}MB`);
         } else if (error.code === 'file-invalid-type') {
-          messages.push('Định dạng file không hợp lệ');
+          messages.push('Invalid file type');
         } else if (error.code === 'too-many-files') {
-          messages.push(`Chỉ được tải lên tối đa ${maxFiles} file`);
+          messages.push(`Only up to ${maxFiles} file(s) allowed`);
         } else {
           messages.push(error.message);
         }
@@ -66,14 +66,14 @@ export function DropzoneUpload({
         <div className="flex flex-col items-center justify-center gap-2">
           <UploadCloud className="h-10 w-10 text-gray-400" />
           {isDragActive ? (
-            <p className="text-sm text-gray-600">Thả file vào đây...</p>
+            <p className="text-sm text-gray-600">Drop the file here...</p>
           ) : (
             <p className="text-sm text-gray-600">
-              Kéo thả file hoặc click để chọn
+              Drag & drop a file or click to select
             </p>
           )}
           <p className="text-xs text-gray-500">
-            Chấp nhận: {Object.values(accept).flat().join(', ')}
+            Accepted formats: {Object.values(accept).flat().join(', ')}
           </p>
         </div>
       </div>

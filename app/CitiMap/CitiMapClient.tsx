@@ -177,9 +177,7 @@ const CitiMap = () => {
       <div className="flex items-center justify-center h-screen">
         <div className="flex flex-col items-center">
           <Loader2 className="w-12 h-12 animate-spin text-blue-500 mb-4" />
-          <span className="text-lg font-medium">
-            Đang tải dữ liệu bãi đỗ...
-          </span>
+          <span className="text-lg font-medium">Loading parking data...</span>
         </div>
       </div>
     );

@@ -22,9 +22,9 @@ export const ParkingCard = ({
       className="w-full h-24 object-cover mb-2 rounded"
     />
     <h3 className="font-semibold text-gray-800">{parking.name}</h3>
-    <p className="text-sm text-gray-600">Địa chỉ: {parking.address}</p>
+    <p className="text-sm text-gray-600">Address: {parking.address}</p>
     <p className="text-sm text-gray-600">
-      Giá: {parking.pricePerHour.toLocaleString()} VNĐ/hour
+      Price: {parking.pricePerHour.toLocaleString()} VND/hour
     </p>
     <p className="text-sm">
       Status:{" "}

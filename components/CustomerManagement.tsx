@@ -1,4 +1,3 @@
-// components/CustomerManagement.tsx
 "use client";
 
 import { useState } from "react";

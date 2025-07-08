@@ -90,34 +90,34 @@ export default function ParkingLotManagement({
     <Card className="shadow-lg">
       <CardHeader>
         <CardTitle className="text-2xl font-bold">
-          Quản lý Bãi đỗ xe
+          Parking Lot Management
         </CardTitle>
-        <CardDescription>Thêm, sửa và quản lý bãi đỗ xe</CardDescription>
+        <CardDescription>
+          Add, edit, and manage your parking lots
+        </CardDescription>
       </CardHeader>
+
       <CardContent className="p-6 space-y-6">
         <div className="flex justify-between items-center">
           <Dialog>
             <DialogTrigger asChild>
-              <Button>Thêm bãi đỗ mới</Button>
+              <Button>Add New Parking Lot</Button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-[425px]">
               <DialogHeader>
-                <DialogTitle>Tạo bãi đỗ mới</DialogTitle>
+                <DialogTitle>Create New Parking Lot</DialogTitle>
               </DialogHeader>
               <div className="space-y-4">
-                {/* Form fields giữ nguyên */}
+                {/* Keep form fields unchanged or add them if needed */}
               </div>
             </DialogContent>
           </Dialog>
 
           <div className="w-64">
-            <Label>Chọn bãi đỗ</Label>
-            <Select
-              value={selectedLotId}
-              onValueChange={setSelectedLotId}
-            >
+            <Label>Select Parking Lot</Label>
+            <Select value={selectedLotId} onValueChange={setSelectedLotId}>
               <SelectTrigger>
-                <SelectValue placeholder="Chọn bãi đỗ" />
+                <SelectValue placeholder="Select a lot" />
               </SelectTrigger>
               <SelectContent>
                 {parkingLots.map((lot) => (
@@ -133,12 +133,12 @@ export default function ParkingLotManagement({
         {selectedLot && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-4">
-              {/* Form fields giữ nguyên */}
+              {/* You can put editable form fields for selectedLot here if needed */}
             </div>
 
             <div className="space-y-4">
               <div>
-                <Label>Ảnh bãi đỗ xe</Label>
+                <Label className="mb-2 block">Parking Lot Image</Label>
                 <DropzoneUpload
                   onFilesAccepted={(files) => {
                     if (files.length > 0) {
@@ -146,8 +146,8 @@ export default function ParkingLotManagement({
                     }
                   }}
                   accept={{
-                    'image/jpeg': ['.jpeg', '.jpg'],
-                    'image/png': ['.png']
+                    "image/jpeg": [".jpeg", ".jpg"],
+                    "image/png": [".png"],
                   }}
                   multiple={false}
                   maxFiles={1}
@@ -163,7 +163,7 @@ export default function ParkingLotManagement({
                           ? URL.createObjectURL(imageFile)
                           : selectedLot.image!
                       }
-                      alt="Ảnh bãi đỗ xe"
+                      alt="Parking lot image"
                       fill
                       className="object-cover"
                       sizes="(max-width: 768px) 100vw, 50vw"
@@ -173,12 +173,12 @@ export default function ParkingLotManagement({
               )}
 
               <div className="flex gap-4 pt-4">
-                <Button onClick={handleUpdateParkingLot}>Lưu thay đổi</Button>
+                <Button onClick={handleUpdateParkingLot}>Save Changes</Button>
                 <Button
                   variant="destructive"
                   onClick={() => handleDeleteParkingLot(selectedLotId)}
                 >
-                  Xóa bãi đỗ
+                  Delete Lot
                 </Button>
               </div>
             </div>

@@ -63,7 +63,7 @@ export default function TicketManagement({
   const formatDate = (dateString: string) => {
     if (!dateString) return "-";
     const date = new Date(dateString);
-    return date.toLocaleDateString('vi-VN');
+    return date.toLocaleDateString("en-GB");
   };
 
   return (
@@ -71,16 +71,16 @@ export default function TicketManagement({
       <CardHeader>
         <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
           <div>
-            <CardTitle className="text-2xl font-bold">Quản lý Vé</CardTitle>
+            <CardTitle className="text-2xl font-bold">Ticket Management</CardTitle>
             <CardDescription>
-              Tổng số: {tickets.length} vé
+              Total: {tickets.length} tickets
             </CardDescription>
           </div>
-          
+
           <div className="relative w-full md:w-64">
             <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Tìm kiếm vé..."
+              placeholder="Search by license plate or customer..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-9"
@@ -103,13 +103,13 @@ export default function TicketManagement({
             <TableHeader>
               <TableRow>
                 <TableHead className="w-[100px]">ID</TableHead>
-                <TableHead>Biển số</TableHead>
-                <TableHead>Khách hàng</TableHead>
-                <TableHead>Loại vé</TableHead>
-                <TableHead className="text-right">Giá (VND)</TableHead>
-                <TableHead>Tầng</TableHead>
-                <TableHead>Hết hạn</TableHead>
-                <TableHead className="text-right">Thao tác</TableHead>
+                <TableHead>License Plate</TableHead>
+                <TableHead>Customer</TableHead>
+                <TableHead>Ticket Type</TableHead>
+                <TableHead className="text-right">Price (VND)</TableHead>
+                <TableHead>Floor</TableHead>
+                <TableHead>Expiry</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -127,11 +127,11 @@ export default function TicketManagement({
                             ? 'bg-purple-100 text-purple-800' 
                             : 'bg-green-100 text-green-800'
                       }`}>
-                        {ticket.type === 'Daily' ? 'Ngày' : ticket.type === 'Monthly' ? 'Tháng' : 'Năm'}
+                        {ticket.type === 'Daily' ? 'Daily' : ticket.type === 'Monthly' ? 'Monthly' : 'Yearly'}
                       </span>
                     </TableCell>
                     <TableCell className="text-right">
-                      {ticket.price.toLocaleString('vi-VN')}
+                      {ticket.price.toLocaleString('en-US')}
                     </TableCell>
                     <TableCell>{ticket.floor}</TableCell>
                     <TableCell>{formatDate(ticket.expiry)}</TableCell>
@@ -141,14 +141,14 @@ export default function TicketManagement({
                         size="sm"
                         onClick={() => handleEditTicket(ticket)}
                       >
-                        Sửa
+                        Edit
                       </Button>
                       <Button
                         variant="destructive"
                         size="sm"
                         onClick={() => handleDeleteTicket(ticket.id)}
                       >
-                        Xóa
+                        Delete
                       </Button>
                     </TableCell>
                   </TableRow>
@@ -157,8 +157,8 @@ export default function TicketManagement({
                 <TableRow>
                   <TableCell colSpan={8} className="h-24 text-center">
                     {tickets.length === 0 
-                      ? "Chưa có vé nào" 
-                      : "Không tìm thấy vé phù hợp"}
+                      ? "No tickets yet" 
+                      : "No matching tickets found"}
                   </TableCell>
                 </TableRow>
               )}
