@@ -12,7 +12,36 @@ interface LocationSuggestion {
   name: string;
 }
 
-const API_BASE_URL = "http://localhost:5000";
+export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+
+// City mapping dictionary
+const cityNameMap: Record<string, string> = {
+  'đà nẵng': 'Da Nang',
+  'hồ chí minh': 'Ho Chi Minh',
+  'hà nội': 'Ha Noi',
+  'biên hòa': 'Bien Hoa',
+  'nha trang': 'Nha Trang',
+  'huế': 'Hue',
+  'cần thơ': 'Can Tho',
+  'vũng tàu': 'Vung Tau',
+  'hải phòng': 'Hai Phong',
+};
+
+function removeVietnameseTones(str: string): string {
+  return str
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/đ/g, "d")
+    .replace(/Đ/g, "D")
+    .toLowerCase();
+}
+
+function cleanCityName(cityName: string): string {
+  // Remove prefixes like 'city of', 'province of'
+  return cityName
+    .replace(/^(thành phố|tp\.?|tp\s|thanh pho|city of|province of)\s*/i, '')
+    .trim();
+}
 
 export default function HeroSection() {
   const router = useRouter();
@@ -26,6 +55,7 @@ export default function HeroSection() {
   const [isSearching, setIsSearching] = useState(false);
 
   const allLocations: LocationSuggestion[] = [
+    { id: "nearby", name: "Near me" },
     { id: "hcm", name: "Ho Chi Minh" },
     { id: "hn", name: "Ha Noi" },
     { id: "dn", name: "Da Nang" },
@@ -35,10 +65,81 @@ export default function HeroSection() {
     { id: "ct", name: "Can Tho" },
   ];
 
-  const handleSelectLocation = (event: React.ChangeEvent<HTMLSelectElement>) => {
+  const getCityFromCoordinates = async (lat: number, lng: number) => {
+    try {
+      const res = await fetch(
+        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&accept-language=vi`
+      );
+      const data = await res.json();
+      
+      return data?.address?.city || 
+             data?.address?.town || 
+             data?.address?.state ||
+             data?.address?.county;
+    } catch (error) {
+      console.error("Error getting city info:", error);
+      return null;
+    }
+  };
+
+  const normalizeCityName = (cityName: string): string => {
+    const cleanedName = cleanCityName(cityName);
+    const normalized = removeVietnameseTones(cleanedName);
+    return cityNameMap[normalized] || 
+           normalized.split(' ')
+                    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+                    .join(' ');
+  };
+
+  const handleNearbyLocation = async () => {
+    if (!navigator.geolocation) {
+      toast.error("Geolocation is not supported by your browser.");
+      return;
+    }
+
+    toast.message("Detecting your location...");
+
+    try {
+      const position = await new Promise<GeolocationPosition>((resolve, reject) => {
+        navigator.geolocation.getCurrentPosition(resolve, reject, {
+          timeout: 10000,
+          maximumAge: 60000,
+          enableHighAccuracy: true
+        });
+      });
+
+      const { latitude, longitude } = position.coords;
+      const cityName = await getCityFromCoordinates(latitude, longitude);
+
+      if (!cityName) {
+        toast.error("Could not determine city from your location.");
+        return;
+      }
+
+      const normalizedName = normalizeCityName(cityName);
+
+      setSelectedLocation({
+        id: "current",
+        name: normalizedName
+      });
+
+      toast.success(`Location detected: ${normalizedName}`);
+
+    } catch (error) {
+      console.error("Location error:", error);
+      toast.error("Failed to get location. Please try again or select manually.");
+    }
+  };
+
+  const handleSelectLocation = async (event: React.ChangeEvent<HTMLSelectElement>) => {
     const selectedId = event.target.value;
-    const loc = allLocations.find((loc) => loc.id === selectedId) || null;
-    setSelectedLocation(loc);
+
+    if (selectedId === "nearby") {
+      await handleNearbyLocation();
+    } else {
+      const loc = allLocations.find((loc) => loc.id === selectedId) || null;
+      setSelectedLocation(loc);
+    }
   };
 
   const handleFindParking = async () => {
@@ -51,27 +152,25 @@ export default function HeroSection() {
 
     try {
       const res = await fetch(
-        `${API_BASE_URL}/api/v1/search/city?location=${selectedLocation.name}`
+        `${API_BASE_URL}/api/v1/search/city?location=${encodeURIComponent(selectedLocation.name)}`
       );
 
-      if (!res.ok) {
-        throw new Error(`HTTP error! status: ${res.status}`);
-      }
+      if (!res.ok) throw new Error(`HTTP error! Status: ${res.status}`);
 
       const data = await res.json();
 
-      if (data.data && data.data.length > 0) {
+      if (data.data?.length > 0) {
         router.push(
           `/CitiMap?city=${encodeURIComponent(selectedLocation.name)}&arriving=${encodeURIComponent(
             arriving.toISOString()
           )}&leaving=${encodeURIComponent(leaving.toISOString())}`
         );
       } else {
-        toast.info("No parking spots found in this city");
+        toast.info(`No parking found in ${selectedLocation.name}`);
       }
     } catch (error) {
-      console.error("Error fetching parking lots:", error);
-      toast.error("An error occurred while searching for parking spots. Please try again later");
+      console.error("Search error:", error);
+      toast.error("An error occurred. Please try again later.");
     } finally {
       setIsSearching(false);
     }
@@ -79,16 +178,14 @@ export default function HeroSection() {
 
   return (
     <section className="relative z-10 flex flex-col items-center justify-center h-3/4 text-center px-4 sm:px-6 md:px-8">
-      {/* Introduction text */}
       <h1 className="text-3xl md:text-5xl font-bold text-white drop-shadow-md mb-4">
         Smart Parking – Fast, Easy & Reliable
       </h1>
       <p className="text-lg md:text-xl text-white drop-shadow-sm mb-8 max-w-2xl">
-        Reserve safe parking nationwide — easily with just a few clicks
+        Reserve safe parking nationwide - with just a few clicks
       </p>
 
-      {/* Search Form */}
-      <div className="bg-white/95 p-6 md:p-6 rounded-2xl w-full max-w-md transform hover:scale-105 transition-transform duration-300">
+      <div className="bg-white/95 p-6 rounded-2xl w-full max-w-md transform hover:scale-105 transition-transform duration-300">
         <select
           value={selectedLocation?.id || ""}
           onChange={handleSelectLocation}
@@ -106,31 +203,32 @@ export default function HeroSection() {
       </div>
 
       {selectedLocation && (
-        <div className="mt-8 md:mt-8 bg-white/95 p-2 sm:p-4 md:p-6 rounded-2xl w-full max-w-xs sm:max-w-sm md:max-w-md transform hover:scale-105 transition-transform duration-300">
-          <h2 className="text-base sm:text-lg md:text-xl font-semibold text-gray-800 mb-2 sm:mb-4 md:mb-4">
-            Selected: <span className="text-blue-600">{selectedLocation.name}</span>
-          </h2>
+        <div className="mt-8 bg-white/95 p-6 rounded-2xl w-full max-w-md transform hover:scale-105 transition-transform duration-300">
+          <div className="mb-4">
+            <h2 className="text-sm font-medium text-gray-600">
+              {selectedLocation.id === "current" ? "Current location" : "Selected"}
+            </h2>
+            <p className="text-xl font-semibold text-blue-600">
+              {selectedLocation.name}
+            </p>
+          </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 gap-2 sm:gap-4 md:gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="text-xs sm:text-sm md:text-sm font-medium text-gray-600 block mb-1">
-                Arrival Date
+              <label className="text-sm font-medium text-gray-600 block mb-1">
+                Arrival date
               </label>
               <DatePicker
                 selected={arriving}
                 onChange={(date: Date | null) => {
-                  if (!date) return;
-                  const newDate = new Date(date);
-                  newDate.setHours(arriving.getHours());
-                  newDate.setMinutes(arriving.getMinutes());
-                  setArriving(newDate);
+                  if (date) setArriving(date);
                 }}
                 dateFormat="dd/MM/yyyy"
-                className="w-full border border-gray-300 px-2 sm:px-3 md:px-3 py-1 sm:py-2 md:py-2 rounded-lg focus:ring-2 focus:ring-blue-400 text-xs sm:text-sm md:text-sm"
+                className="w-full border border-gray-300 px-3 py-2 rounded-lg focus:ring-2 focus:ring-blue-400 text-sm"
               />
 
-              <label className="text-xs sm:text-sm md:text-sm font-medium text-gray-600 block mt-2 sm:mt-4 md:mt-4 mb-1">
-                Arrival Time
+              <label className="text-sm font-medium text-gray-600 block mt-3 mb-1">
+                Arrival time
               </label>
               <DatePicker
                 selected={arriving}
@@ -146,29 +244,25 @@ export default function HeroSection() {
                 timeIntervals={15}
                 timeCaption="Time"
                 dateFormat="HH:mm"
-                className="w-full border border-gray-300 px-2 sm:px-3 md:px-3 py-1 sm:py-2 md:py-2 rounded-lg focus:ring-2 focus:ring-blue-400 text-xs sm:text-sm md:text-sm"
+                className="w-full border border-gray-300 px-3 py-2 rounded-lg focus:ring-2 focus:ring-blue-400 text-sm"
               />
             </div>
 
-            <div className="hidden md:block">
+            <div>
               <label className="text-sm font-medium text-gray-600 block mb-1">
-                Departure Date
+                Departure date
               </label>
               <DatePicker
                 selected={leaving}
                 onChange={(date: Date | null) => {
-                  if (!date) return;
-                  const newDate = new Date(date);
-                  newDate.setHours(leaving.getHours());
-                  newDate.setMinutes(leaving.getMinutes());
-                  setLeaving(newDate);
+                  if (date) setLeaving(date);
                 }}
                 dateFormat="dd/MM/yyyy"
-                className="w-full border border-gray-300 px-3 py-2 rounded-lg focus:ring-2 focus:ring-blue-400"
+                className="w-full border border-gray-300 px-3 py-2 rounded-lg focus:ring-2 focus:ring-blue-400 text-sm"
               />
 
-              <label className="text-sm font-medium text-gray-600 block mt-4 mb-1">
-                Departure Time
+              <label className="text-sm font-medium text-gray-600 block mt-3 mb-1">
+                Departure time
               </label>
               <DatePicker
                 selected={leaving}
@@ -184,55 +278,27 @@ export default function HeroSection() {
                 timeIntervals={15}
                 timeCaption="Time"
                 dateFormat="HH:mm"
-                className="w-full border border-gray-300 px-3 py-2 rounded-lg focus:ring-2 focus:ring-blue-400"
-              />
-            </div>
-
-            <div className="md:hidden">
-              <label className="text-xs sm:text-sm font-medium text-gray-600 block mb-1">
-                Departure Date
-              </label>
-              <DatePicker
-                selected={leaving}
-                onChange={(date: Date | null) => {
-                  if (!date) return;
-                  const newDate = new Date(date);
-                  newDate.setHours(leaving.getHours());
-                  newDate.setMinutes(leaving.getMinutes());
-                  setLeaving(newDate);
-                }}
-                dateFormat="dd/MM/yyyy"
-                className="w-full border border-gray-300 px-2 sm:px-3 py-1 sm:py-2 rounded-lg focus:ring-2 focus:ring-blue-400 text-xs sm:text-sm"
-              />
-
-              <label className="text-xs sm:text-sm font-medium text-gray-600 block mt-2 sm:mt-4 mb-1">
-                Departure Time
-              </label>
-              <DatePicker
-                selected={leaving}
-                onChange={(time: Date | null) => {
-                  if (!time) return;
-                  const newTime = new Date(leaving);
-                  newTime.setHours(time.getHours());
-                  newTime.setMinutes(time.getMinutes());
-                  setLeaving(newTime);
-                }}
-                showTimeSelect
-                showTimeSelectOnly
-                timeIntervals={15}
-                timeCaption="Time"
-                dateFormat="HH:mm"
-                className="w-full border border-gray-300 px-2 sm:px-3 py-1 sm:py-2 rounded-lg focus:ring-2 focus:ring-blue-400 text-xs sm:text-sm"
+                className="w-full border border-gray-300 px-3 py-2 rounded-lg focus:ring-2 focus:ring-blue-400 text-sm"
               />
             </div>
           </div>
 
           <Button
-            className="mt-4 sm:mt-6 md:mt-6 w-full bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white font-semibold py-2 sm:py-3 md:py-3 rounded-lg transition-all duration-300"
+            className="mt-6 w-full bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white font-semibold py-3 rounded-lg transition-all duration-300"
             onClick={handleFindParking}
             disabled={isSearching}
           >
-            {isSearching ? "Searching..." : "Find Parking"}
+            {isSearching ? (
+              <span className="flex items-center justify-center">
+                <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Searching...
+              </span>
+            ) : (
+              "Find Parking"
+            )}
           </Button>
         </div>
       )}
