@@ -46,7 +46,6 @@ export default function BusinessPage() {
       setFormData({ ...formData, [name]: value });
     }
 
-    // Xóa cảnh báo nếu người dùng nhập lại
     if (value.trim() !== "") {
       setErrors((prev) => ({ ...prev, [name]: "" }));
     }
@@ -107,8 +106,7 @@ export default function BusinessPage() {
 
             <div>
               <Label htmlFor="ownerName" className="flex items-center gap-2">
-                <User2 className="w-4 h-4" /> Full Name{" "}
-                <span className="text-red-500">*</span>
+                <User2 className="w-4 h-4" /> Full Name <span className="text-red-500">*</span>
               </Label>
               <Input
                 id="ownerName"
@@ -116,15 +114,14 @@ export default function BusinessPage() {
                 value={formData.ownerName}
                 onChange={handleChange}
                 placeholder="e.g., Gwouth"
-                className={errors.ownerName ? "border-yellow-500" : ""}
+                className={`mt-1 ${errors.ownerName ? "border-yellow-500" : ""}`}
               />
               {renderInputError("ownerName")}
             </div>
 
             <div>
               <Label htmlFor="ownerEmail" className="flex items-center gap-2">
-                <Mail className="w-4 h-4" /> Email{" "}
-                <span className="text-red-500">*</span>
+                <Mail className="w-4 h-4" /> Email <span className="text-red-500">*</span>
               </Label>
               <Input
                 id="ownerEmail"
@@ -133,7 +130,7 @@ export default function BusinessPage() {
                 value={formData.ownerEmail}
                 onChange={handleChange}
                 placeholder="e.g., john@example.com"
-                className={errors.ownerEmail ? "border-yellow-500" : ""}
+                className={`mt-1 ${errors.ownerEmail ? "border-yellow-500" : ""}`}
               />
               {renderInputError("ownerEmail")}
             </div>
@@ -147,8 +144,7 @@ export default function BusinessPage() {
 
             <div>
               <Label htmlFor="carParkName" className="flex items-center gap-2">
-                <ParkingSquare className="w-4 h-4" /> Car Park Name{" "}
-                <span className="text-red-500">*</span>
+                <ParkingSquare className="w-4 h-4" /> Car Park Name <span className="text-red-500">*</span>
               </Label>
               <Input
                 id="carParkName"
@@ -156,15 +152,14 @@ export default function BusinessPage() {
                 value={formData.carParkName}
                 onChange={handleChange}
                 placeholder="e.g., Downtown Parking"
-                className={errors.carParkName ? "border-yellow-500" : ""}
+                className={`mt-1 ${errors.carParkName ? "border-yellow-500" : ""}`}
               />
               {renderInputError("carParkName")}
             </div>
 
             <div>
               <Label htmlFor="address" className="flex items-center gap-2">
-                <MapPin className="w-4 h-4" /> Address{" "}
-                <span className="text-red-500">*</span>
+                <MapPin className="w-4 h-4" /> Address <span className="text-red-500">*</span>
               </Label>
               <Input
                 id="address"
@@ -172,15 +167,14 @@ export default function BusinessPage() {
                 value={formData.address}
                 onChange={handleChange}
                 placeholder="e.g., Da Nang, Vietnam"
-                className={errors.address ? "border-yellow-500" : ""}
+                className={`mt-1 ${errors.address ? "border-yellow-500" : ""}`}
               />
               {renderInputError("address")}
             </div>
 
             <div>
               <Label htmlFor="slots" className="flex items-center gap-2">
-                <ParkingSquare className="w-4 h-4" /> Total Slots{" "}
-                <span className="text-red-500">*</span>
+                <ParkingSquare className="w-4 h-4" /> Total Slots <span className="text-red-500">*</span>
               </Label>
               <Input
                 id="slots"
@@ -189,7 +183,7 @@ export default function BusinessPage() {
                 value={formData.slots}
                 onChange={handleChange}
                 placeholder="e.g., 50"
-                className={errors.slots ? "border-yellow-500" : ""}
+                className={`mt-1 ${errors.slots ? "border-yellow-500" : ""}`}
               />
               {renderInputError("slots")}
             </div>
@@ -205,6 +199,7 @@ export default function BusinessPage() {
                 value={formData.slotSize}
                 onChange={handleChange}
                 placeholder="e.g., 5"
+                className="mt-1"
               />
             </div>
 
@@ -218,13 +213,13 @@ export default function BusinessPage() {
                 value={formData.vehicleType}
                 onChange={handleChange}
                 placeholder="e.g., Car, Motorbike"
+                className="mt-1"
               />
             </div>
 
             <div>
               <Label htmlFor="phone" className="flex items-center gap-2">
-                <Phone className="w-4 h-4" /> Contact Phone{" "}
-                <span className="text-red-500">*</span>
+                <Phone className="w-4 h-4" /> Contact Phone <span className="text-red-500">*</span>
               </Label>
               <Input
                 id="phone"
@@ -232,7 +227,7 @@ export default function BusinessPage() {
                 value={formData.phone}
                 onChange={handleChange}
                 placeholder="+84"
-                className={errors.phone ? "border-yellow-500" : ""}
+                className={`mt-1 ${errors.phone ? "border-yellow-500" : ""}`}
               />
               {renderInputError("phone")}
             </div>
@@ -247,6 +242,7 @@ export default function BusinessPage() {
                 type="file"
                 multiple
                 onChange={handleChange}
+                className="mt-1"
               />
             </div>
           </div>
