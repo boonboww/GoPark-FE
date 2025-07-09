@@ -1,5 +1,5 @@
 "use client";
-import { LocateFixed, Loader2 } from "lucide-react";
+// import { LocateFixed, Loader2 } from "lucide-react";
 import { ParkingCard } from "./ParkingCard";
 import { Parking } from "./types";
 
@@ -15,8 +15,8 @@ interface ParkingListProps {
 export const ParkingList = ({
   city,
   parkings,
-  isLocating,
-  onFindNearby,
+  // isLocating,
+  // onFindNearby,
   onSelectParking,
   onNavigateToParking,
 }: ParkingListProps) => (
@@ -25,7 +25,7 @@ export const ParkingList = ({
       Parking lots in {city}
     </h2>
 
-    <button
+    {/* <button
       onClick={onFindNearby}
       disabled={isLocating}
       className="w-full p-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors mb-4 flex items-center justify-center gap-2"
@@ -36,7 +36,7 @@ export const ParkingList = ({
         <LocateFixed className="w-4 h-4" />
       )}
       Find nearby parking
-    </button>
+    </button> */}
 
     {parkings.length === 0 ? (
       <div className="text-center py-8 text-gray-500">
