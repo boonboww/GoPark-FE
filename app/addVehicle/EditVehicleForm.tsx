@@ -24,31 +24,35 @@ export default function EditVehicleForm({
         <h2 className="text-lg font-bold mb-4">Edit Vehicle</h2>
 
         <div className="mb-4">
-          <Label>Type</Label>
+          <Label>License Plate *</Label>
           <Input
-            value={edited.type}
+            value={edited.licensePlate}
             onChange={(e) =>
-              setEdited({ ...edited, type: e.target.value })
+              setEdited({ ...edited, licensePlate: e.target.value })
             }
+            required
           />
         </div>
 
         <div className="mb-4">
-          <Label>Plate</Label>
+          <Label>Capacity *</Label>
           <Input
-            value={edited.plate}
+            type="number"
+            value={edited.capacity}
             onChange={(e) =>
-              setEdited({ ...edited, plate: e.target.value })
+              setEdited({ ...edited, capacity: Number(e.target.value) })
             }
+            min="1"
+            required
           />
         </div>
 
         <div className="mb-4">
-          <Label>Document</Label>
+          <Label>Image URL</Label>
           <Input
-            value={edited.document}
+            value={edited.imageVehicle}
             onChange={(e) =>
-              setEdited({ ...edited, document: e.target.value })
+              setEdited({ ...edited, imageVehicle: e.target.value })
             }
           />
         </div>

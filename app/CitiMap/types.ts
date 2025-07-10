@@ -15,7 +15,7 @@ export interface Parking {
   location: ParkingLocation;
   address: string;
   description?: string;
-  pricePerHour: number;
+  pricePerHour?: number; // Đặt là optional
   isActive: boolean;
   avtImage: string;
   zones: ParkingZone[];

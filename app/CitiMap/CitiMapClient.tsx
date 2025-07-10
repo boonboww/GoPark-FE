@@ -6,7 +6,7 @@ import { Menu, X, LocateFixed, Loader2 } from "lucide-react";
 import MapComponent from "./MapComponent";
 import { ParkingDetail } from "./ParkingDetail";
 import { ParkingList } from "./ParkingList";
-import { Parking, API_BASE_URL, DEFAULT_RADIUS_KM } from "./types";
+import { Parking, API_BASE_URL} from "./types";
 import L from "leaflet";
 
 const CitiMap = () => {
@@ -18,9 +18,14 @@ const CitiMap = () => {
   const leaving = searchParams.get("leaving")
     ? new Date(searchParams.get("leaving")!)
     : null;
+  const isNearby = searchParams.get("isNearby") === "true";
+  const userLat = searchParams.get("userLat");
+  const userLon = searchParams.get("userLon");
 
   const [map, setMap] = useState<L.Map | null>(null);
-  const [userCoords, setUserCoords] = useState<[number, number] | null>(null);
+  const [userCoords, setUserCoords] = useState<[number, number] | null>(
+    userLat && userLon ? [parseFloat(userLat), parseFloat(userLon)] : null
+  );
   const [userMarker, setUserMarker] = useState<L.Marker | null>(null);
   const [selectedParking, setSelectedParking] = useState<Parking | null>(null);
   const [parkings, setParkings] = useState<Parking[]>([]);
@@ -28,6 +33,7 @@ const CitiMap = () => {
   const [isPanelOpen, setIsPanelOpen] = useState(true);
   const [loading, setLoading] = useState(true);
   const [isLocating, setIsLocating] = useState(false);
+  const [nearestParkingCoords, setNearestParkingCoords] = useState<[number, number] | null>(null);
 
   useEffect(() => {
     if (!city) return;
@@ -41,6 +47,7 @@ const CitiMap = () => {
         if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
 
         const response = await res.json();
+        console.log('API response:', response);
         const validParkings = response.data.filter(
           (p: Parking) => p.location?.coordinates?.length === 2
         );
@@ -102,21 +109,35 @@ const CitiMap = () => {
         }
       }
 
-      const nearby = parkings.filter((p) => {
+      let nearestParking: Parking | null = null;
+      let minDistance = Infinity;
+
+      parkings.forEach((p) => {
         const dist = getDistanceFromLatLonInKm(
           latitude,
           longitude,
           p.location.coordinates[1],
           p.location.coordinates[0]
         );
-        return dist <= DEFAULT_RADIUS_KM;
+        if (dist < minDistance) {
+          minDistance = dist;
+          nearestParking = p;
+        }
       });
 
-      setFilteredParkings(nearby);
-      setSelectedParking(null);
-
-      if (nearby.length === 0) {
-        toast.info("Sorry, we couldn't find any parking within 3km.");
+      if (nearestParking) {
+        setFilteredParkings([nearestParking]);
+        setSelectedParking(nearestParking);
+        setNearestParkingCoords([nearestParking.location.coordinates[1], nearestParking.location.coordinates[0]]);
+        if (map) {
+          map.setView([nearestParking.location.coordinates[1], nearestParking.location.coordinates[0]], 15);
+        }
+        toast.success(`Nearest parking found: ${nearestParking.name} (${minDistance.toFixed(2)} km)`);
+      } else {
+        setFilteredParkings([]);
+        setSelectedParking(null);
+        setNearestParkingCoords(null);
+        toast.info("Sorry, we couldn't find any parking nearby.");
       }
     } catch (err) {
       console.error(err);
@@ -213,6 +234,7 @@ const CitiMap = () => {
               city={city}
               parkings={filteredParkings}
               isLocating={isLocating}
+              isNearby={isNearby}
               onFindNearby={findNearbyParkings}
               onSelectParking={setSelectedParking}
               onNavigateToParking={navigateToParking}
@@ -241,7 +263,7 @@ const CitiMap = () => {
               {isLocating ? (
                 <Loader2 className="w-6 h-6 animate-spin" />
               ) : (
-                <LocateFixed className="w-6 h-6  text-blue-500" />
+                <LocateFixed className="w-6 h-6 text-blue-500" />
               )}
             </button>
           </>
@@ -250,6 +272,8 @@ const CitiMap = () => {
         <MapComponent
           parkings={filteredParkings}
           city={city}
+          userCoords={userCoords}
+          nearestParkingCoords={nearestParkingCoords}
           onMapInit={setMap}
           onMarkerClick={setSelectedParking}
         />

@@ -40,7 +40,7 @@ export const ParkingDetail = ({
         </p>
         <p className="text-sm">
           <span className="font-medium">Price:</span>{" "}
-          {parking.pricePerHour.toLocaleString()} VND/hour
+          {parking.pricePerHour != null ? parking.pricePerHour.toLocaleString() : "N/A"} VND/hour
         </p>
         <p className="text-sm">
           <span className="font-medium">Status:</span>{" "}
