@@ -1,7 +1,11 @@
+// app/addVehicle/types.ts
+
+/**
+ * Vehicle type for all vehicle-related operations.
+ */
 export interface Vehicle {
-  _id?: string; // Thêm trường này cho MongoDB
-  licensePlate: string;
-  capacity: number;
-  imageVehicle: string;
-  // Không cần userId ở frontend
+  id: number;
+  type: string;
+  plate: string;
+  document: string;
 }
