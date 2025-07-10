@@ -16,15 +16,28 @@ export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost
 
 // City mapping dictionary
 const cityNameMap: Record<string, string> = {
-  'đà nẵng': 'Da Nang',
-  'hồ chí minh': 'Ho Chi Minh',
-  'hà nội': 'Ha Noi',
-  'biên hòa': 'Bien Hoa',
-  'nha trang': 'Nha Trang',
-  'huế': 'Hue',
-  'cần thơ': 'Can Tho',
-  'vũng tàu': 'Vung Tau',
-  'hải phòng': 'Hai Phong',
+  'đà nẵng': 'da nang',
+  'Đà Nẵng': 'da nang',
+  'TP. Đà Nẵng': 'da nang',
+  'da nang': 'da nang',
+  'hồ chí minh': 'ho chi minh',
+  'TP. Hồ Chí Minh': 'ho chi minh',
+  'ho chi minh': 'ho chi minh',
+  'hà nội': 'ha noi',
+  'Hà Nội': 'ha noi',
+  'ha noi': 'ha noi',
+  'biên hòa': 'bien hoa',
+  'Biên Hòa': 'bien hoa',
+  'nha trang': 'nha trang',
+  'Nha Trang': 'nha trang',
+  'huế': 'hue',
+  'Huế': 'hue',
+  'cần thơ': 'can tho',
+  'Cần Thơ': 'can tho',
+  'vũng tàu': 'vung tau',
+  'Vũng Tàu': 'vung tau',
+  'hải phòng': 'hai phong',
+  'Hải Phòng': 'hai phong',
 };
 
 function removeVietnameseTones(str: string): string {
@@ -37,7 +50,6 @@ function removeVietnameseTones(str: string): string {
 }
 
 function cleanCityName(cityName: string): string {
-  // Remove prefixes like 'city of', 'province of'
   return cityName
     .replace(/^(thành phố|tp\.?|tp\s|thanh pho|city of|province of)\s*/i, '')
     .trim();
@@ -53,6 +65,7 @@ export default function HeroSection() {
     return date;
   });
   const [isSearching, setIsSearching] = useState(false);
+  const [userCoords, setUserCoords] = useState<{ lat: number; lon: number } | null>(null);
 
   const allLocations: LocationSuggestion[] = [
     { id: "nearby", name: "Near me" },
@@ -71,7 +84,7 @@ export default function HeroSection() {
         `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&accept-language=vi`
       );
       const data = await res.json();
-      
+      console.log('Nominatim response:', data);
       return data?.address?.city || 
              data?.address?.town || 
              data?.address?.state ||
@@ -86,9 +99,8 @@ export default function HeroSection() {
     const cleanedName = cleanCityName(cityName);
     const normalized = removeVietnameseTones(cleanedName);
     return cityNameMap[normalized] || 
-           normalized.split(' ')
-                    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-                    .join(' ');
+           cityNameMap[cityName.toLowerCase()] || 
+           normalized;
   };
 
   const handleNearbyLocation = async () => {
@@ -109,6 +121,7 @@ export default function HeroSection() {
       });
 
       const { latitude, longitude } = position.coords;
+      setUserCoords({ lat: latitude, lon: longitude }); // Lưu tọa độ
       const cityName = await getCityFromCoordinates(latitude, longitude);
 
       if (!cityName) {
@@ -117,6 +130,7 @@ export default function HeroSection() {
       }
 
       const normalizedName = normalizeCityName(cityName);
+      console.log('Normalized city name:', normalizedName);
 
       setSelectedLocation({
         id: "current",
@@ -124,7 +138,6 @@ export default function HeroSection() {
       });
 
       toast.success(`Location detected: ${normalizedName}`);
-
     } catch (error) {
       console.error("Location error:", error);
       toast.error("Failed to get location. Please try again or select manually.");
@@ -139,12 +152,13 @@ export default function HeroSection() {
     } else {
       const loc = allLocations.find((loc) => loc.id === selectedId) || null;
       setSelectedLocation(loc);
+      setUserCoords(null); // Xóa tọa độ khi chọn thành phố khác
     }
   };
 
   const handleFindParking = async () => {
     if (!selectedLocation) {
-      toast.warning("Please select a city");
+      toast.warning("Vui lòng chọn thành phố");
       return;
     }
 
@@ -158,19 +172,23 @@ export default function HeroSection() {
       if (!res.ok) throw new Error(`HTTP error! Status: ${res.status}`);
 
       const data = await res.json();
+      console.log('API response:', data);
 
       if (data.data?.length > 0) {
-        router.push(
-          `/CitiMap?city=${encodeURIComponent(selectedLocation.name)}&arriving=${encodeURIComponent(
-            arriving.toISOString()
-          )}&leaving=${encodeURIComponent(leaving.toISOString())}`
-        );
+        const queryParams = new URLSearchParams({
+          city: selectedLocation.name,
+          arriving: arriving.toISOString(),
+          leaving: leaving.toISOString(),
+          isNearby: selectedLocation.id === "current" ? "true" : "false",
+          ...(userCoords ? { userLat: userCoords.lat.toString(), userLon: userCoords.lon.toString() } : {})
+        });
+        router.push(`/CitiMap?${queryParams.toString()}`);
       } else {
-        toast.info(`No parking found in ${selectedLocation.name}`);
+        toast.info(`Không tìm thấy bãi đỗ xe ở ${selectedLocation.name}`);
       }
     } catch (error) {
       console.error("Search error:", error);
-      toast.error("An error occurred. Please try again later.");
+      toast.error("Đã xảy ra lỗi khi tìm kiếm. Vui lòng thử lại sau.");
     } finally {
       setIsSearching(false);
     }

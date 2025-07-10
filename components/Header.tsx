@@ -9,10 +9,20 @@ import {
   User,
   Settings,
   LogOut,
-  Home,
-  MapPin,
+  PlusCircle,
   CalendarCheck,
+  HelpCircle,
+  Map,
+  ShieldCheck,
+  Bell,
 } from "lucide-react";
+
+interface Notification {
+  id: number;
+  message: string;
+  time: string;
+  read: boolean;
+}
 
 export default function Header() {
   const router = useRouter();
@@ -21,12 +31,28 @@ export default function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isAvatarMenuOpen, setIsAvatarMenuOpen] = useState(false);
   const [isAvatarClicked, setIsAvatarClicked] = useState(false);
+  const [isNotificationOpen, setIsNotificationOpen] = useState(false);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
 
   const avatarRef = useRef<HTMLDivElement>(null);
+  const notificationRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
     setIsLoggedIn(!!token);
+
+    if (token) {
+      const now = new Date();
+      const timeString = now.toLocaleString();
+      setNotifications([
+        {
+          id: 1,
+          message: "You signed in to Go Park",
+          time: timeString,
+          read: false,
+        },
+      ]);
+    }
   }, [pathname]);
 
   useEffect(() => {
@@ -38,7 +64,15 @@ export default function Header() {
         setIsAvatarMenuOpen(false);
         setIsAvatarClicked(false);
       }
+
+      if (
+        notificationRef.current &&
+        !notificationRef.current.contains(event.target as Node)
+      ) {
+        setIsNotificationOpen(false);
+      }
     };
+
     document.addEventListener("mousedown", handleClickOutside);
     return () =>
       document.removeEventListener("mousedown", handleClickOutside);
@@ -46,11 +80,9 @@ export default function Header() {
 
   const handleAvatarClick = () => {
     if (isAvatarMenuOpen && isAvatarClicked) {
-      // Đang mở vì click → click lần nữa để đóng
       setIsAvatarMenuOpen(false);
       setIsAvatarClicked(false);
     } else {
-      // Chưa mở hoặc mở bằng hover → click để mở cố định
       setIsAvatarMenuOpen(true);
       setIsAvatarClicked(true);
     }
@@ -64,25 +96,47 @@ export default function Header() {
     router.push("/account/login");
   };
 
+  const handleNotificationClick = () => {
+    setIsNotificationOpen(!isNotificationOpen);
+    // Khi mở ra, đánh dấu tất cả là đã đọc (nhưng không xoá)
+    setNotifications((prev) =>
+      prev.map((n) => ({ ...n, read: true }))
+    );
+  };
+
+  const handleMarkAllAsRead = () => {
+    setNotifications((prev) =>
+      prev.map((n) => ({ ...n, read: true }))
+    );
+  };
+
+  const unreadCount = notifications.filter((n) => !n.read).length;
+
   const MenuLinks = () => (
     <>
       <button
-        onClick={() => router.push("/")}
-        className="flex items-center gap-2 hover:text-blue-600"
+        onClick={() => router.push("/addVehicle")}
+        className="flex items-center cursor-pointer gap-2 hover:text-blue-600"
       >
-        <Home size={16} /> Home
+        <PlusCircle size={16} /> Add Vehicle
       </button>
       <button
-        onClick={() => router.push("/find-parking")}
-        className="flex items-center gap-2 hover:text-blue-600"
+        onClick={() => router.push("/myBooking")}
+        className="flex items-center cursor-pointer gap-2 hover:text-blue-600"
       >
-        <MapPin size={16} /> Find Parking
+        <CalendarCheck size={16} /> Bookings
       </button>
       <button
-        onClick={() => router.push("/my-bookings")}
-        className="flex items-center gap-2 hover:text-blue-600"
+        onClick={() => router.push("/help")}
+        className="flex items-center cursor-pointer gap-2 hover:text-blue-600"
       >
-        <CalendarCheck size={16} /> My Bookings
+        <HelpCircle size={16} /> Help
+      </button>
+      <button
+        onClick={() => router.push("/policyUser")}
+        className="flex items-center cursor-pointer gap-2 hover:text-blue-600"
+      >
+        <ShieldCheck size={16} /> Policy
       </button>
     </>
   );
@@ -97,25 +151,78 @@ export default function Header() {
         <img src="/logo.png" alt="GoPark Logo" className="h-10" />
       </div>
 
-      {/* Chưa đăng nhập */}
+      {/* Not logged in */}
       {!isLoggedIn && (
         <div className="flex gap-3">
           <Button variant="ghost" onClick={() => router.push("/account/login")}>
             Sign in
           </Button>
-          <Button onClick={() => router.push("/account/signup")}>Sign up</Button>
+          <Button onClick={() => router.push("/account/signup")}>
+            Sign up
+          </Button>
         </div>
       )}
 
-      {/* Đã đăng nhập */}
+      {/* Logged in */}
       {isLoggedIn && (
-        <div className="flex items-center gap-4 relative">
-          {/* Desktop menu */}
+        <div className="flex items-center  gap-4 relative">
+          {/* Desktop links */}
           <div className="hidden md:flex items-center gap-6 text-sm font-medium">
             <MenuLinks />
           </div>
 
-          {/* Avatar + Dropdown */}
+          {/* Always visible icons */}
+          <button
+            onClick={() => router.push("/map")}
+            className="flex items-center cursor-pointer hover:text-blue-600"
+          >
+            <Map size={20} />
+          </button>
+
+          <div ref={notificationRef} className="relative">
+            <button
+              onClick={handleNotificationClick}
+              className="relative hover:text-blue-600 cursor-pointer"
+            >
+              <Bell size={20} />
+              {unreadCount > 0 && !isNotificationOpen && (
+                <span className="absolute -top-1 -right-1 bg-red-600 text-white rounded-full text-xs w-5 h-5 flex items-center justify-center">
+                  {unreadCount}
+                </span>
+              )}
+            </button>
+
+            {isNotificationOpen && (
+              <div className="absolute right-0 mt-2 w-72 bg-white rounded-md shadow-lg py-2 z-50">
+                <div className="flex justify-between items-center px-4 py-2 border-b">
+                  <span className="font-semibold">Notifications</span>
+                  <button
+                    onClick={handleMarkAllAsRead}
+                    className="text-sm text-blue-600 cursor-pointer hover:underline"
+                  >
+                    Mark all as read
+                  </button>
+                </div>
+                {notifications.length === 0 ? (
+                  <div className="px-4 py-4 text-gray-500 text-sm">
+                    No notifications
+                  </div>
+                ) : (
+                  notifications.map((note) => (
+                    <div
+                      key={note.id}
+                      className="px-4 py-3 hover:bg-gray-50 border-b last:border-b-0"
+                    >
+                      <div className="text-sm">{note.message}</div>
+                      <div className="text-xs text-gray-500">{note.time}</div>
+                    </div>
+                  ))
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* Avatar */}
           <div
             ref={avatarRef}
             className="relative"
@@ -139,27 +246,27 @@ export default function Header() {
               <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-2 z-50">
                 <button
                   onClick={() => {
-                    router.push("/profile");
+                    router.push("/personInfo");
                     setIsAvatarMenuOpen(false);
                     setIsAvatarClicked(false);
                   }}
-                  className="flex items-center px-4 py-2 hover:bg-gray-100 w-full text-left"
+                  className="flex items-center px-4 py-2 hover:bg-gray-100 cursor-pointer w-full text-left"
                 >
                   <User size={16} className="mr-2" /> Personal Info
                 </button>
                 <button
                   onClick={() => {
-                    router.push("/settings");
+                    router.push("/settingUser");
                     setIsAvatarMenuOpen(false);
                     setIsAvatarClicked(false);
                   }}
-                  className="flex items-center px-4 py-2 hover:bg-gray-100 w-full text-left"
+                  className="flex items-center px-4 py-2 hover:bg-gray-100 cursor-pointer w-full text-left"
                 >
                   <Settings size={16} className="mr-2" /> Settings
                 </button>
                 <button
                   onClick={handleLogout}
-                  className="flex items-center px-4 py-2 hover:bg-gray-100 w-full text-left text-red-600"
+                  className="flex items-center px-4 py-2 hover:bg-gray-100 w-full text-left cursor-pointer text-red-600"
                 >
                   <LogOut size={16} className="mr-2" /> Logout
                 </button>
@@ -167,7 +274,7 @@ export default function Header() {
             )}
           </div>
 
-          {/* Mobile Hamburger */}
+          {/* Hamburger */}
           <button
             className="md:hidden"
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}

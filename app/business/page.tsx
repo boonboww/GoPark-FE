@@ -29,7 +29,8 @@ export default function BusinessPage() {
     address: "",
     slots: "",
     slotSize: "",
-    vehicleType: "",
+    zones: 1,
+    zoneValues: [] as string[],
     phone: "",
     acceptPolicy: false,
     images: [] as File[],
@@ -38,17 +39,33 @@ export default function BusinessPage() {
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [showPolicy, setShowPolicy] = useState(false);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value, files } = e.target;
-    if (files) {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
+    const target = e.target as HTMLInputElement | HTMLSelectElement;
+    const name = target.name;
+    const value = target.value;
+    const files = (target as HTMLInputElement).files;
+
+    if (files && files.length > 0) {
       setFormData({ ...formData, images: Array.from(files) });
+    } else if (name === "zones") {
+      const zones = parseInt(value) || 0;
+      const zoneValues = Array(zones).fill("");
+      setFormData({ ...formData, zones, zoneValues });
     } else {
       setFormData({ ...formData, [name]: value });
     }
 
-    if (value.trim() !== "") {
+    if (typeof value === "string" && value.trim() !== "") {
       setErrors((prev) => ({ ...prev, [name]: "" }));
     }
+  };
+
+  const handleZoneInputChange = (index: number, value: string) => {
+    const newZoneValues = [...formData.zoneValues];
+    newZoneValues[index] = value;
+    setFormData({ ...formData, zoneValues: newZoneValues });
   };
 
   const handleCheckboxChange = (checked: boolean) => {
@@ -61,7 +78,16 @@ export default function BusinessPage() {
     const newErrors: { [key: string]: string } = {};
 
     if (!formData.ownerName) newErrors.ownerName = "Required";
-    if (!formData.ownerEmail) newErrors.ownerEmail = "Required";
+
+    if (!formData.ownerEmail) {
+      newErrors.ownerEmail = "Required";
+    } else {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(formData.ownerEmail)) {
+        newErrors.ownerEmail = "Invalid email format";
+      }
+    }
+
     if (!formData.carParkName) newErrors.carParkName = "Required";
     if (!formData.address) newErrors.address = "Required";
     if (!formData.slots) newErrors.slots = "Required";
@@ -94,7 +120,7 @@ export default function BusinessPage() {
       <Header />
       <main className="flex flex-col min-h-screen items-center justify-start mt-16 px-4 py-16 bg-white">
         <h1 className="text-3xl md:text-4xl font-bold mb-12 text-center">
-          Register Your Parking
+          Register Your Parking Lot
         </h1>
 
         <div className="w-full max-w-screen-xl grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -113,8 +139,10 @@ export default function BusinessPage() {
                 name="ownerName"
                 value={formData.ownerName}
                 onChange={handleChange}
-                placeholder="e.g., Gwouth"
-                className={`mt-1 ${errors.ownerName ? "border-yellow-500" : ""}`}
+                placeholder="e.g., John Doe"
+                className={`mt-1 ${
+                  errors.ownerName ? "border-yellow-500" : ""
+                }`}
               />
               {renderInputError("ownerName")}
             </div>
@@ -130,29 +158,52 @@ export default function BusinessPage() {
                 value={formData.ownerEmail}
                 onChange={handleChange}
                 placeholder="e.g., john@example.com"
-                className={`mt-1 ${errors.ownerEmail ? "border-yellow-500" : ""}`}
+                className={`mt-1 ${
+                  errors.ownerEmail ? "border-yellow-500" : ""
+                }`}
               />
               {renderInputError("ownerEmail")}
             </div>
+
+            <div>
+              <Label htmlFor="phone" className="flex items-center gap-2">
+                <Phone className="w-4 h-4" /> Contact Phone{" "}
+                <span className="text-red-500">*</span>
+              </Label>
+              <Input
+                id="phone"
+                name="phone"
+                value={formData.phone}
+                onChange={handleChange}
+                placeholder="e.g., +84 123 456 789"
+                className={`mt-1 ${
+                  errors.phone ? "border-yellow-500" : ""
+                }`}
+              />
+              {renderInputError("phone")}
+            </div>
           </div>
 
-          {/* Car Park Information */}
+          {/* Parking Lot Information */}
           <div className="bg-white border rounded-xl shadow-sm p-6 space-y-4 min-w-0 flex flex-col">
             <h2 className="text-xl font-semibold flex items-center gap-2">
-              <Building2 className="w-5 h-5" /> Car Park Information
+              <Building2 className="w-5 h-5" /> Parking Lot Information
             </h2>
 
             <div>
               <Label htmlFor="carParkName" className="flex items-center gap-2">
-                <ParkingSquare className="w-4 h-4" /> Car Park Name <span className="text-red-500">*</span>
+                <ParkingSquare className="w-4 h-4" /> Parking Lot Name{" "}
+                <span className="text-red-500">*</span>
               </Label>
               <Input
                 id="carParkName"
                 name="carParkName"
                 value={formData.carParkName}
                 onChange={handleChange}
-                placeholder="e.g., Downtown Parking"
-                className={`mt-1 ${errors.carParkName ? "border-yellow-500" : ""}`}
+                placeholder="e.g., Downtown Parking Lot"
+                className={`mt-1 ${
+                  errors.carParkName ? "border-yellow-500" : ""
+                }`}
               />
               {renderInputError("carParkName")}
             </div>
@@ -166,70 +217,59 @@ export default function BusinessPage() {
                 name="address"
                 value={formData.address}
                 onChange={handleChange}
-                placeholder="e.g., Da Nang, Vietnam"
-                className={`mt-1 ${errors.address ? "border-yellow-500" : ""}`}
+                placeholder="e.g., 123 Main Street, City"
+                className={`mt-1 ${
+                  errors.address ? "border-yellow-500" : ""
+                }`}
               />
               {renderInputError("address")}
             </div>
 
             <div>
-              <Label htmlFor="slots" className="flex items-center gap-2">
-                <ParkingSquare className="w-4 h-4" /> Total Slots <span className="text-red-500">*</span>
+              <Label htmlFor="zones" className="flex items-center gap-2">
+                <ParkingSquare className="w-4 h-4" /> Number of Zones
               </Label>
-              <Input
-                id="slots"
-                name="slots"
-                type="number"
-                value={formData.slots}
+              <select
+                id="zones"
+                name="zones"
+                value={formData.zones}
                 onChange={handleChange}
-                placeholder="e.g., 50"
-                className={`mt-1 ${errors.slots ? "border-yellow-500" : ""}`}
-              />
-              {renderInputError("slots")}
+                className="mt-1 border rounded px-2 py-2 w-full"
+              >
+                {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((n) => (
+                  <option key={n} value={n}>
+                    {n}
+                  </option>
+                ))}
+              </select>
             </div>
 
-            <div>
-              <Label htmlFor="slotSize" className="flex items-center gap-2">
-                <ParkingSquare className="w-4 h-4" /> Slots per Unit
-              </Label>
-              <Input
-                id="slotSize"
-                name="slotSize"
-                type="number"
-                value={formData.slotSize}
-                onChange={handleChange}
-                placeholder="e.g., 5"
-                className="mt-1"
-              />
-            </div>
+            {formData.zoneValues.length > 0 && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {formData.zoneValues.map((zone, index) => (
+                  <div key={index}>
+                    <Label>Zone {index + 1}</Label>
+                    <Input
+                      value={zone}
+                      onChange={(e) =>
+                        handleZoneInputChange(index, e.target.value)
+                      }
+                      placeholder={`Slots in Zone ${index + 1}`}
+                    />
+                  </div>
+                ))}
+              </div>
+            )}
 
             <div>
-              <Label htmlFor="vehicleType" className="flex items-center gap-2">
+              <Label className="flex items-center gap-2">
                 <ParkingSquare className="w-4 h-4" /> Vehicle Type
               </Label>
               <Input
-                id="vehicleType"
-                name="vehicleType"
-                value={formData.vehicleType}
-                onChange={handleChange}
-                placeholder="e.g., Car, Motorbike"
-                className="mt-1"
+                value="Car"
+                readOnly
+                className="mt-1 bg-gray-100 cursor-not-allowed"
               />
-            </div>
-
-            <div>
-              <Label htmlFor="phone" className="flex items-center gap-2">
-                <Phone className="w-4 h-4" /> Contact Phone <span className="text-red-500">*</span>
-              </Label>
-              <Input
-                id="phone"
-                name="phone"
-                value={formData.phone}
-                onChange={handleChange}
-                placeholder="+84"
-                className={`mt-1 ${errors.phone ? "border-yellow-500" : ""}`}
-              />
-              {renderInputError("phone")}
             </div>
 
             <div>
@@ -254,7 +294,7 @@ export default function BusinessPage() {
                 <ShieldCheck className="w-5 h-5" /> Policies
               </h2>
               <p className="text-sm text-muted-foreground">
-                Please read and agree to our car park system policy before submitting.
+                Please read and agree to our parking policy before submitting.
               </p>
 
               <button
@@ -269,10 +309,12 @@ export default function BusinessPage() {
                 <Checkbox
                   id="acceptPolicy"
                   checked={formData.acceptPolicy}
-                  onCheckedChange={(checked) => handleCheckboxChange(!!checked)}
+                  onCheckedChange={(checked) =>
+                    handleCheckboxChange(!!checked)
+                  }
                 />
                 <Label htmlFor="acceptPolicy" className="text-sm">
-                  I agree to the car park system policy.
+                  I agree to the parking policy.
                 </Label>
               </div>
             </div>

@@ -24,7 +24,11 @@ export const ParkingCard = ({
     <h3 className="font-semibold text-gray-800">{parking.name}</h3>
     <p className="text-sm text-gray-600">Address: {parking.address}</p>
     <p className="text-sm text-gray-600">
-      Price: {parking.pricePerHour.toLocaleString()} VND/hour
+      Price:{" "}
+      {parking.pricePerHour != null
+        ? parking.pricePerHour.toLocaleString()
+        : "N/A"}{" "}
+      VND/hour
     </p>
     <p className="text-sm">
       Status:{" "}
