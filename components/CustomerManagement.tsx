@@ -1,6 +1,7 @@
-"use client";
+'use client';
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import api from "@/lib/api";
 import {
   Card,
   CardContent,
@@ -8,7 +9,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import {
   Table,
   TableHeader,
@@ -25,77 +25,139 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import CustomerForm from "./CustomerForm";
 import VehicleForm from "./VehicleForm";
-import type { Customer, CustomerManagementProps } from "@/app/owner/types";
+import type {
+  Customer,
+  CustomerManagementProps,
+  Vehicle,
+  VehicleFormData,
+} from "@/app/owner/types";
 
-export default function CustomerManagement({ 
-  customers, 
-  setCustomers 
+export default function CustomerManagement({
+  customers,
+  setCustomers,
 }: CustomerManagementProps) {
-  const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null);
-  const [viewingVehicles, setViewingVehicles] = useState<Customer | null>(null);
-  const [addingVehicleFor, setAddingVehicleFor] = useState<Customer | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
+  const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null);
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [addVehicleCustomer, setAddVehicleCustomer] = useState<Customer | null>(null);
+  const [viewVehicleCustomer, setViewVehicleCustomer] = useState<Customer | null>(null);
+  const [vehicles, setVehicles] = useState<Vehicle[]>([]);
 
-  const handleAddCustomer = (customer: Omit<Customer, "id" | "vehicles">) => {
-    setCustomers([
-      ...customers, 
-      { 
-        ...customer, 
-        id: `C${customers.length + 1}`, 
-        vehicles: [] 
+  useEffect(() => {
+    const fetchCustomers = async () => {
+      try {
+        const res = await api.get<
+          { _id: string; userName: string; email: string; phoneNumber: string }[]
+        >("/api/v1/users_new");
+        const mapped: Customer[] = res.data.map((user) => ({
+          id: user._id,
+          userName: user.userName,
+          email: user.email,
+          phoneNumber: user.phoneNumber,
+        }));
+        setCustomers(mapped);
+      } catch (err) {
+        console.error("Failed to fetch users:", err);
       }
-    ]);
+    };
+
+    fetchCustomers();
+  }, [setCustomers]);
+
+  const handleAddCustomer = async (data: Omit<Customer, "id">) => {
+    try {
+      const res = await api.post("/api/v1/users_new", data);
+      const newCustomer: Customer = {
+        id: res.data._id,
+        userName: res.data.userName,
+        email: res.data.email,
+        phoneNumber: res.data.phoneNumber,
+      };
+      setCustomers((prev) => [...prev, newCustomer]);
+      setIsAddDialogOpen(false);
+    } catch (err) {
+      console.error("Failed to add user:", err);
+    }
   };
 
-  const handleEditCustomer = (customer: Customer) => {
-    setCustomers(customers.map((c) => (c.id === customer.id ? customer : c)));
-    setEditingCustomer(null);
+  const handleEditCustomer = async (updated: Customer) => {
+    try {
+      const res = await api.put(`/api/v1/users_new/${updated.id}`, updated);
+      const updatedCustomer: Customer = {
+        id: res.data._id,
+        userName: res.data.userName,
+        email: res.data.email,
+        phoneNumber: res.data.phoneNumber,
+      };
+      setCustomers((prev) =>
+        prev.map((c) => (c.id === updated.id ? updatedCustomer : c))
+      );
+      setEditingCustomer(null);
+    } catch (err) {
+      console.error("Failed to update user:", err);
+    }
   };
 
-  const handleDeleteCustomer = (id: string) => {
-    setCustomers(customers.filter((c) => c.id !== id));
+  const handleDeleteCustomer = async (id: string) => {
+    try {
+      await api.delete(`/api/v1/users_new/${id}`);
+      setCustomers((prev) => prev.filter((c) => c.id !== id));
+    } catch (err) {
+      console.error("Failed to delete user:", err);
+    }
   };
 
-  const handleAddVehicle = (
-    vehicle: { licensePlate: string; type: string }, 
-    customerId: string
-  ) => {
-    setCustomers(customers.map((c) => 
-      c.id === customerId 
-        ? { ...c, vehicles: [...c.vehicles, `${vehicle.licensePlate} (${vehicle.type})`] }
-        : c
-    ));
-    setAddingVehicleFor(null);
+  const handleAddVehicle = async (vehicleData: VehicleFormData) => {
+    if (!addVehicleCustomer) return;
+
+    try {
+      await api.post(`/api/v1/vehicles/for-user/${addVehicleCustomer.id}`, vehicleData);
+      setAddVehicleCustomer(null);
+    } catch (err) {
+      console.error("Failed to add vehicle:", err);
+    }
   };
 
-  const filteredCustomers = customers.filter((c) =>
-    c.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    c.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    c.phoneNumber.toLowerCase().includes(searchTerm.toLowerCase())
+  const handleViewVehicles = async (customer: Customer) => {
+    try {
+      const res = await api.get<Vehicle[]>(`/api/v1/vehicles/by-user/${customer.id}`);
+      setVehicles(res.data);
+      setViewVehicleCustomer(customer);
+    } catch (err) {
+      console.error("Failed to fetch vehicles:", err);
+    }
+  };
+
+  const filtered = customers.filter(
+    (c) =>
+      c.userName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      c.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      c.phoneNumber.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
     <Card>
-      <CardHeader className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+      <CardHeader className="flex justify-between items-center">
         <div>
           <CardTitle>Customer List</CardTitle>
-          <CardDescription>Manage customer information and their vehicles</CardDescription>
+          <CardDescription>Manage registered customers</CardDescription>
         </div>
         <Input
-          type="text"
-          placeholder="Search by name, email, or phone..."
-          className="w-full md:w-80"
+          placeholder="Search name/email/phone..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
+          className="w-72"
         />
       </CardHeader>
 
       <CardContent>
-        <Dialog>
+        {/* Add Customer */}
+        <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
           <DialogTrigger asChild>
-            <Button className="mb-4">Add Customer</Button>
+            <Button>Add Customer</Button>
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
@@ -103,11 +165,12 @@ export default function CustomerManagement({
             </DialogHeader>
             <CustomerForm
               onSubmit={handleAddCustomer}
-              onCancel={() => {}}
+              onCancel={() => setIsAddDialogOpen(false)}
             />
           </DialogContent>
         </Dialog>
 
+        {/* Edit Customer */}
         <Dialog open={!!editingCustomer} onOpenChange={() => setEditingCustomer(null)}>
           <DialogContent>
             <DialogHeader>
@@ -116,93 +179,80 @@ export default function CustomerManagement({
             {editingCustomer && (
               <CustomerForm
                 customer={editingCustomer}
-                onSubmit={handleEditCustomer}
+                onSubmit={(data) =>
+                  handleEditCustomer({ ...editingCustomer, ...data })
+                }
                 onCancel={() => setEditingCustomer(null)}
               />
             )}
           </DialogContent>
         </Dialog>
 
-        <Dialog open={!!addingVehicleFor} onOpenChange={() => setAddingVehicleFor(null)}>
+        {/* Add Vehicle */}
+        <Dialog open={!!addVehicleCustomer} onOpenChange={() => setAddVehicleCustomer(null)}>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Add Vehicle for {addingVehicleFor?.fullName}</DialogTitle>
+              <DialogTitle>Add Vehicle</DialogTitle>
             </DialogHeader>
-            {addingVehicleFor && (
+            {addVehicleCustomer && (
               <VehicleForm
-                onSubmit={(vehicle) => handleAddVehicle(vehicle, addingVehicleFor.id)}
-                onCancel={() => setAddingVehicleFor(null)}
+                onSubmit={handleAddVehicle}
+                onCancel={() => setAddVehicleCustomer(null)}
               />
             )}
           </DialogContent>
         </Dialog>
 
-        <Dialog open={!!viewingVehicles} onOpenChange={() => setViewingVehicles(null)}>
+        {/* View Vehicles */}
+        <Dialog open={!!viewVehicleCustomer} onOpenChange={() => setViewVehicleCustomer(null)}>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Vehicle Information - {viewingVehicles?.fullName}</DialogTitle>
+              <DialogTitle>
+                Vehicles of {viewVehicleCustomer?.userName}
+              </DialogTitle>
             </DialogHeader>
-            <div className="space-y-2">
-              {viewingVehicles?.vehicles.length ? (
-                <ul className="list-disc pl-5">
-                  {viewingVehicles.vehicles.map((vehicle, index) => (
-                    <li key={index}>{vehicle}</li>
-                  ))}
-                </ul>
-              ) : (
-                <p>No vehicles registered</p>
-              )}
-            </div>
-            <Button onClick={() => setViewingVehicles(null)}>Close</Button>
+            {vehicles.length === 0 ? (
+              <p className="text-sm text-gray-500">No vehicles found.</p>
+            ) : (
+              <div className="space-y-3 max-h-[60vh] overflow-y-auto">
+                {vehicles.map((v, idx) => (
+                  <Card key={idx} className="p-3 border shadow-sm">
+                    <p><strong>License Plate:</strong> {v.licensePlate}</p>
+                  </Card>
+                ))}
+              </div>
+            )}
           </DialogContent>
         </Dialog>
 
+        {/* Customer Table */}
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Full Name</TableHead>
+              <TableHead>User Name</TableHead>
               <TableHead>Email</TableHead>
-              <TableHead>Phone Number</TableHead>
+              <TableHead>Phone</TableHead>
               <TableHead>Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filteredCustomers.map((customer) => (
-              <TableRow key={customer.id}>
-                <TableCell>{customer.fullName}</TableCell>
-                <TableCell>{customer.email}</TableCell>
-                <TableCell>{customer.phoneNumber}</TableCell>
-                <TableCell>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => setViewingVehicles(customer)}
-                    className="mr-2"
-                  >
-                    View Vehicles
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => setAddingVehicleFor(customer)}
-                    className="mr-2"
-                  >
-                    Add Vehicle
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => setEditingCustomer(customer)}
-                    className="mr-2"
-                  >
+            {filtered.map((c) => (
+              <TableRow key={c.id}>
+                <TableCell>{c.userName}</TableCell>
+                <TableCell>{c.email}</TableCell>
+                <TableCell>{c.phoneNumber}</TableCell>
+                <TableCell className="space-x-2 flex flex-wrap gap-2">
+                  <Button size="sm" variant="outline" onClick={() => setEditingCustomer(c)}>
                     Edit
                   </Button>
-                  <Button
-                    size="sm"
-                    variant="destructive"
-                    onClick={() => handleDeleteCustomer(customer.id)}
-                  >
+                  <Button size="sm" variant="destructive" onClick={() => handleDeleteCustomer(c.id)}>
                     Delete
+                  </Button>
+                  <Button size="sm" variant="secondary" onClick={() => handleViewVehicles(c)}>
+                    View Vehicles
+                  </Button>
+                  <Button size="sm" onClick={() => setAddVehicleCustomer(c)}>
+                    Add Vehicle
                   </Button>
                 </TableCell>
               </TableRow>

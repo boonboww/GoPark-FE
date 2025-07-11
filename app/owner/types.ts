@@ -1,17 +1,14 @@
 // src/types.ts
 
 // Customer type
+// Customer type phù hợp với backend user.controller.js
 export interface Customer {
-  id: string;
-  fullName: string;
-  idNumber: string;
-  dateOfBirth: string;
-  gender: string;
+  id: string; // _id từ MongoDB
+  userName: string;
   email: string;
   phoneNumber: string;
-  address: string;
-  vehicles: string[];
 }
+
 
 // Vehicle type
 export interface Vehicle {
@@ -70,7 +67,6 @@ export interface Floor {
 // Vehicle form type
 export interface VehicleFormData {
   licensePlate: string;
-  type: string;
 }
 
 // Props types for components

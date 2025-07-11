@@ -1,39 +1,39 @@
-// app/owner/page.tsx
 "use client";
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import {
+  Tabs,
+  TabsList,
+  TabsTrigger,
+  TabsContent,
+} from "@/components/ui/tabs";
 import CustomerManagement from "@/components/CustomerManagement";
 import VehicleManagement from "@/components/VehicleManagement";
 import TicketManagement from "@/components/TicketManagement";
 import ParkingLotManagement from "@/components/ParkingLotManagement";
 import AccountManagement from "@/components/AccountManagement";
-import type { Customer, Vehicle, Ticket, ParkingLot, Account } from "@/app/owner/types";
+import type {
+  Customer,
+  Vehicle,
+  Ticket,
+  ParkingLot,
+  Account,
+} from "@/app/owner/types";
 
 const initialData = {
   customers: [
     {
-      id: "C1",
-      fullName: "Nguyen Van A",
-      idNumber: "123456789",
-      dateOfBirth: "1990-01-01",
-      gender: "Male",
+      id: "u001",
+      userName: "Nguyen Van A",
       email: "nva@example.com",
       phoneNumber: "0901234567",
-      address: "123 Lang Street, Hanoi",
-      vehicles: ["51H-12345", "51H-67890"],
     },
     {
-      id: "C2",
-      fullName: "Tran Thi B",
-      idNumber: "987654321",
-      dateOfBirth: "1995-05-15",
-      gender: "Female",
+      id: "u002",
+      userName: "Tran Thi B",
       email: "ttb@example.com",
       phoneNumber: "0909876543",
-      address: "456 Cau Giay, Hanoi",
-      vehicles: ["51G-54321"],
     },
   ] satisfies Customer[],
 
@@ -109,10 +109,18 @@ const initialData = {
 };
 
 export default function OwnerDashboard() {
-  const [customerList, setCustomerList] = useState<Customer[]>(initialData.customers);
-  const [vehicleList, setVehicleList] = useState<Vehicle[]>(initialData.vehicles);
-  const [ticketList, setTicketList] = useState<Ticket[]>(initialData.tickets);
-  const [parkingLotList, setParkingLotList] = useState<ParkingLot[]>(initialData.parkingLots);
+  const [customerList, setCustomerList] = useState<Customer[]>(
+    initialData.customers
+  );
+  const [vehicleList, setVehicleList] = useState<Vehicle[]>(
+    initialData.vehicles
+  );
+  const [ticketList, setTicketList] = useState<Ticket[]>(
+    initialData.tickets
+  );
+  const [parkingLotList, setParkingLotList] = useState<ParkingLot[]>(
+    initialData.parkingLots
+  );
   const [account, setAccount] = useState<Account>(initialData.account);
 
   const ticketManagementData = {
@@ -122,7 +130,7 @@ export default function OwnerDashboard() {
     })),
     customers: customerList.map((c) => ({
       id: c.id,
-      name: c.fullName,
+      name: c.userName,
     })),
   };
 
