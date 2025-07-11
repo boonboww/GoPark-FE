@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation"; // for redirect
+import { useRouter } from "next/navigation";
 import { loginUser } from "@/app/account/login/action";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -15,10 +15,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
-export function LoginForm({
-  className,
-  ...props
-}: React.ComponentProps<"div">) {
+export function LoginForm({ className, ...props }: React.ComponentProps<"div">) {
   const [formData, setFormData] = useState({ email: "", password: "" });
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
@@ -40,7 +37,17 @@ export function LoginForm({
       setMessage(`❌ ${res.error}`);
     } else {
       setMessage("✅ Successfully logged in!");
-      router.push("/"); // redirect to homepage
+
+      const role = res.data?.role;
+      console.log("Logged in role:", role);
+
+      if (role === "admin") {
+        router.push("/dashboard");
+      } else if (role === "owner") {
+        router.push("/owner");
+      } else {
+        router.push("/");
+      }
     }
 
     setLoading(false);
@@ -98,7 +105,7 @@ export function LoginForm({
             </div>
             <div className="mt-4 text-center text-sm">
               Don&apos;t have an account?{" "}
-              <a href="/signup" className="underline">
+              <a href="/account/signup" className="underline">
                 Sign up
               </a>
             </div>

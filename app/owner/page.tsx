@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
   Tabs,
@@ -109,6 +110,8 @@ const initialData = {
 };
 
 export default function OwnerDashboard() {
+  const router = useRouter();
+
   const [customerList, setCustomerList] = useState<Customer[]>(
     initialData.customers
   );
@@ -134,6 +137,12 @@ export default function OwnerDashboard() {
     })),
   };
 
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("role");
+    router.push("/account/login");
+  };
+
   return (
     <div className="p-4 md:p-6 space-y-6 max-w-6xl mx-auto">
       <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
@@ -145,7 +154,7 @@ export default function OwnerDashboard() {
         </div>
         <Button
           variant="outline"
-          onClick={() => alert("Logged out")}
+          onClick={handleLogout}
           className="hover:bg-gray-100"
         >
           Log Out
@@ -194,10 +203,7 @@ export default function OwnerDashboard() {
           </TabsContent>
 
           <TabsContent value="account">
-            <AccountManagement
-              account={account}
-              setAccount={setAccount}
-            />
+            <AccountManagement account={account} setAccount={setAccount} />
           </TabsContent>
         </div>
       </Tabs>

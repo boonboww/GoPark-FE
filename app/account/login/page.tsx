@@ -1,4 +1,5 @@
-import { LoginForm } from "@/components/login-form"
+// app/account/login/page.tsx
+import { LoginForm } from "@/components/login-form";
 
 export default function Page() {
   return (
@@ -7,5 +8,5 @@ export default function Page() {
         <LoginForm />
       </div>
     </div>
-  )
+  );
 }
