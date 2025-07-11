@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import {
   Bot,
@@ -25,7 +25,10 @@ export default function ChatAI() {
   const [input, setInput] = useState("");
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [darkMode, setDarkMode] = useState(true);
+  const [thinking, setThinking] = useState(false);
+
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const handleSend = () => {
     if (!input.trim() && !imagePreview) return;
@@ -37,15 +40,28 @@ export default function ChatAI() {
     if (imagePreview) {
       newMsgs.push({ sender: "user", type: "image", content: imagePreview });
     }
-    newMsgs.push({
-      sender: "ai",
-      type: "text",
-      content: "Thank you! I received the information. How can I assist you further?",
-    });
 
     setMessages(newMsgs);
     setInput("");
     setImagePreview(null);
+
+    // Thêm dấu "..."
+    setThinking(true);
+    setMessages((prev) => [...newMsgs, { sender: "ai", type: "text", content: "thinking" }]);
+
+    // 2 giây sau thay thế bằng câu trả lời thật
+    setTimeout(() => {
+      setMessages((prev) => {
+        const updated = [...prev];
+        updated[updated.length - 1] = {
+          sender: "ai",
+          type: "text",
+          content: "Thank you! I received the information. How can I assist you further?",
+        };
+        return updated;
+      });
+      setThinking(false);
+    }, 2000);
   };
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -59,14 +75,17 @@ export default function ChatAI() {
     }
   };
 
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
+
   return (
     <div className="flex flex-col min-h-screen">
-      {/* GIỮ Header gốc */}
       <Header />
 
       {/* Chat Container */}
       <div
-        className={`flex flex-col flex-1 ${
+        className={`flex flex-col mt-16 flex-1 ${
           darkMode ? "bg-black text-white" : "bg-white text-black"
         }`}
       >
@@ -82,7 +101,7 @@ export default function ChatAI() {
               darkMode ? "text-green-400" : "text-green-700"
             }`}
           >
-            Gwouth AI Parking Assistant
+            GoPark AI
           </h1>
 
           <button
@@ -106,50 +125,60 @@ export default function ChatAI() {
                 msg.sender === "user" ? "justify-end" : "justify-start"
               }`}
             >
-              <div
-                className={`flex items-start max-w-xs md:max-w-md p-3 rounded-2xl ${
-                  msg.sender === "user"
-                    ? `${
-                        darkMode
-                          ? "bg-green-600 text-white"
-                          : "bg-green-500 text-white"
-                      } rounded-br-none`
-                    : `${
-                        darkMode
-                          ? "bg-gray-800 text-green-300"
-                          : "bg-gray-200 text-green-800"
-                      } rounded-bl-none`
-                }`}
-              >
+              <div className="flex items-end gap-2 max-w-xs md:max-w-md">
                 {msg.sender === "ai" && (
-                  <Bot
-                    className={`w-5 h-5 mr-2 ${
-                      darkMode ? "text-green-400" : "text-green-700"
-                    }`}
-                  />
-                )}
-                {msg.type === "text" && <span>{msg.content}</span>}
-                {msg.type === "image" && (
                   <Image
-                    src={msg.content}
-                    alt="Uploaded"
-                    width={200}
-                    height={200}
-                    className="rounded-lg"
+                    src="/logo.png"
+                    alt="AI"
+                    width={24}
+                    height={24}
+                    className="rounded-full"
                   />
                 )}
+                <div
+                  className={`p-3 rounded-2xl ${
+                    msg.sender === "user"
+                      ? `${
+                          darkMode
+                            ? "bg-green-600 text-white"
+                            : "bg-green-500 text-white"
+                        } rounded-br-none`
+                      : `${
+                          darkMode
+                            ? "bg-gray-800 text-green-300"
+                            : "bg-gray-200 text-green-800"
+                        } rounded-bl-none`
+                  }`}
+                >
+                  {msg.type === "text" &&
+                    (msg.content === "thinking" ? (
+                      <span className="animate-pulse">...</span>
+                    ) : (
+                      <span>{msg.content}</span>
+                    ))}
+                  {msg.type === "image" && (
+                    <Image
+                      src={msg.content}
+                      alt="Uploaded"
+                      width={200}
+                      height={200}
+                      className="rounded-lg"
+                    />
+                  )}
+                </div>
                 {msg.sender === "user" && msg.type === "text" && (
                   <User className="w-5 h-5 ml-2 text-white" />
                 )}
               </div>
             </div>
           ))}
+          <div ref={messagesEndRef} />
         </div>
 
-        {/* Input */}
+        {/* Input luôn cố định */}
         <div
-          className={`border-t px-4 py-3 flex flex-col gap-2 ${
-            darkMode ? "border-green-500" : "border-green-700"
+          className={`sticky bottom-0 border-t px-4 py-3 flex flex-col gap-2 ${
+            darkMode ? "border-green-500 bg-black" : "border-green-700 bg-white"
           }`}
         >
           {imagePreview && (
@@ -203,6 +232,7 @@ export default function ChatAI() {
 
             <button
               onClick={handleSend}
+              disabled={thinking}
               className={`p-2 rounded-full transition ${
                 darkMode
                   ? "bg-green-500 hover:bg-green-600"

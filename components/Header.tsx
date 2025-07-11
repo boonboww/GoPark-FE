@@ -98,7 +98,6 @@ export default function Header() {
 
   const handleNotificationClick = () => {
     setIsNotificationOpen(!isNotificationOpen);
-    // Khi mở ra, đánh dấu tất cả là đã đọc (nhưng không xoá)
     setNotifications((prev) =>
       prev.map((n) => ({ ...n, read: true }))
     );
@@ -143,7 +142,6 @@ export default function Header() {
 
   return (
     <header className="w-full fixed z-[100] left-0 top-0 px-6 py-4 flex justify-between items-center bg-white shadow">
-      {/* Logo */}
       <div
         className="text-2xl font-bold cursor-pointer"
         onClick={() => router.push("/")}
@@ -151,7 +149,6 @@ export default function Header() {
         <img src="/logo.png" alt="GoPark Logo" className="h-10" />
       </div>
 
-      {/* Not logged in */}
       {!isLoggedIn && (
         <div className="flex gap-3">
           <Button variant="ghost" onClick={() => router.push("/account/login")}>
@@ -163,15 +160,12 @@ export default function Header() {
         </div>
       )}
 
-      {/* Logged in */}
       {isLoggedIn && (
-        <div className="flex items-center  gap-4 relative">
-          {/* Desktop links */}
+        <div className="flex items-center gap-4 relative">
           <div className="hidden md:flex items-center gap-6 text-sm font-medium">
             <MenuLinks />
           </div>
 
-          {/* Always visible icons */}
           <button
             onClick={() => router.push("/map")}
             className="flex items-center cursor-pointer hover:text-blue-600"
@@ -193,28 +187,35 @@ export default function Header() {
             </button>
 
             {isNotificationOpen && (
-              <div className="absolute right-0 mt-2 w-72 bg-white rounded-md shadow-lg py-2 z-50">
-                <div className="flex justify-between items-center px-4 py-2 border-b">
+              <div
+                className="
+                  absolute right-0 md:right-0 md:left-auto md:transform-none
+                  left-1/2 transform -translate-x-1/2 md:left-auto md:translate-x-0
+                  mt-2 w-72 rounded-md shadow-lg py-2 z-50
+                  bg-gray-800 text-white
+                "
+              >
+                <div className="flex justify-between items-center px-4 py-2 border-b border-gray-600">
                   <span className="font-semibold">Notifications</span>
                   <button
                     onClick={handleMarkAllAsRead}
-                    className="text-sm text-blue-600 cursor-pointer hover:underline"
+                    className="text-sm text-blue-300 cursor-pointer hover:underline"
                   >
                     Mark all as read
                   </button>
                 </div>
                 {notifications.length === 0 ? (
-                  <div className="px-4 py-4 text-gray-500 text-sm">
+                  <div className="px-4 py-4 text-gray-300 text-sm">
                     No notifications
                   </div>
                 ) : (
                   notifications.map((note) => (
                     <div
                       key={note.id}
-                      className="px-4 py-3 hover:bg-gray-50 border-b last:border-b-0"
+                      className="px-4 py-3 hover:bg-gray-700 border-b border-gray-600 last:border-b-0"
                     >
                       <div className="text-sm">{note.message}</div>
-                      <div className="text-xs text-gray-500">{note.time}</div>
+                      <div className="text-xs text-gray-400">{note.time}</div>
                     </div>
                   ))
                 )}
@@ -222,7 +223,6 @@ export default function Header() {
             )}
           </div>
 
-          {/* Avatar */}
           <div
             ref={avatarRef}
             className="relative"
@@ -274,7 +274,6 @@ export default function Header() {
             )}
           </div>
 
-          {/* Hamburger */}
           <button
             className="md:hidden"
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
@@ -284,7 +283,6 @@ export default function Header() {
         </div>
       )}
 
-      {/* Mobile menu */}
       {isMobileMenuOpen && isLoggedIn && (
         <div className="absolute top-full right-0 w-full bg-white shadow-md flex flex-col items-start p-4 gap-4 md:hidden">
           <MenuLinks />
@@ -293,4 +291,3 @@ export default function Header() {
     </header>
   );
 }
-  
