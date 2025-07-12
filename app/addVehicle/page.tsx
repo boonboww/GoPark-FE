@@ -1,237 +1,259 @@
 "use client";
 
-import { useState } from "react";
-import Header from "@/components/Header";
-import Footer from "@/components/Footer";
-import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
-import QRCode from "react-qr-code";
-import {
-  Car,
-  Trash2,
-  Pencil,
-  Lock,
-  Plus,
-  AlertTriangle,
-} from "lucide-react";
-
-import EditVehicleForm from "./EditVehicleForm";
+import { useEffect, useState } from "react";
+import API from "@/lib/api";
 import { Vehicle } from "./types";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
+import {
+  Plus,
+  Pencil,
+  Trash2,
+  Car,
+  AlertTriangle,
+  Lock,
+} from "lucide-react";
+import QRCode from "react-qr-code";
+import EditVehicleForm from "./EditVehicleForm";
+
+interface ApiError {
+  response?: {
+    data?: {
+      field?: string;
+      message?: string;
+    };
+  };
+}
 
 export default function AddVehiclePage() {
-  const [registeredVehicles, setRegisteredVehicles] = useState<Vehicle[]>([
-    {
-      id: 101,
-      type: "Car",
-      plate: "43A-12345",
-      document: "123456789",
-    },
-  ]);
-  const isMax = registeredVehicles.length >= 3;
+  const [vehicles, setVehicles] = useState<Vehicle[]>([]);
+  const [newVehicle, setNewVehicle] = useState<Omit<Vehicle, "_id">>({
+    licensePlate: "",
+    capacity: 4,
+    imageVehicle: "",
+  });
+  const [message, setMessage] = useState<string>("");
+  const [editing, setEditing] = useState<Vehicle | null>(null);
+  const [imageError, setImageError] = useState<string>("");
 
-  const [vehicles, setVehicles] = useState<Vehicle[]>([
-    { id: 1, type: "", plate: "", document: "" },
-  ]);
-  const [vehicleCount, setVehicleCount] = useState(1);
-  const [error, setError] = useState("");
-  const [editingVehicle, setEditingVehicle] = useState<Vehicle | null>(null);
+  const MAX_VEHICLES = 3;
 
-  const handleVehicleCountChange = (value: number) => {
-    setVehicleCount(value);
-    let updated = [...vehicles];
-    if (value > updated.length) {
-      for (let i = updated.length + 1; i <= value; i++) {
-        updated.push({ id: i, type: "", plate: "", document: "" });
-      }
-    } else {
-      updated = updated.slice(0, value);
+  useEffect(() => {
+    fetchMyVehicles();
+  }, []);
+
+  const fetchMyVehicles = async () => {
+    try {
+      const res = await API.get<{ data: Vehicle[] }>("/api/v1/vehicles/my-vehicles");
+      setVehicles(res.data.data || []);
+    } catch (error) {
+      console.error(error);
+      setMessage("Error: Failed to load your vehicles.");
     }
-    setVehicles(updated);
-    setError("");
   };
 
-  const handleChange = (id: number, field: keyof Vehicle, value: string) => {
-    setVehicles(
-      vehicles.map((v) => (v.id === id ? { ...v, [field]: value } : v))
-    );
-  };
-
-  const handleSubmit = () => {
-    if (isMax) return;
-
-    const hasEmpty = vehicles.some(
-      (v) => !v.type || !v.plate || !v.document
-    );
-    if (hasEmpty) {
-      setError("❌ Please fill all fields.");
+  const handleAddVehicle = async () => {
+    if (vehicles.length >= MAX_VEHICLES) {
+      setMessage("Error: You can only register up to 3 vehicles.");
       return;
     }
 
-    const newVehicles = vehicles.map((v) => ({
-      id: Date.now() + Math.floor(Math.random() * 1000),
-      type: v.type,
-      plate: v.plate,
-      document: v.document,
-    }));
+    if (!newVehicle.licensePlate || !newVehicle.capacity) {
+      setMessage("Error: Please fill in license plate and capacity.");
+      return;
+    }
 
-    setRegisteredVehicles([...registeredVehicles, ...newVehicles]);
-    setVehicles([{ id: 1, type: "", plate: "", document: "" }]);
-    setVehicleCount(1);
-    setError("");
-    alert("✅ Vehicles added successfully!");
-  };
+    if (newVehicle.imageVehicle && !isValidUrl(newVehicle.imageVehicle)) {
+      setMessage("Error: Invalid image URL.");
+      return;
+    }
 
-  const handleDelete = (id: number) => {
-    if (confirm("Are you sure to delete this vehicle?")) {
-      setRegisteredVehicles(registeredVehicles.filter((v) => v.id !== id));
+    try {
+      await API.post("/api/v1/vehicles", newVehicle);
+      setMessage("✅ Vehicle added successfully!");
+      setNewVehicle({ licensePlate: "", capacity: 4, imageVehicle: "" });
+      setImageError("");
+      fetchMyVehicles();
+    } catch (error) {
+      const apiError = error as ApiError;
+      if (apiError.response?.data?.field === "licensePlate") {
+        setMessage("Error: This license plate is already registered.");
+        return;
+      }
+      console.error(error);
+      setMessage("Error: Failed to add vehicle.");
     }
   };
 
+  const handleDelete = async (id?: string) => {
+    if (!id || !confirm("Are you sure you want to delete this vehicle?")) return;
+    try {
+      await API.delete(`/api/v1/vehicles/${id}`);
+      fetchMyVehicles();
+    } catch (error) {
+      console.error(error);
+      setMessage("Error: Failed to delete vehicle.");
+    }
+  };
+
+  const handleUpdate = async (vehicle: Vehicle) => {
+    if (!vehicle._id) return;
+    try {
+      await API.put(`/api/v1/vehicles/${vehicle._id}`, vehicle);
+      setEditing(null);
+      fetchMyVehicles();
+    } catch (error) {
+      console.error(error);
+      setMessage("Error: Failed to update vehicle.");
+    }
+  };
+
+  const isValidUrl = (url: string) => {
+    try {
+      const u = new URL(url);
+      return /\.(jpeg|jpg|png|gif|webp)$/i.test(u.pathname);
+    } catch {
+      return false;
+    }
+  };
+
+  const handleImageError = () => {
+    setImageError("Failed to load image.");
+  };
+
   return (
-    <>
-      <Header />
+    <main className="max-w-4xl mx-auto px-4 py-16 space-y-10">
+      <h1 className="text-3xl font-bold text-center text-primary">My Vehicles</h1>
 
-      <main className="min-h-screen mt-20 flex flex-col items-center px-4 py-12">
-        <h1 className="text-2xl md:text-4xl font-bold mb-6">
-          Add Your Vehicles
-        </h1>
-
-        {isMax && (
-          <div className="flex items-center gap-2 text-red-600 mb-4">
-            <Lock className="w-4 h-4" /> You can register up to 3 vehicles only.
+      {/* Add Form */}
+      <section className="bg-white p-6 rounded-xl shadow-md space-y-4 border">
+        {vehicles.length >= MAX_VEHICLES && (
+          <div className="text-red-600 flex gap-2 items-center">
+            <Lock className="w-4 h-4" />
+            <span>You can only register up to 3 vehicles.</span>
           </div>
         )}
 
-        {!isMax && (
-          <>
-            <div className="w-full max-w-md mb-8">
-              <Label>Select number of vehicles</Label>
-              <select
-                value={vehicleCount}
-                onChange={(e) =>
-                  handleVehicleCountChange(Number(e.target.value))
-                }
-                className="w-full border px-3 py-2 rounded-md"
-              >
-                <option value={1}>1</option>
-                <option value={2}>2</option>
-                <option value={3}>3</option>
-              </select>
-            </div>
-
-            <div className="w-full flex flex-col gap-6 max-w-4xl">
-              {vehicles.map((v) => (
-                <div
-                  key={v.id}
-                  className="w-full border mb-3 rounded-lg shadow-sm p-6 bg-white"
-                >
-                  <Label>Type</Label>
-                  <Input
-                  className="mb-2"
-                    value={v.type}
-                    onChange={(e) =>
-                      handleChange(v.id, "type", e.target.value)
-                    }
-                    placeholder="e.g., Car"
-                  />
-                  <Label>Plate</Label>
-                  <Input
-                  className="mb-2"
-                    value={v.plate}
-                    onChange={(e) =>
-                      handleChange(v.id, "plate", e.target.value)
-                    }
-                    placeholder="e.g., 43A-12345"
-                  />
-                  <Label>Document</Label>
-                  <Input
-                  className="mb-2"
-                    value={v.document}
-                    onChange={(e) =>
-                      handleChange(v.id, "document", e.target.value)
-                    }
-                    placeholder="e.g., Registration No."
-                  />
-                </div>
-              ))}
-            </div>
-
-            {error && (
-              <div className="flex gap-2 items-center text-yellow-600 mt-4">
-                <AlertTriangle className="w-4 h-4" /> {error}
-              </div>
-            )}
-
-            <Button
-              onClick={handleSubmit}
-              className="mt-8 flex items-center gap-2 cursor-pointer bg-black text-white"
-            >
-              Save Vehicles <Plus className="w-4 h-4" />
-            </Button>
-          </>
-        )}
-
-        <div className="mt-16 w-full max-w-4xl">
-          <h2 className="text-xl md:text-2xl font-bold mb-4">
-            Registered Vehicles
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {registeredVehicles.map((v) => {
-              const vehicleUrl = `http://localhost:3000/vehicle/${v.id}`;
-              return (
-                <div
-                  key={v.id}
-                  className="border rounded-lg shadow-sm p-6 bg-white flex flex-col gap-2"
-                >
-                  <h3 className="flex gap-2 items-center font-semibold">
-                    <Car className="w-4 h-4" /> {v.type}
-                  </h3>
-                  <p>
-                    <strong>Plate:</strong> {v.plate}
-                  </p>
-                  <p>
-                    <strong>Document:</strong> {v.document}
-                  </p>
-                  <QRCode value={vehicleUrl} size={100} className="mt-2" />
-                  <div className="flex gap-2 mt-4">
-                    <Button
-                      variant="outline"
-                      onClick={() => setEditingVehicle(v)}
-                      className="flex gap-1 cursor-pointer items-center"
-                    >
-                      <Pencil className="w-4 h-4" /> Edit
-                    </Button>
-                    <Button
-                      variant="destructive"
-                      onClick={() => handleDelete(v.id)}
-                      className="flex cursor-pointer gap-1 items-center"
-                    >
-                      <Trash2 className="w-4 h-4" /> Delete
-                    </Button>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
+        <div>
+          <Label>License Plate</Label>
+          <Input
+            value={newVehicle.licensePlate}
+            onChange={(e) =>
+              setNewVehicle({ ...newVehicle, licensePlate: e.target.value })
+            }
+            placeholder="e.g., 43A-12345"
+          />
+        </div>
+        <div>
+          <Label>Capacity</Label>
+          <Input
+            type="number"
+            value={newVehicle.capacity}
+            onChange={(e) =>
+              setNewVehicle({ ...newVehicle, capacity: Number(e.target.value) })
+            }
+            placeholder="e.g., 4"
+          />
+        </div>
+        <div>
+          <Label>Image URL (optional)</Label>
+          <Input
+            value={newVehicle.imageVehicle}
+            onChange={(e) =>
+              setNewVehicle({ ...newVehicle, imageVehicle: e.target.value })
+            }
+            placeholder="https://example.com/car.jpg"
+          />
+          {imageError && <p className="text-sm text-red-600">{imageError}</p>}
         </div>
 
-        {editingVehicle && (
-          <EditVehicleForm
-            vehicle={editingVehicle}
-            onClose={() => setEditingVehicle(null)}
-            onSave={(updated) => {
-              setRegisteredVehicles((prev) =>
-                prev.map((v) => (v.id === updated.id ? updated : v))
-              );
-              setEditingVehicle(null);
-              alert("✅ Updated successfully!");
-            }}
-          />
-        )}
-      </main>
+        <div className="flex items-center justify-between">
+          <Button
+            onClick={handleAddVehicle}
+            className="flex gap-2 items-center"
+            disabled={vehicles.length >= MAX_VEHICLES}
+          >
+            <Plus className="w-4 h-4" /> Add Vehicle
+          </Button>
+          {message && (
+            <div
+              className={`flex gap-2 items-center text-sm ${
+                message.startsWith("Error") ? "text-red-600" : "text-green-600"
+              }`}
+            >
+              <AlertTriangle className="w-4 h-4" />
+              <span>{message}</span>
+            </div>
+          )}
+        </div>
+      </section>
 
-      <Footer />
-    </>
+      {/* Vehicle Cards */}
+      <section className="grid md:grid-cols-2 gap-6">
+        {vehicles.map((v) => {
+          const vehicleUrl = `http://localhost:3000/vehicle/${v._id}`;
+          return (
+            <div
+              key={v._id}
+              className="bg-white rounded-lg shadow-md border p-5 flex flex-col gap-2"
+            >
+              <div className="flex gap-4 items-start">
+                {v.imageVehicle ? (
+                  <img
+                    src={v.imageVehicle}
+                    alt="Vehicle"
+                    className="w-28 h-20 object-cover rounded-md"
+                    onError={handleImageError}
+                  />
+                ) : (
+                  <div className="w-28 h-20 bg-gray-100 flex items-center justify-center rounded-md text-gray-400">
+                    <Car className="w-8 h-8" />
+                  </div>
+                )}
+                <div className="flex-1">
+                  <p className="font-semibold text-lg">{v.licensePlate}</p>
+                  <p className="text-sm text-gray-500">
+                    Capacity: {v.capacity} seat{v.capacity > 1 ? "s" : ""}
+                  </p>
+                  <div className="mt-2">
+                    <QRCode value={vehicleUrl} size={80} />
+                  </div>
+                </div>
+              </div>
+              <div className="flex gap-2 justify-end mt-4">
+                <Button
+                  variant="outline"
+                  onClick={() => setEditing(v)}
+                  className="flex gap-1 items-center"
+                >
+                  <Pencil className="w-4 h-4" /> Edit
+                </Button>
+                <Button
+                  variant="destructive"
+                  onClick={() => handleDelete(v._id)}
+                  className="flex gap-1 items-center"
+                >
+                  <Trash2 className="w-4 h-4" /> Delete
+                </Button>
+              </div>
+            </div>
+          );
+        })}
+        {vehicles.length === 0 && (
+          <p className="text-center text-gray-500 text-sm col-span-full">
+            You have no registered vehicles.
+          </p>
+        )}
+      </section>
+
+      {editing && (
+        <EditVehicleForm
+          vehicle={editing}
+          onClose={() => setEditing(null)}
+          onSave={handleUpdate}
+        />
+      )}
+    </main>
   );
 }

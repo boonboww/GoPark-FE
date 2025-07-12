@@ -201,7 +201,6 @@ export default function OwnerDashboard() {
               setParkingLots={setParkingLotList}
             />
           </TabsContent>
-
           <TabsContent value="account">
             <AccountManagement account={account} setAccount={setAccount} />
           </TabsContent>

@@ -24,48 +24,41 @@ export default function EditVehicleForm({
         <h2 className="text-lg font-bold mb-4">Edit Vehicle</h2>
 
         <div className="mb-4">
-          <Label>Type</Label>
+          <Label>License Plate</Label>
           <Input
-            value={edited.type}
+            value={edited.licensePlate}
             onChange={(e) =>
-              setEdited({ ...edited, type: e.target.value })
+              setEdited({ ...edited, licensePlate: e.target.value })
             }
           />
         </div>
 
         <div className="mb-4">
-          <Label>Plate</Label>
+          <Label>Capacity</Label>
           <Input
-            value={edited.plate}
+            type="number"
+            value={edited.capacity}
             onChange={(e) =>
-              setEdited({ ...edited, plate: e.target.value })
+              setEdited({ ...edited, capacity: Number(e.target.value) })
             }
           />
         </div>
 
         <div className="mb-4">
-          <Label>Document</Label>
+          <Label>Image URL</Label>
           <Input
-            value={edited.document}
+            value={edited.imageVehicle || ""}
             onChange={(e) =>
-              setEdited({ ...edited, document: e.target.value })
+              setEdited({ ...edited, imageVehicle: e.target.value })
             }
           />
         </div>
 
         <div className="flex justify-end gap-2">
-          <Button
-            variant="outline"
-            onClick={onClose}
-            className="flex gap-1 cursor-pointer items-center"
-          >
+          <Button onClick={onClose} variant="outline" className="flex gap-1">
             <X className="w-4 h-4" /> Cancel
           </Button>
-
-          <Button
-            onClick={() => onSave(edited)}
-            className="flex gap-1 cursor-pointer items-center"
-          >
+          <Button onClick={() => onSave(edited)} className="flex gap-1">
             <Save className="w-4 h-4" /> Save
           </Button>
         </div>
