@@ -18,7 +18,6 @@ import type {
   Customer,
   Vehicle,
   Ticket,
-  ParkingLot,
   Account,
 } from "@/app/owner/types";
 
@@ -83,23 +82,6 @@ const initialData = {
     },
   ] satisfies Ticket[],
 
-  parkingLots: [
-    {
-      id: "P1",
-      name: "Central Parking",
-      address: "123 Lang Street, Hanoi",
-      capacity: 100,
-      pricePerHour: 20000,
-    },
-    {
-      id: "P2",
-      name: "Cau Giay Parking",
-      address: "456 Cau Giay, Hanoi",
-      capacity: 50,
-      pricePerHour: 15000,
-    },
-  ] satisfies ParkingLot[],
-
   account: {
     id: "A1",
     name: "Owner Name",
@@ -120,9 +102,6 @@ export default function OwnerDashboard() {
   );
   const [ticketList, setTicketList] = useState<Ticket[]>(
     initialData.tickets
-  );
-  const [parkingLotList, setParkingLotList] = useState<ParkingLot[]>(
-    initialData.parkingLots
   );
   const [account, setAccount] = useState<Account>(initialData.account);
 
@@ -196,11 +175,9 @@ export default function OwnerDashboard() {
           </TabsContent>
 
           <TabsContent value="parkingLots">
-            <ParkingLotManagement
-              parkingLots={parkingLotList}
-              setParkingLots={setParkingLotList}
-            />
+            <ParkingLotManagement />
           </TabsContent>
+
           <TabsContent value="account">
             <AccountManagement account={account} setAccount={setAccount} />
           </TabsContent>
