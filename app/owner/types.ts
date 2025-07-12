@@ -33,13 +33,16 @@ export interface Ticket {
 
 // ParkingLot type
 export interface ParkingLot {
-  id: string;
+  _id: string;
   name: string;
   address: string;
+  image: string[]; // 👈 sửa thành mảng
+  isActive: boolean;
   capacity: number;
   pricePerHour: number;
-  image?: string;
 }
+
+
 
 // Account type
 export interface Account {
