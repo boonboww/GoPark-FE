@@ -6,7 +6,7 @@ import { Menu, X, LocateFixed, Loader2 } from "lucide-react";
 import MapComponent from "./MapComponent";
 import { ParkingDetail } from "./ParkingDetail";
 import { ParkingList } from "./ParkingList";
-import { Parking, API_BASE_URL} from "./types";
+import { Parking, API_BASE_URL } from "./types";
 import L from "leaflet";
 
 const CitiMap = () => {
@@ -33,7 +33,9 @@ const CitiMap = () => {
   const [isPanelOpen, setIsPanelOpen] = useState(true);
   const [loading, setLoading] = useState(true);
   const [isLocating, setIsLocating] = useState(false);
-  const [nearestParkingCoords, setNearestParkingCoords] = useState<[number, number] | null>(null);
+  const [nearestParkingCoords, setNearestParkingCoords] = useState<
+    [number, number] | null
+  >(null);
 
   useEffect(() => {
     if (!city) return;
@@ -47,7 +49,6 @@ const CitiMap = () => {
         if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
 
         const response = await res.json();
-        console.log('API response:', response);
         const validParkings = response.data.filter(
           (p: Parking) => p.location?.coordinates?.length === 2
         );
@@ -104,7 +105,9 @@ const CitiMap = () => {
         if (userMarker) {
           userMarker.setLatLng([latitude, longitude]).addTo(map);
         } else {
-          const newMarker = L.marker([latitude, longitude], { icon: userIcon }).addTo(map);
+          const newMarker = L.marker([latitude, longitude], {
+            icon: userIcon,
+          }).addTo(map);
           setUserMarker(newMarker);
         }
       }
@@ -128,11 +131,21 @@ const CitiMap = () => {
       if (nearestParking) {
         setFilteredParkings([nearestParking]);
         setSelectedParking(nearestParking);
-        setNearestParkingCoords([nearestParking.location.coordinates[1], nearestParking.location.coordinates[0]]);
+        setNearestParkingCoords([
+          nearestParking.location.coordinates[1],
+          nearestParking.location.coordinates[0],
+        ]);
         if (map) {
-          map.setView([nearestParking.location.coordinates[1], nearestParking.location.coordinates[0]], 15);
+          map.setView([
+            nearestParking.location.coordinates[1],
+            nearestParking.location.coordinates[0],
+          ], 15);
         }
-        toast.success(`Nearest parking found: ${nearestParking.name} (${minDistance.toFixed(2)} km)`);
+        toast.success(
+          `Nearest parking found: ${nearestParking.name} (${minDistance.toFixed(
+            2
+          )} km)`
+        );
       } else {
         setFilteredParkings([]);
         setSelectedParking(null);
@@ -184,13 +197,8 @@ const CitiMap = () => {
 
   useEffect(() => {
     if (typeof window === "undefined") return;
-    if (isPanelOpen) {
-      document.body.classList.add("panel-open");
-      document.body.classList.remove("panel-closed");
-    } else {
-      document.body.classList.add("panel-closed");
-      document.body.classList.remove("panel-open");
-    }
+    document.body.classList.toggle("panel-open", isPanelOpen);
+    document.body.classList.toggle("panel-closed", !isPanelOpen);
   }, [isPanelOpen]);
 
   if (loading) {
@@ -256,7 +264,7 @@ const CitiMap = () => {
 
             <button
               onClick={findNearbyParkings}
-              className="absolute top-4 right-4 md:top-4 md:right-4 z-[1000] bg-white p-2 rounded-md shadow-md hover:bg-gray-100 transition-colors locate-btn"
+              className="absolute top-4 right-4 z-[1000] bg-white p-2 rounded-md shadow-md hover:bg-gray-100 transition-colors locate-btn"
               aria-label="Locate me"
               disabled={isLocating}
             >
@@ -269,14 +277,20 @@ const CitiMap = () => {
           </>
         )}
 
-        <MapComponent
-          parkings={filteredParkings}
-          city={city}
-          userCoords={userCoords}
-          nearestParkingCoords={nearestParkingCoords}
-          onMapInit={setMap}
-          onMarkerClick={setSelectedParking}
-        />
+        {filteredParkings.length > 0 ? (
+          <MapComponent
+            parkings={filteredParkings}
+            city={city}
+            userCoords={userCoords}
+            nearestParkingCoords={nearestParkingCoords}
+            onMapInit={setMap}
+            onMarkerClick={setSelectedParking}
+          />
+        ) : (
+          <div className="flex items-center justify-center h-full text-gray-600 text-lg font-semibold">
+            🚫 No parking spots found in {city.charAt(0).toUpperCase() + city.slice(1)}
+          </div>
+        )}
       </div>
     </div>
   );

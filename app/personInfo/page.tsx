@@ -1,59 +1,74 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import QRCode from "react-qr-code";
-import {
-  User,
-  Mail,
-  Phone,
-  Car,
-  Pencil,
-  Plus,
-} from "lucide-react";
+import { User, Mail, Phone, Car, Pencil, Plus } from "lucide-react";
 import Link from "next/link";
+import API from "@/lib/api";
+
+// Type for vehicle
+interface Vehicle {
+  _id?: string;
+  licensePlate: string;
+  capacity: number;
+  imageVehicle?: string;
+}
 
 export default function PersonInfoPage() {
   const [userInfo, setUserInfo] = useState({
-    name: "Nguyen Van A",
-    email: "nguyenvana@example.com",
-    phone: "0123456789",
+    name: "",
+    email: "",
+    phone: "",
   });
 
-  const [registeredVehicles] = useState([
-    {
-      id: 1,
-      plate: "43A-12345",
-      document: "123456789",
-    },
-    {
-      id: 2,
-      plate: "43B-67890",
-      document: "987654321",
-    },
-  ]);
-
+  const [registeredVehicles, setRegisteredVehicles] = useState<Vehicle[]>([]);
   const [editingPhone, setEditingPhone] = useState(false);
-  const [tempPhone, setTempPhone] = useState(userInfo.phone);
+  const [tempPhone, setTempPhone] = useState("");
+  const baseURL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
-  const handlePhoneSave = () => {
-    setUserInfo({ ...userInfo, phone: tempPhone });
-    setEditingPhone(false);
-    alert("✅ Phone updated!");
+  // Fetch user + vehicle
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const userRes = await API.get("/api/v1/users/me");
+        const { userName, email, phoneNumber } = userRes.data;
+        setUserInfo({ name: userName, email, phone: phoneNumber });
+        setTempPhone(phoneNumber);
+
+        const vehiclesRes = await API.get("/api/v1/vehicles/my-vehicles");
+        setRegisteredVehicles(vehiclesRes.data.data);
+      } catch (err) {
+        console.error("❌ Error fetching data:", err);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  const handlePhoneSave = async () => {
+    try {
+      await API.put("/api/v1/users/me", {
+        phoneNumber: tempPhone,
+      });
+      setUserInfo({ ...userInfo, phone: tempPhone });
+      setEditingPhone(false);
+      alert("✅ Phone updated!");
+    } catch (err) {
+      console.error("❌ Update failed", err);
+      alert("Update failed!");
+    }
   };
 
   return (
     <>
       <Header />
-
       <main className="min-h-screen mt-20 px-4 py-12 flex flex-col items-center">
-        <h1 className="text-2xl md:text-4xl font-bold mb-8">
-          My Account Info
-        </h1>
+        <h1 className="text-2xl md:text-4xl font-bold mb-8">My Account Info</h1>
 
         {/* User Info */}
         <div className="w-full max-w-3xl border rounded-lg shadow-sm p-6 bg-white mb-12">
@@ -111,17 +126,31 @@ export default function PersonInfoPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {registeredVehicles.map((v) => (
               <div
-                key={v.id}
+                key={v._id}
                 className="border rounded-lg shadow-sm p-6 bg-white flex flex-col gap-2"
               >
-                <h3 className="flex gap-2 items-center font-semibold">
-                  <Car className="w-4 h-4" /> Plate: {v.plate}
+                {/* ✅ Hình ảnh xe */}
+                {v.imageVehicle ? (
+                  <img
+                    src={v.imageVehicle}
+                    alt="Vehicle"
+                    className="w-full h-40 object-cover rounded-md"
+                  />
+                ) : (
+                  <div className="w-full h-40 bg-gray-100 flex items-center justify-center rounded-md text-gray-400">
+                    <Car className="w-10 h-10" />
+                  </div>
+                )}
+
+                <h3 className="flex gap-2 items-center font-semibold mt-2">
+                  <Car className="w-4 h-4" /> Plate: {v.licensePlate}
                 </h3>
                 <p>
-                  <strong>Document:</strong> {v.document}
+                  <strong>Capacity:</strong> {v.capacity}
                 </p>
+
                 <QRCode
-                  value={`http://localhost:3000/vehicle/${v.id}`}
+                  value={`${baseURL}/addvehicle/${v._id}`}
                   size={100}
                   className="mt-2"
                 />
@@ -136,7 +165,6 @@ export default function PersonInfoPage() {
           </Link>
         </div>
       </main>
-
       <Footer />
     </>
   );

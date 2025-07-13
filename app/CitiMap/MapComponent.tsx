@@ -3,6 +3,7 @@ import { useEffect, useMemo } from "react";
 import dynamic from "next/dynamic";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
+import "leaflet-routing-machine";
 import { Parking, CITY_CENTERS } from "./types";
 
 interface MapComponentProps {
@@ -59,7 +60,6 @@ const MapComponent = ({
     const zoomControl = document.querySelector(
       ".leaflet-control-zoom"
     ) as HTMLElement;
-
     if (zoomControl) {
       zoomControl.style.top = "4rem";
       zoomControl.style.right = "0.7rem";
@@ -67,7 +67,7 @@ const MapComponent = ({
 
     onMapInit(mapInstance);
 
-    // Thêm marker vị trí người dùng
+    // Marker người dùng
     let userMarker: L.Marker | null = null;
     if (userCoords) {
       userMarker = L.marker(userCoords, { icon: userIcon })
@@ -75,10 +75,12 @@ const MapComponent = ({
         .bindPopup("Your current location");
     }
 
-    // Thêm marker cho các bãi đỗ xe
+    // Marker bãi đỗ
     const parkingMarkers: L.Marker[] = [];
     parkings.forEach((p) => {
-      const [longitude, latitude] = p.location.coordinates;
+      const [lon, lat] = p.location.coordinates;
+      const marker = L.marker([lat, lon], { icon: parkingIcon }).addTo(mapInstance);
+
       const popupContent = `
         <div class="text-sm max-w-xs">
           <img src="${p.avtImage || "/default-parking.jpg"}" alt="${p.name}" 
@@ -91,36 +93,51 @@ const MapComponent = ({
         </div>
       `;
 
-      const marker = L.marker([latitude, longitude], { icon: parkingIcon })
-        .addTo(mapInstance)
-        .bindPopup(popupContent);
+      marker.bindPopup(popupContent);
       marker.on("popupopen", () => onMarkerClick(p));
       parkingMarkers.push(marker);
     });
 
-    // Vẽ đường đi đến bãi gần nhất
-    let polyline: L.Polyline | null = null;
+    // Routing
+    let routingControl: L.Routing.Control | null = null;
     if (userCoords && nearestParkingCoords) {
-      polyline = L.polyline([userCoords, nearestParkingCoords], {
-        color: "blue",
-        weight: 4,
-        opacity: 0.7,
+      routingControl = L.Routing.control({
+        waypoints: [
+          L.latLng(userCoords[0], userCoords[1]),
+          L.latLng(nearestParkingCoords[0], nearestParkingCoords[1]),
+        ],
+        routeWhileDragging: false,
+        addWaypoints: false,
+        draggableWaypoints: false,
+        fitSelectedRoutes: false,
+        show: false,
+        lineOptions: {
+          styles: [{ color: "blue", weight: 4, opacity: 0.8 }],
+        },
+        createMarker: () => null, // Không tạo marker mặc định
       }).addTo(mapInstance);
 
-      // Điều chỉnh bản đồ để hiển thị cả người dùng và bãi đỗ xe
-      const bounds = L.latLngBounds([userCoords, nearestParkingCoords]);
-      mapInstance.fitBounds(bounds, { padding: [50, 50] });
+      routingControl.on("routesfound", (e) => {
+        const route = e.routes[0];
+        if (route) {
+          mapInstance.fitBounds(route.bounds, { padding: [50, 50] });
+        }
+      });
+
+      routingControl.on("routingerror", (err) => {
+        console.error("Routing error:", err);
+      });
     }
 
     return () => {
-      if (polyline) polyline.remove();
+      if (routingControl) routingControl.remove();
       if (userMarker) userMarker.remove();
-      parkingMarkers.forEach((marker) => marker.remove());
+      parkingMarkers.forEach((m) => m.remove());
       mapInstance.remove();
     };
   }, [parkings, city, userCoords, nearestParkingCoords, parkingIcon, userIcon, onMapInit, onMarkerClick]);
 
-  return <div id="map" className="w-full h-full"></div>;
+  return <div id="map" className="w-full h-full" />;
 };
 
 export default dynamic(() => Promise.resolve(MapComponent), { ssr: false });

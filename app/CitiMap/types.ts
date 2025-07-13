@@ -1,3 +1,4 @@
+// types.ts
 export interface ParkingZone {
   zone: string;
   count: number;
@@ -6,7 +7,7 @@ export interface ParkingZone {
 
 export interface ParkingLocation {
   type: string;
-  coordinates: [number, number];
+  coordinates: [number, number]; // [longitude, latitude]
 }
 
 export interface Parking {
@@ -15,7 +16,7 @@ export interface Parking {
   location: ParkingLocation;
   address: string;
   description?: string;
-  pricePerHour?: number; // Đặt là optional
+  pricePerHour?: number;
   isActive: boolean;
   avtImage: string;
   zones: ParkingZone[];
@@ -27,11 +28,13 @@ export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost
 export const DEFAULT_RADIUS_KM = 3;
 
 export const CITY_CENTERS: Record<string, [number, number]> = {
-  "ho chi minh": [10.762622, 106.660172],
-  "ha noi": [21.028511, 105.804817],
-  "da nang": [16.054407, 108.202167],
-  "bien hoa": [10.957413, 106.842687],
-  "nha trang": [12.238791, 109.196749],
-  "hue": [16.463713, 107.590866],
-  "can tho": [10.045162, 105.746857],
+  "Hồ Chí Minh": [10.762622, 106.660172],
+  "Hà Nội": [21.028511, 105.804817],
+  "Đà Nẵng": [16.054407, 108.202167],
+  "Biên Hòa": [10.957413, 106.842687],
+  "Nha Trang": [12.238791, 109.196749],
+  "Huế": [16.463713, 107.590866],
+  "Cần Thơ": [10.045162, 105.746857],
+  "Vũng Tàu": [10.34599, 107.08426],
+  "Hải Phòng": [20.844911, 106.688087],
 };
