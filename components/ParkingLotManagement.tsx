@@ -48,6 +48,10 @@ export default function ParkingLotManagement() {
     image: [],
   });
 
+  const [streetAddress, setStreetAddress] = useState("");
+  const [district, setDistrict] = useState("");
+  const [city, setCity] = useState("");
+
   const selectedLot = parkingLots.find((lot) => lot._id === selectedLotId);
 
   const loadParkingLots = async () => {
@@ -62,8 +66,22 @@ export default function ParkingLotManagement() {
     loadParkingLots();
   }, []);
 
+  useEffect(() => {
+    if (selectedLot?.address) {
+      const parts = selectedLot.address.split(",").map((s) => s.trim());
+      setStreetAddress(parts[0] || "");
+      setDistrict(parts[1] || "");
+      setCity(parts[2] || "");
+    }
+  }, [selectedLot]);
+
   const handleAddParkingLot = async () => {
-    const payload = { ...newParkingLot, image: imageUrl ? [imageUrl] : [] };
+    const payload = {
+      ...newParkingLot,
+      address: `${streetAddress}, ${district}, ${city}`,
+      image: imageUrl ? [imageUrl] : [],
+    };
+
     await createParkingLot(payload);
     await loadParkingLots();
     setNewLotDialogOpen(false);
@@ -75,6 +93,9 @@ export default function ParkingLotManagement() {
       image: [],
     });
     setImageUrl("");
+    setStreetAddress("");
+    setDistrict("");
+    setCity("");
   };
 
   const handleUpdateParkingLot = async () => {
@@ -84,6 +105,7 @@ export default function ParkingLotManagement() {
 
     const payload = {
       ...updated,
+      address: `${streetAddress}, ${district}, ${city}`,
       image: updated.image ? updated.image : [],
     };
 
@@ -110,7 +132,6 @@ export default function ParkingLotManagement() {
       </CardHeader>
 
       <CardContent className="space-y-6">
-        {/* Top section */}
         <div className="flex flex-col md:flex-row justify-between gap-4">
           <Dialog open={newLotDialogOpen} onOpenChange={setNewLotDialogOpen}>
             <DialogTrigger asChild>
@@ -129,13 +150,26 @@ export default function ParkingLotManagement() {
                     setNewParkingLot({ ...newParkingLot, name: e.target.value })
                   }
                 />
-                <Label>Address</Label>
+                <Label>Street Address</Label>
                 <Input
                   className="rounded-xl"
-                  value={newParkingLot.address}
-                  onChange={(e) =>
-                    setNewParkingLot({ ...newParkingLot, address: e.target.value })
-                  }
+                  value={streetAddress}
+                  onChange={(e) => setStreetAddress(e.target.value)}
+                  placeholder="123 Lê Lợi"
+                />
+                <Label>District</Label>
+                <Input
+                  className="rounded-xl"
+                  value={district}
+                  onChange={(e) => setDistrict(e.target.value)}
+                  placeholder="Thanh Khê"
+                />
+                <Label>City</Label>
+                <Input
+                  className="rounded-xl"
+                  value={city}
+                  onChange={(e) => setCity(e.target.value)}
+                  placeholder="Đà Nẵng"
                 />
                 <Label>Capacity</Label>
                 <Input
@@ -196,7 +230,6 @@ export default function ParkingLotManagement() {
           </div>
         </div>
 
-        {/* Edit section */}
         {selectedLot && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-6 bg-gray-50 rounded-2xl border">
             <h3 className="text-lg font-semibold col-span-full">📝 Edit Parking Lot</h3>
@@ -214,19 +247,25 @@ export default function ParkingLotManagement() {
               }
             />
 
-            <Label>Address</Label>
+            <Label>Street Address</Label>
             <Input
               className="rounded-xl"
-              value={selectedLot.address}
-              onChange={(e) =>
-                setParkingLots((prev) =>
-                  prev.map((lot) =>
-                    lot._id === selectedLot._id
-                      ? { ...lot, address: e.target.value }
-                      : lot
-                  )
-                )
-              }
+              value={streetAddress}
+              onChange={(e) => setStreetAddress(e.target.value)}
+            />
+
+            <Label>District</Label>
+            <Input
+              className="rounded-xl"
+              value={district}
+              onChange={(e) => setDistrict(e.target.value)}
+            />
+
+            <Label>City</Label>
+            <Input
+              className="rounded-xl"
+              value={city}
+              onChange={(e) => setCity(e.target.value)}
             />
 
             <Label>Capacity</Label>

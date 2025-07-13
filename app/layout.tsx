@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import { Toaster } from "sonner"; 
+import "leaflet-routing-machine/dist/leaflet-routing-machine.css";
+
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -24,7 +27,6 @@ export const metadata: Metadata = {
     "đặt chỗ xe",
     "bãi đỗ xe",
   ],
-  
   openGraph: {
     title: "GoPark - Smart Parking Booking",
     description: "Find and reserve your parking spot in seconds with GoPark.",
@@ -44,6 +46,7 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         {children}
+        <Toaster richColors position="top-center" /> {/* 👈 THÊM TOASTER Ở ĐÂY */}
       </body>
     </html>
   );

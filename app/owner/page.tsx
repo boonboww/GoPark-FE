@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
@@ -18,8 +18,8 @@ import type {
   Customer,
   Vehicle,
   Ticket,
-  Account,
 } from "@/app/owner/types";
+import API from "@/lib/api";
 
 const initialData = {
   customers: [
@@ -81,14 +81,6 @@ const initialData = {
       expiry: "2025-07-30",
     },
   ] satisfies Ticket[],
-
-  account: {
-    id: "A1",
-    name: "Owner Name",
-    email: "owner@example.com",
-    phone: "0901234567",
-    role: "owner",
-  } satisfies Account,
 };
 
 export default function OwnerDashboard() {
@@ -103,7 +95,19 @@ export default function OwnerDashboard() {
   const [ticketList, setTicketList] = useState<Ticket[]>(
     initialData.tickets
   );
-  const [account, setAccount] = useState<Account>(initialData.account);
+  const [accountName, setAccountName] = useState<string>("");
+
+  useEffect(() => {
+    const fetchAccountName = async () => {
+      try {
+        const res = await API.get("/api/v1/users/me");
+        setAccountName(res.data.userName || "User");
+      } catch (err) {
+        console.error("❌ Failed to fetch account info", err);
+      }
+    };
+    fetchAccountName();
+  }, []);
 
   const ticketManagementData = {
     vehicles: vehicleList.map((v) => ({
@@ -129,7 +133,7 @@ export default function OwnerDashboard() {
           <h1 className="text-2xl font-bold text-gray-900">
             Parking Management System
           </h1>
-          <p className="text-sm text-gray-500">Welcome back, {account.name}</p>
+          <p className="text-sm text-gray-500">Welcome back, {accountName}</p>
         </div>
         <Button
           variant="outline"
@@ -179,7 +183,7 @@ export default function OwnerDashboard() {
           </TabsContent>
 
           <TabsContent value="account">
-            <AccountManagement account={account} setAccount={setAccount} />
+            <AccountManagement />
           </TabsContent>
         </div>
       </Tabs>
