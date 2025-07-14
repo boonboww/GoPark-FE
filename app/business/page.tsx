@@ -17,7 +17,7 @@ import {
   Mail,
   Send,
   ShieldCheck,
-  Upload,
+  ImagePlus,
   AlertTriangle,
 } from "lucide-react";
 
@@ -26,14 +26,17 @@ export default function BusinessPage() {
     ownerName: "",
     ownerEmail: "",
     carParkName: "",
-    address: "",
+    city: "",
+    district: "",
+    ward: "",
+    detailAddress: "",
     slots: "",
     slotSize: "",
     zones: 1,
     zoneValues: [] as string[],
     phone: "",
     acceptPolicy: false,
-    images: [] as File[],
+    imageLinks: "",
   });
 
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
@@ -42,14 +45,11 @@ export default function BusinessPage() {
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
-    const target = e.target as HTMLInputElement | HTMLSelectElement;
+    const target = e.target;
     const name = target.name;
     const value = target.value;
-    const files = (target as HTMLInputElement).files;
 
-    if (files && files.length > 0) {
-      setFormData({ ...formData, images: Array.from(files) });
-    } else if (name === "zones") {
+    if (name === "zones") {
       const zones = parseInt(value) || 0;
       const zoneValues = Array(zones).fill("");
       setFormData({ ...formData, zones, zoneValues });
@@ -57,7 +57,7 @@ export default function BusinessPage() {
       setFormData({ ...formData, [name]: value });
     }
 
-    if (typeof value === "string" && value.trim() !== "") {
+    if (value.trim() !== "") {
       setErrors((prev) => ({ ...prev, [name]: "" }));
     }
   };
@@ -89,8 +89,10 @@ export default function BusinessPage() {
     }
 
     if (!formData.carParkName) newErrors.carParkName = "Required";
-    if (!formData.address) newErrors.address = "Required";
-    if (!formData.slots) newErrors.slots = "Required";
+    if (!formData.city) newErrors.city = "Required";
+    if (!formData.district) newErrors.district = "Required";
+    if (!formData.ward) newErrors.ward = "Required";
+    if (!formData.detailAddress) newErrors.detailAddress = "Required";
     if (!formData.phone) newErrors.phone = "Required";
 
     if (!formData.acceptPolicy) {
@@ -132,7 +134,8 @@ export default function BusinessPage() {
 
             <div>
               <Label htmlFor="ownerName" className="flex items-center gap-2">
-                <User2 className="w-4 h-4" /> Full Name <span className="text-red-500">*</span>
+                <User2 className="w-4 h-4" /> Full Name{" "}
+                <span className="text-red-500">*</span>
               </Label>
               <Input
                 id="ownerName"
@@ -149,7 +152,8 @@ export default function BusinessPage() {
 
             <div>
               <Label htmlFor="ownerEmail" className="flex items-center gap-2">
-                <Mail className="w-4 h-4" /> Email <span className="text-red-500">*</span>
+                <Mail className="w-4 h-4" /> Email{" "}
+                <span className="text-red-500">*</span>
               </Label>
               <Input
                 id="ownerEmail"
@@ -176,9 +180,7 @@ export default function BusinessPage() {
                 value={formData.phone}
                 onChange={handleChange}
                 placeholder="e.g., +84 123 456 789"
-                className={`mt-1 ${
-                  errors.phone ? "border-yellow-500" : ""
-                }`}
+                className={`mt-1 ${errors.phone ? "border-yellow-500" : ""}`}
               />
               {renderInputError("phone")}
             </div>
@@ -208,23 +210,33 @@ export default function BusinessPage() {
               {renderInputError("carParkName")}
             </div>
 
-            <div>
-              <Label htmlFor="address" className="flex items-center gap-2">
-                <MapPin className="w-4 h-4" /> Address <span className="text-red-500">*</span>
-              </Label>
+            {/* Address Split */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-1">
               <Input
-                id="address"
-                name="address"
-                value={formData.address}
+                name="detailAddress"
+                value={formData.detailAddress}
                 onChange={handleChange}
-                placeholder="e.g., 123 Main Street, City"
-                className={`mt-1 ${
-                  errors.address ? "border-yellow-500" : ""
-                }`}
+                placeholder="Street / House No."
               />
-              {renderInputError("address")}
+              <Input
+                name="ward"
+                value={formData.ward}
+                onChange={handleChange}
+                placeholder="Ward"
+              />
+              <Input
+                name="district"
+                value={formData.district}
+                onChange={handleChange}
+                placeholder="District"
+              />
+              <Input
+                name="city"
+                value={formData.city}
+                onChange={handleChange}
+                placeholder="City"
+              />
             </div>
-
             <div>
               <Label htmlFor="zones" className="flex items-center gap-2">
                 <ParkingSquare className="w-4 h-4" /> Number of Zones
@@ -273,16 +285,15 @@ export default function BusinessPage() {
             </div>
 
             <div>
-              <Label htmlFor="images" className="flex items-center gap-2">
-                <Upload className="w-4 h-4" /> Upload Images
+              <Label htmlFor="imageLinks" className="flex items-center gap-2">
+                <ImagePlus className="w-4 h-4" /> Image URLs (comma separated)
               </Label>
               <Input
-                id="images"
-                name="images"
-                type="file"
-                multiple
+                id="imageLinks"
+                name="imageLinks"
+                value={formData.imageLinks}
                 onChange={handleChange}
-                className="mt-1"
+                placeholder="e.g. https://link1.jpg, https://link2.jpg"
               />
             </div>
           </div>
@@ -309,9 +320,7 @@ export default function BusinessPage() {
                 <Checkbox
                   id="acceptPolicy"
                   checked={formData.acceptPolicy}
-                  onCheckedChange={(checked) =>
-                    handleCheckboxChange(!!checked)
-                  }
+                  onCheckedChange={(checked) => handleCheckboxChange(!!checked)}
                 />
                 <Label htmlFor="acceptPolicy" className="text-sm">
                   I agree to the parking policy.

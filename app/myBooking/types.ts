@@ -1,13 +1,17 @@
 export interface Booking {
   id: number;
+  ticketId: string;
   parkingName: string;
   location: string;
   time: string;
-  status: string;
+  status: 'active' | 'completed' | 'cancelled';
   image: string;
-  feeEstimate: string;
+  fee: string;
   package: string;
   plateNumber: string;
   spotNumber: string;
   zone: string;
+  startTime: string;
+  endTime: string;
+  paymentMethod: string;
 }
