@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import { Toaster } from "sonner"; 
+import { Toaster } from "sonner";
 import "leaflet-routing-machine/dist/leaflet-routing-machine.css";
 
+// ✅ Nhúng ChatBot
+import ChatBot from "@/components/ChatBot"; // Đảm bảo file ChatBot.tsx đã có trong components/
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -46,7 +48,8 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         {children}
-        <Toaster richColors position="top-center" /> {/* 👈 THÊM TOASTER Ở ĐÂY */}
+        <Toaster richColors position="top-center" />
+        <ChatBot /> {/* ✅ Nhúng chatbot AI tại đây */}
       </body>
     </html>
   );
