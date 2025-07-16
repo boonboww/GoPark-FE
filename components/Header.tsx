@@ -40,6 +40,7 @@ export default function Header({
 
   const avatarRef = useRef<HTMLDivElement>(null);
   const notificationRef = useRef<HTMLDivElement>(null);
+  const mobileMenuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -75,6 +76,13 @@ export default function Header({
       ) {
         setIsNotificationOpen(false);
       }
+
+      if (
+        mobileMenuRef.current &&
+        !mobileMenuRef.current.contains(event.target as Node)
+      ) {
+        setIsMobileMenuOpen(false);
+      }
     };
 
     document.addEventListener("mousedown", handleClickOutside);
@@ -108,9 +116,14 @@ export default function Header({
     setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
   };
 
+  const handleMobileMenuNavigation = (path: string) => {
+    router.push(path);
+    setIsMobileMenuOpen(false);
+  };
+
   const unreadCount = notifications.filter((n) => !n.read).length;
 
-  const MenuLinks = () => (
+  const DesktopMenuLinks = () => (
     <>
       <button
         onClick={() => router.push("/addVehicle")}
@@ -155,9 +168,38 @@ export default function Header({
     </>
   );
 
+  const MobileMenuLinks = () => (
+    <>
+      <button
+        onClick={() => handleMobileMenuNavigation("/addVehicle")}
+        className="flex items-center cursor-pointer gap-2 text-gray-800 hover:text-blue-600 w-full text-left py-2"
+      >
+        <PlusCircle size={16} /> Thêm phương tiện
+      </button>
+      <button
+        onClick={() => handleMobileMenuNavigation("/myBooking")}
+        className="flex items-center cursor-pointer gap-2 text-gray-800 hover:text-blue-600 w-full text-left py-2"
+      >
+        <CalendarCheck size={16} /> Đặt chỗ
+      </button>
+      <button
+        onClick={() => handleMobileMenuNavigation("/help")}
+        className="flex items-center cursor-pointer gap-2 text-gray-800 hover:text-blue-600 w-full text-left py-2"
+      >
+        <HelpCircle size={16} /> Trợ giúp
+      </button>
+      <button
+        onClick={() => handleMobileMenuNavigation("/policyUser")}
+        className="flex items-center cursor-pointer gap-2 text-gray-800 hover:text-blue-600 w-full text-left py-2"
+      >
+        <ShieldCheck size={16} /> Chính sách
+      </button>
+    </>
+  );
+
   return (
     <header
-      className={`w-full fixed z-[100] left-0 top-0 px-6 py-4 flex justify-between items-center ${
+      className={`w-full fixed z-[100] left-0 top-0 px-4 sm:px-6 py-4 flex justify-between items-center ${
         isHomepage
           ? "bg-transparent text-white"
           : "bg-white shadow text-gray-800"
@@ -171,7 +213,9 @@ export default function Header({
         <img
           src="/logo.png"
           alt="GoPark Logo"
-          className={`h-10 ${isHomepage ? "filter brightness-0 invert" : ""}`}
+          className={`h-8 sm:h-10 ${
+            isHomepage ? "filter brightness-0 invert" : ""
+          }`}
         />
       </div>
 
@@ -201,13 +245,13 @@ export default function Header({
       )}
 
       {isLoggedIn && (
-        <div className="flex items-center gap-4 relative">
+        <div className="flex items-center gap-3 sm:gap-4 relative">
           <div
-            className={`hidden md:flex items-center gap-6 text-sm font-medium ${
+            className={`hidden md:flex items-center gap-4 lg:gap-6 text-sm font-medium ${
               isHomepage ? "text-white" : "text-gray-800"
             }`}
           >
-            <MenuLinks />
+            <DesktopMenuLinks />
           </div>
 
           <button
@@ -233,7 +277,7 @@ export default function Header({
             >
               <Bell size={20} />
               {unreadCount > 0 && !isNotificationOpen && (
-                <span className="absolute -top-1 -right-1 bg-red-600 text-white rounded-full text-xs w-5 h-5 flex items-center justify-center">
+                <span className="absolute -top-1 -right-1 bg-red-600 text-white rounded-full text-xs w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center">
                   {unreadCount}
                 </span>
               )}
@@ -288,7 +332,7 @@ export default function Header({
             <img
               src="/avt.png"
               alt="Ảnh đại diện"
-              className={`w-10 h-10 rounded-full object-cover border cursor-pointer ${
+              className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full object-cover border cursor-pointer ${
                 isHomepage ? "border-white" : "border-gray-300"
               }`}
               onClick={handleAvatarClick}
@@ -302,7 +346,7 @@ export default function Header({
                     setIsAvatarMenuOpen(false);
                     setIsAvatarClicked(false);
                   }}
-                  className="flex items-center px-4 py-2 hover:bg-gray-100 cursor-pointer w-full text-left"
+                  className="flex items-center px-4 py-2 hover:bg-gray-100 cursor-pointer w-full text-left text-sm sm:text-base"
                 >
                   <User size={16} className="mr-2" /> Thông tin cá nhân
                 </button>
@@ -312,13 +356,13 @@ export default function Header({
                     setIsAvatarMenuOpen(false);
                     setIsAvatarClicked(false);
                   }}
-                  className="flex items-center px-4 py-2 hover:bg-gray-100 cursor-pointer w-full text-left"
+                  className="flex items-center px-4 py-2 hover:bg-gray-100 cursor-pointer w-full text-left text-sm sm:text-base"
                 >
                   <Settings size={16} className="mr-2" /> Cài đặt
                 </button>
                 <button
                   onClick={handleLogout}
-                  className="flex items-center px-4 py-2 hover:bg-gray-100 w-full text-left cursor-pointer text-red-600"
+                  className="flex items-center px-4 py-2 hover:bg-gray-100 w-full text-left cursor-pointer text-red-600 text-sm sm:text-base"
                 >
                   <LogOut size={16} className="mr-2" /> Đăng xuất
                 </button>
@@ -349,13 +393,10 @@ export default function Header({
       {/* Mobile menu */}
       {isMobileMenuOpen && isLoggedIn && (
         <div
-          className={`absolute top-full right-0 w-full shadow-md flex flex-col items-start p-4 gap-4 md:hidden ${
-            isHomepage
-              ? "bg-white/90 backdrop-blur-sm text-gray-800"
-              : "bg-white"
-          }`}
+          ref={mobileMenuRef}
+          className="absolute top-full left-0 w-full shadow-md flex flex-col items-start p-4 gap-2 md:hidden bg-white text-gray-800"
         >
-          <MenuLinks />
+          <MobileMenuLinks />
         </div>
       )}
     </header>
