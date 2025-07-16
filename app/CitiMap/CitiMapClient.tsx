@@ -46,7 +46,7 @@ const CitiMap = () => {
         const res = await fetch(
           `${API_BASE_URL}/api/v1/search/city?location=${city}`
         );
-        if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+        if (!res.ok) throw new Error(`Lỗi HTTP! status: ${res.status}`);
 
         const response = await res.json();
         const validParkings = response.data.filter(
@@ -57,12 +57,12 @@ const CitiMap = () => {
         setFilteredParkings(validParkings);
 
         if (validParkings.length === 0) {
-          toast.info("Sorry, no parking spots found in this city");
+          toast.info("Không tìm thấy bãi đỗ xe nào trong thành phố này");
         }
       } catch (error) {
-        console.error("Error fetching parking lots:", error);
+        console.error("Lỗi khi tải bãi đỗ xe:", error);
         toast.error(
-          "An error occurred while loading parking data. Please try again later."
+          "Có lỗi xảy ra khi tải dữ liệu bãi đỗ. Vui lòng thử lại sau."
         );
       } finally {
         setLoading(false);
@@ -74,7 +74,7 @@ const CitiMap = () => {
 
   const findNearbyParkings = useCallback(async () => {
     if (!navigator.geolocation) {
-      toast.warning("This browser doesn't support location services.");
+      toast.warning("Trình duyệt này không hỗ trợ định vị.");
       return;
     }
 
@@ -142,7 +142,7 @@ const CitiMap = () => {
           ], 15);
         }
         toast.success(
-          `Nearest parking found: ${nearestParking.name} (${minDistance.toFixed(
+          `Tìm thấy bãi đỗ gần nhất: ${nearestParking.name} (${minDistance.toFixed(
             2
           )} km)`
         );
@@ -150,12 +150,12 @@ const CitiMap = () => {
         setFilteredParkings([]);
         setSelectedParking(null);
         setNearestParkingCoords(null);
-        toast.info("Sorry, we couldn't find any parking nearby.");
+        toast.info("Không tìm thấy bãi đỗ nào gần vị trí của bạn.");
       }
     } catch (err) {
       console.error(err);
       toast.error(
-        "Failed to detect your location. Please enable location services."
+        "Không thể xác định vị trí. Vui lòng bật dịch vụ định vị."
       );
     } finally {
       setIsLocating(false);
@@ -186,7 +186,7 @@ const CitiMap = () => {
   const navigateToParking = useCallback(
     (lat: number, lon: number) => {
       if (!userCoords) {
-        toast.warning("Please enable location services first");
+        toast.warning("Vui lòng bật dịch vụ định vị trước");
         return;
       }
       const url = `https://www.google.com/maps/dir/?api=1&origin=${userCoords[0]},${userCoords[1]}&destination=${lat},${lon}&travelmode=driving`;
@@ -206,7 +206,7 @@ const CitiMap = () => {
       <div className="flex items-center justify-center h-screen">
         <div className="flex flex-col items-center">
           <Loader2 className="w-12 h-12 animate-spin text-blue-500 mb-4" />
-          <span className="text-lg font-medium">Loading parking data...</span>
+          <span className="text-lg font-medium">Đang tải dữ liệu bãi đỗ...</span>
         </div>
       </div>
     );
@@ -219,7 +219,7 @@ const CitiMap = () => {
           <button
             onClick={() => setIsPanelOpen(false)}
             className="absolute top-4 right-4 text-gray-600 hover:text-gray-800 transition-colors"
-            aria-label="Close panel"
+            aria-label="Đóng panel"
           >
             <X className="w-6 h-6" />
           </button>
@@ -257,7 +257,7 @@ const CitiMap = () => {
             <button
               onClick={() => setIsPanelOpen(true)}
               className="absolute top-4 left-4 z-[1000] bg-white p-2 rounded-md shadow-md hover:bg-gray-100 transition-colors"
-              aria-label="Open panel"
+              aria-label="Mở panel"
             >
               <Menu className="w-6 h-6 text-gray-600" />
             </button>
@@ -265,7 +265,7 @@ const CitiMap = () => {
             <button
               onClick={findNearbyParkings}
               className="absolute top-4 right-4 z-[1000] bg-white p-2 rounded-md shadow-md hover:bg-gray-100 transition-colors locate-btn"
-              aria-label="Locate me"
+              aria-label="Định vị tôi"
               disabled={isLocating}
             >
               {isLocating ? (
@@ -288,7 +288,7 @@ const CitiMap = () => {
           />
         ) : (
           <div className="flex items-center justify-center h-full text-gray-600 text-lg font-semibold">
-            🚫 No parking spots found in {city.charAt(0).toUpperCase() + city.slice(1)}
+            🚫 Không tìm thấy bãi đỗ xe tại {city.charAt(0).toUpperCase() + city.slice(1)}
           </div>
         )}
       </div>

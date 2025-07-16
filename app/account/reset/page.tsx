@@ -10,7 +10,9 @@ function ResetContent() {
   return (
     <div className="flex min-h-svh w-full items-center justify-center p-6 md:p-10">
       <div className="w-full max-w-sm">
-        <ResetTable successMessage={success === "true" ? "Password reset email sent successfully!" : undefined} />
+        <ResetTable 
+          successMessage={success === "true" ? "Email đặt lại mật khẩu đã được gửi thành công!" : undefined} 
+        />
       </div>
     </div>
   );
@@ -18,7 +20,7 @@ function ResetContent() {
 
 export default function Page() {
   return (
-    <Suspense fallback={<div>Loading...</div>}>
+    <Suspense fallback={<div>Đang tải...</div>}>
       <ResetContent />
     </Suspense>
   );

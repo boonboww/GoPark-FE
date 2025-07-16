@@ -16,32 +16,28 @@ import {
   SelectItem,
 } from "@/components/ui/select";
 import { useState } from "react";
-import type { 
-  Vehicle, 
-  Floor, 
+import type {
+  Vehicle,
+  Floor,
   ParkingSlot,
-  VehicleManagementProps 
+  VehicleManagementProps,
 } from "@/app/owner/types";
 
-export default function VehicleManagement({ 
-  vehicles, 
-  setVehicles,
-  customers 
-}: VehicleManagementProps) {
+export default function VehicleManagement({}: VehicleManagementProps) {
   const [selectedFloor, setSelectedFloor] = useState<number>(1);
   const [parkingFloors, setParkingFloors] = useState<Floor[]>(() => [
     {
       number: 1,
       slots: Array.from({ length: 20 }, (_, i) => ({
         number: i + 1,
-        status: Math.random() < 0.3 ? "reserved" : "available" as const,
+        status: Math.random() < 0.3 ? "reserved" : ("available" as const),
       })),
     },
     {
       number: 2,
       slots: Array.from({ length: 20 }, (_, i) => ({
         number: i + 1,
-        status: Math.random() < 0.3 ? "reserved" : "available" as const,
+        status: Math.random() < 0.3 ? "reserved" : ("available" as const),
       })),
     },
   ]);
@@ -51,7 +47,9 @@ export default function VehicleManagement({
   const [qrCodeUrl, setQrCodeUrl] = useState<string | null>(null);
   const [showModal, setShowModal] = useState(false);
 
-  const currentFloor = parkingFloors.find((floor) => floor.number === selectedFloor) || parkingFloors[0];
+  const currentFloor =
+    parkingFloors.find((floor) => floor.number === selectedFloor) ||
+    parkingFloors[0];
 
   const parkedVehicles = parkingFloors
     .flatMap((floor) => floor.slots)
@@ -131,20 +129,23 @@ export default function VehicleManagement({
         <CardHeader>
           <div className="flex justify-between items-center">
             <div>
-              <CardTitle>Parking Slots</CardTitle>
-              <CardDescription>View and manage parking slots</CardDescription>
+              <CardTitle>Chỗ Đậu Xe</CardTitle>
+              <CardDescription>Xem và quản lý các chỗ đậu xe</CardDescription>
             </div>
             <Select
               value={selectedFloor.toString()}
               onValueChange={(value) => setSelectedFloor(parseInt(value))}
             >
               <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Select floor" />
+                <SelectValue placeholder="Chọn tầng" />
               </SelectTrigger>
               <SelectContent>
                 {parkingFloors.map((floor) => (
-                  <SelectItem key={floor.number} value={floor.number.toString()}>
-                    Floor {floor.number}
+                  <SelectItem
+                    key={floor.number}
+                    value={floor.number.toString()}
+                  >
+                    Tầng {floor.number}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -174,15 +175,15 @@ export default function VehicleManagement({
           <div className="mt-4 flex gap-4">
             <div className="flex items-center gap-2">
               <div className="w-4 h-4 bg-green-500 rounded-full"></div>
-              <span>Available</span>
+              <span>Còn trống</span>
             </div>
             <div className="flex items-center gap-2">
               <div className="w-4 h-4 bg-yellow-500 rounded-full"></div>
-              <span>Reserved</span>
+              <span>Đã đặt trước</span>
             </div>
             <div className="flex items-center gap-2">
               <div className="w-4 h-4 bg-red-500 rounded-full"></div>
-              <span>Occupied</span>
+              <span>Đã sử dụng</span>
             </div>
           </div>
         </CardContent>
@@ -215,7 +216,11 @@ export default function VehicleManagement({
                       <td className="px-4 py-2 border">{v.type}</td>
                       <td className="px-4 py-2 border">
                         {v.plateImage && (
-                          <img src={v.plateImage} alt="Plate" className="w-20 rounded" />
+                          <img
+                            src={v.plateImage}
+                            alt="Plate"
+                            className="w-20 rounded"
+                          />
                         )}
                       </td>
                     </tr>
@@ -236,38 +241,38 @@ export default function VehicleManagement({
             >
               ✕
             </button>
-            <h2 className="text-lg font-bold mb-2">Vehicle Details</h2>
+            <h2 className="text-lg font-bold mb-2">Chi Tiết Xe</h2>
             <div className="mb-2">
-              <strong>Ticket ID:</strong> {selectedVehicle.id}
+              <strong>Mã Vé:</strong> {selectedVehicle.id}
             </div>
             <div className="mb-2">
-              <strong>Owner:</strong> {selectedVehicle.owner}
+              <strong>Chủ Xe:</strong> {selectedVehicle.owner}
             </div>
             <div className="mb-2">
-              <strong>License Plate:</strong> {selectedVehicle.licensePlate}
+              <strong>Biển Số:</strong> {selectedVehicle.licensePlate}
             </div>
             <div className="mb-4 flex gap-4 items-start">
               {selectedVehicle.plateImage && (
                 <div className="flex-1">
-                  <strong>Plate Image:</strong>
+                  <strong>Hình Ảnh Biển Số:</strong>
                   <img
                     src={selectedVehicle.plateImage}
-                    alt="Plate"
+                    alt="Biển Số"
                     className="mt-1 w-full max-w-[120px] rounded shadow"
                   />
                 </div>
               )}
               <div className="flex-1">
-                <strong>QR Code:</strong>
+                <strong>Mã QR:</strong>
                 <div className="mt-2">
                   {qrCodeUrl ? (
                     <img
                       src={qrCodeUrl}
-                      alt="QR Code"
+                      alt="Mã QR"
                       className="w-full max-w-[150px]"
                     />
                   ) : (
-                    <span>Loading QR Code...</span>
+                    <span>Đang tải Mã QR...</span>
                   )}
                 </div>
               </div>
@@ -275,8 +280,8 @@ export default function VehicleManagement({
             <div className="mb-2">
               <strong>
                 {selectedSlot?.status === "reserved"
-                  ? "Booking Time"
-                  : "Check-in Time"}
+                  ? "Thời Gian Đặt Chỗ"
+                  : "Thời Gian Nhận Xe"}
                 :
               </strong>{" "}
               2025-07-05 09:00
@@ -286,7 +291,7 @@ export default function VehicleManagement({
                 onClick={handleConfirm}
                 className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
               >
-                Xác nhận
+                Xác Nhận
               </button>
             )}
           </div>

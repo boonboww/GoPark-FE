@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import { useEffect, useState } from "react";
 import api from "@/lib/api";
@@ -60,7 +60,7 @@ export default function CustomerManagement({
         }));
         setCustomers(mapped);
       } catch (err) {
-        console.error("Failed to fetch users:", err);
+        console.error("Lỗi khi lấy danh sách khách hàng:", err);
       }
     };
 
@@ -79,7 +79,7 @@ export default function CustomerManagement({
       setCustomers((prev) => [...prev, newCustomer]);
       setIsAddDialogOpen(false);
     } catch (err) {
-      console.error("Failed to add user:", err);
+      console.error("Lỗi khi thêm khách hàng:", err);
     }
   };
 
@@ -97,7 +97,7 @@ export default function CustomerManagement({
       );
       setEditingCustomer(null);
     } catch (err) {
-      console.error("Failed to update user:", err);
+      console.error("Lỗi khi cập nhật khách hàng:", err);
     }
   };
 
@@ -106,7 +106,7 @@ export default function CustomerManagement({
       await api.delete(`/api/v1/users_new/${id}`);
       setCustomers((prev) => prev.filter((c) => c.id !== id));
     } catch (err) {
-      console.error("Failed to delete user:", err);
+      console.error("Lỗi khi xóa khách hàng:", err);
     }
   };
 
@@ -117,7 +117,7 @@ export default function CustomerManagement({
       await api.post(`/api/v1/vehicles/for-user/${addVehicleCustomer.id}`, vehicleData);
       setAddVehicleCustomer(null);
     } catch (err) {
-      console.error("Failed to add vehicle:", err);
+      console.error("Lỗi khi thêm phương tiện:", err);
     }
   };
 
@@ -127,7 +127,7 @@ export default function CustomerManagement({
       setVehicles(res.data);
       setViewVehicleCustomer(customer);
     } catch (err) {
-      console.error("Failed to fetch vehicles:", err);
+      console.error("Lỗi khi lấy danh sách phương tiện:", err);
     }
   };
 
@@ -142,11 +142,11 @@ export default function CustomerManagement({
     <Card>
       <CardHeader className="flex justify-between items-center">
         <div>
-          <CardTitle>Customer List</CardTitle>
-          <CardDescription>Manage registered customers</CardDescription>
+          <CardTitle>Danh sách khách hàng</CardTitle>
+          <CardDescription>Quản lý khách hàng đã đăng ký</CardDescription>
         </div>
         <Input
-          placeholder="Search name/email/phone..."
+          placeholder="Tìm kiếm theo tên/email/số điện thoại..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           className="w-72"
@@ -157,11 +157,11 @@ export default function CustomerManagement({
         {/* Add Customer */}
         <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
           <DialogTrigger asChild>
-            <Button>Add Customer</Button>
+            <Button>Thêm khách hàng</Button>
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Add New Customer</DialogTitle>
+              <DialogTitle>Thêm khách hàng mới</DialogTitle>
             </DialogHeader>
             <CustomerForm
               onSubmit={handleAddCustomer}
@@ -174,7 +174,7 @@ export default function CustomerManagement({
         <Dialog open={!!editingCustomer} onOpenChange={() => setEditingCustomer(null)}>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Edit Customer</DialogTitle>
+              <DialogTitle>Chỉnh sửa khách hàng</DialogTitle>
             </DialogHeader>
             {editingCustomer && (
               <CustomerForm
@@ -192,7 +192,7 @@ export default function CustomerManagement({
         <Dialog open={!!addVehicleCustomer} onOpenChange={() => setAddVehicleCustomer(null)}>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Add Vehicle</DialogTitle>
+              <DialogTitle>Thêm phương tiện</DialogTitle>
             </DialogHeader>
             {addVehicleCustomer && (
               <VehicleForm
@@ -208,16 +208,23 @@ export default function CustomerManagement({
           <DialogContent>
             <DialogHeader>
               <DialogTitle>
-                Vehicles of {viewVehicleCustomer?.userName}
+                Phương tiện của {viewVehicleCustomer?.userName}
               </DialogTitle>
             </DialogHeader>
             {vehicles.length === 0 ? (
-              <p className="text-sm text-gray-500">No vehicles found.</p>
+              <p className="text-sm text-gray-500">Không tìm thấy phương tiện.</p>
             ) : (
               <div className="space-y-3 max-h-[60vh] overflow-y-auto">
                 {vehicles.map((v, idx) => (
                   <Card key={idx} className="p-3 border shadow-sm">
-                    <p><strong>License Plate:</strong> {v.licensePlate}</p>
+                    <p><strong>Biển số:</strong> {v.licensePlate}</p>
+                    {v.imageVehicle && (
+                      <img
+                        src={v.imageVehicle}
+                        alt="phương tiện"
+                        className="w-full max-h-40 object-contain mt-2"
+                      />
+                    )}
                   </Card>
                 ))}
               </div>
@@ -229,10 +236,10 @@ export default function CustomerManagement({
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>User Name</TableHead>
+              <TableHead>Tên khách hàng</TableHead>
               <TableHead>Email</TableHead>
-              <TableHead>Phone</TableHead>
-              <TableHead>Actions</TableHead>
+              <TableHead>Số điện thoại</TableHead>
+              <TableHead>Hành động</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -243,16 +250,16 @@ export default function CustomerManagement({
                 <TableCell>{c.phoneNumber}</TableCell>
                 <TableCell className="space-x-2 flex flex-wrap gap-2">
                   <Button size="sm" variant="outline" onClick={() => setEditingCustomer(c)}>
-                    Edit
+                    Sửa
                   </Button>
                   <Button size="sm" variant="destructive" onClick={() => handleDeleteCustomer(c.id)}>
-                    Delete
+                    Xóa
                   </Button>
                   <Button size="sm" variant="secondary" onClick={() => handleViewVehicles(c)}>
-                    View Vehicles
+                    Xem phương tiện
                   </Button>
                   <Button size="sm" onClick={() => setAddVehicleCustomer(c)}>
-                    Add Vehicle
+                    Thêm phương tiện
                   </Button>
                 </TableCell>
               </TableRow>

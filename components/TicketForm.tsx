@@ -40,6 +40,7 @@ export default function TicketForm({
 
   useEffect(() => {
     if (editingTicket) {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { id, ...rest } = editingTicket;
       setTicket(rest);
     } else {
@@ -79,119 +80,119 @@ export default function TicketForm({
   const isFormValid = !!ticket.licensePlate && !!ticket.customer && !!ticket.type;
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button className="mb-4">
-          {editingTicket ? "Edit Ticket" : "Add New Ticket"}
-        </Button>
-      </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px]">
-        <DialogHeader>
-          <DialogTitle>{editingTicket ? "Edit Ticket" : "Add New Ticket"}</DialogTitle>
-        </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <Label htmlFor="licensePlate">License Plate</Label>
-            <Select
-              value={ticket.licensePlate}
-              onValueChange={(value) => handleSelectChange("licensePlate", value)}
-              required
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select a license plate" />
-              </SelectTrigger>
-              <SelectContent>
-                {vehicles.map((vehicle) => (
-                  <SelectItem key={vehicle.id} value={vehicle.licensePlate}>
-                    {vehicle.licensePlate}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+   <Dialog open={open} onOpenChange={setOpen}>
+  <DialogTrigger asChild>
+    <Button className="mb-4">
+      {editingTicket ? "Sửa Vé" : "Thêm Vé Mới"}
+    </Button>
+  </DialogTrigger>
+  <DialogContent className="sm:max-w-[425px]">
+    <DialogHeader>
+      <DialogTitle>{editingTicket ? "Sửa Vé" : "Thêm Vé Mới"}</DialogTitle>
+    </DialogHeader>
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div>
+        <Label htmlFor="licensePlate">Biển Số</Label>
+        <Select
+          value={ticket.licensePlate}
+          onValueChange={(value) => handleSelectChange("licensePlate", value)}
+          required
+        >
+          <SelectTrigger>
+            <SelectValue placeholder="Chọn biển số" />
+          </SelectTrigger>
+          <SelectContent>
+            {vehicles.map((vehicle) => (
+              <SelectItem key={vehicle.id} value={vehicle.licensePlate}>
+                {vehicle.licensePlate}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
 
-          <div>
-            <Label htmlFor="customer">Customer</Label>
-            <Select
-              value={ticket.customer}
-              onValueChange={(value) => handleSelectChange("customer", value)}
-              required
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select a customer" />
-              </SelectTrigger>
-              <SelectContent>
-                {customers.map((customer) => (
-                  <SelectItem key={customer.id} value={customer.name}>
-                    {customer.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+      <div>
+        <Label htmlFor="customer">Khách Hàng</Label>
+        <Select
+          value={ticket.customer}
+          onValueChange={(value) => handleSelectChange("customer", value)}
+          required
+        >
+          <SelectTrigger>
+            <SelectValue placeholder="Chọn khách hàng" />
+          </SelectTrigger>
+          <SelectContent>
+            {customers.map((customer) => (
+              <SelectItem key={customer.id} value={customer.name}>
+                {customer.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
 
-          <div>
-            <Label htmlFor="type">Ticket Type</Label>
-            <Select
-              value={ticket.type}
-              onValueChange={(value) => handleSelectChange("type", value)}
-              required
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select a ticket type" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="Daily">Daily Ticket</SelectItem>
-                <SelectItem value="Monthly">Monthly Ticket</SelectItem>
-                <SelectItem value="Annual">Annual Ticket</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+      <div>
+        <Label htmlFor="type">Loại Vé</Label>
+        <Select
+          value={ticket.type}
+          onValueChange={(value) => handleSelectChange("type", value)}
+          required
+        >
+          <SelectTrigger>
+            <SelectValue placeholder="Chọn loại vé" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="Daily">Vé Hàng Ngày</SelectItem>
+            <SelectItem value="Monthly">Vé Hàng Tháng</SelectItem>
+            <SelectItem value="Annual">Vé Hàng Năm</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
 
-          <div>
-            <Label htmlFor="price">Ticket Price (VND)</Label>
-            <Input
-              id="price"
-              type="number"
-              value={ticket.price}
-              onChange={handleInputChange}
-              min="0"
-              step="1000"
-              required
-            />
-          </div>
+      <div>
+        <Label htmlFor="price">Giá Vé (VND)</Label>
+        <Input
+          id="price"
+          type="number"
+          value={ticket.price}
+          onChange={handleInputChange}
+          min="0"
+          step="1000"
+          required
+        />
+      </div>
 
-          <div>
-            <Label htmlFor="floor">Parking Floor</Label>
-            <Input
-              id="floor"
-              value={ticket.floor}
-              onChange={handleInputChange}
-              required
-            />
-          </div>
+      <div>
+        <Label htmlFor="floor">Tầng Đậu Xe</Label>
+        <Input
+          id="floor"
+          value={ticket.floor}
+          onChange={handleInputChange}
+          required
+        />
+      </div>
 
-          <div>
-            <Label htmlFor="expiry">Expiry Date</Label>
-            <Input
-              id="expiry"
-              type="date"
-              value={ticket.expiry}
-              onChange={handleInputChange}
-              min={new Date().toISOString().split("T")[0]}
-              required
-            />
-          </div>
+      <div>
+        <Label htmlFor="expiry">Ngày Hết Hạn</Label>
+        <Input
+          id="expiry"
+          type="date"
+          value={ticket.expiry}
+          onChange={handleInputChange}
+          min={new Date().toISOString().split("T")[0]}
+          required
+        />
+      </div>
 
-          <Button 
-            type="submit"
-            className="w-full mt-4"
-            disabled={!isFormValid}
-          >
-            {editingTicket ? "Update Ticket" : "Add Ticket"}
-          </Button>
-        </form>
-      </DialogContent>
-    </Dialog>
+      <Button 
+        type="submit"
+        className="w-full mt-4"
+        disabled={!isFormValid}
+      >
+        {editingTicket ? "Cập Nhật Vé" : "Thêm Vé"}
+      </Button>
+    </form>
+  </DialogContent>
+</Dialog>
   );
 }

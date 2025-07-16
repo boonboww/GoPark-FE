@@ -29,7 +29,7 @@ export function PolicyForm({
       >
         <DialogHeader>
           <DialogTitle className="text-xl md:text-3xl font-bold text-gray-800">
-            Car Park System Policy
+            Chính Sách Hệ Thống Bãi Đỗ Xe
           </DialogTitle>
         </DialogHeader>
 
@@ -43,42 +43,42 @@ export function PolicyForm({
           "
         >
           <section>
-            <h3 className="font-semibold mb-2 text-base md:text-xl">📌 General Requirements</h3>
+            <h3 className="font-semibold mb-2 text-base md:text-xl">📌 Yêu Cầu Chung</h3>
             <ul className="list-disc pl-5 space-y-2">
-              <li>Provide truthful and updated information about your car park.</li>
-              <li>Keep your profile information up to date at all times.</li>
+              <li>Cung cấp thông tin trung thực và cập nhật về bãi đỗ xe của bạn.</li>
+              <li>Luôn cập nhật thông tin hồ sơ mới nhất.</li>
             </ul>
           </section>
 
           <section>
-            <h3 className="font-semibold mb-2 text-base md:text-xl">🔐 Safety & Security</h3>
+            <h3 className="font-semibold mb-2 text-base md:text-xl">🔐 An Toàn & Bảo Mật</h3>
             <ul className="list-disc pl-5 space-y-2">
-              <li>Ensure your car park is well-lit and secure.</li>
-              <li>Display clear emergency contact info and operating hours.</li>
+              <li>Đảm bảo bãi đỗ xe đủ ánh sáng và an ninh.</li>
+              <li>Hiển thị rõ thông tin liên hệ khẩn cấp và giờ hoạt động.</li>
             </ul>
           </section>
 
           <section>
-            <h3 className="font-semibold mb-2 text-base md:text-xl">💲 Pricing & Payments</h3>
+            <h3 className="font-semibold mb-2 text-base md:text-xl">💲 Giá Cả & Thanh Toán</h3>
             <ul className="list-disc pl-5 space-y-2">
-              <li>Prices must be transparent for all customers.</li>
-              <li>Handle payments and refunds following consumer rights.</li>
+              <li>Giá cả phải minh bạch cho mọi khách hàng.</li>
+              <li>Xử lý thanh toán và hoàn tiền theo quyền lợi người tiêu dùng.</li>
             </ul>
           </section>
 
           <section>
-            <h3 className="font-semibold mb-2 text-base md:text-xl">🤝 Customer Service</h3>
+            <h3 className="font-semibold mb-2 text-base md:text-xl">🤝 Dịch Vụ Khách Hàng</h3>
             <ul className="list-disc pl-5 space-y-2">
-              <li>Respond quickly and politely to all customer questions.</li>
-              <li>Provide clear support channels for complaints.</li>
+              <li>Phản hồi nhanh chóng và lịch sự mọi câu hỏi của khách hàng.</li>
+              <li>Cung cấp kênh hỗ trợ rõ ràng cho khiếu nại.</li>
             </ul>
           </section>
 
           <section className="md:col-span-2">
-            <h3 className="font-semibold mb-2 text-base md:text-xl">✅ Agreement</h3>
+            <h3 className="font-semibold mb-2 text-base md:text-xl">✅ Cam Kết</h3>
             <p>
-              By registering, you confirm you have read, understood and agree to follow all the
-              above policies. Non-compliance may lead to account suspension or legal consequences.
+              Bằng việc đăng ký, bạn xác nhận đã đọc, hiểu và đồng ý tuân thủ tất cả
+              các chính sách trên. Vi phạm có thể dẫn đến đình chỉ tài khoản hoặc hậu quả pháp lý.
             </p>
           </section>
         </div>
@@ -89,7 +89,7 @@ export function PolicyForm({
             onClick={() => onOpenChange(false)}
             className="w-full md:w-auto"
           >
-            Close
+            Đóng
           </Button>
         </DialogFooter>
       </DialogContent>

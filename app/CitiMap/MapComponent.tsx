@@ -1,3 +1,4 @@
+// 3️⃣ MapComponent.tsx
 "use client";
 import { useEffect, useMemo } from "react";
 import dynamic from "next/dynamic";
@@ -56,7 +57,6 @@ const MapComponent = ({
     }).addTo(mapInstance);
 
     mapInstance.zoomControl.setPosition("topright");
-
     const zoomControl = document.querySelector(
       ".leaflet-control-zoom"
     ) as HTMLElement;
@@ -67,15 +67,15 @@ const MapComponent = ({
 
     onMapInit(mapInstance);
 
-    // Marker người dùng
+    // User marker
     let userMarker: L.Marker | null = null;
     if (userCoords) {
       userMarker = L.marker(userCoords, { icon: userIcon })
         .addTo(mapInstance)
-        .bindPopup("Your current location");
+        .bindPopup("Vị trí hiện tại của bạn");
     }
 
-    // Marker bãi đỗ
+    // Parking markers
     const parkingMarkers: L.Marker[] = [];
     parkings.forEach((p) => {
       const [lon, lat] = p.location.coordinates;
@@ -86,10 +86,11 @@ const MapComponent = ({
           <img src="${p.avtImage || "/default-parking.jpg"}" alt="${p.name}" 
               class="w-full h-24 object-cover mb-2 rounded-md">
           <strong class="text-base">${p.name}</strong><br>
-          <span class="text-gray-600">Address: ${p.address}</span><br>
-          <span class="text-gray-600">Price: ${
-            p.pricePerHour != null ? p.pricePerHour.toLocaleString() : "N/A"
-          } VND/hour</span>
+          <span class="text-gray-600">Địa chỉ: ${p.address}</span><br>
+          <span class="text-gray-600">Giá: ${
+            p.pricePerHour != null ? p.pricePerHour.toLocaleString() : "Không có"
+          } VND/giờ</span><br>
+          <a href="/detailParking?id=${p._id}" class="text-blue-600 hover:underline text-sm mt-1 inline-block">Xem chi tiết</a>
         </div>
       `;
 
@@ -114,7 +115,7 @@ const MapComponent = ({
         lineOptions: {
           styles: [{ color: "blue", weight: 4, opacity: 0.8 }],
         },
-        createMarker: () => null, // Không tạo marker mặc định
+        createMarker: () => null,
       }).addTo(mapInstance);
 
       routingControl.on("routesfound", (e) => {
@@ -125,7 +126,7 @@ const MapComponent = ({
       });
 
       routingControl.on("routingerror", (err) => {
-        console.error("Routing error:", err);
+        console.error("Lỗi định tuyến:", err);
       });
     }
 

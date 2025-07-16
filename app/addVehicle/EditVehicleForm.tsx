@@ -21,10 +21,10 @@ export default function EditVehicleForm({
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[999]">
       <div className="bg-white p-6 rounded-lg w-full max-w-md shadow-md">
-        <h2 className="text-lg font-bold mb-4">Edit Vehicle</h2>
+        <h2 className="text-lg font-bold mb-4">Chỉnh sửa phương tiện</h2>
 
         <div className="mb-4">
-          <Label>License Plate</Label>
+          <Label>Biển số xe</Label>
           <Input
             value={edited.licensePlate}
             onChange={(e) =>
@@ -34,7 +34,7 @@ export default function EditVehicleForm({
         </div>
 
         <div className="mb-4">
-          <Label>Capacity</Label>
+          <Label>Sức chứa</Label>
           <Input
             type="number"
             value={edited.capacity}
@@ -45,7 +45,7 @@ export default function EditVehicleForm({
         </div>
 
         <div className="mb-4">
-          <Label>Image URL</Label>
+          <Label>Đường dẫn hình ảnh</Label>
           <Input
             value={edited.imageVehicle || ""}
             onChange={(e) =>
@@ -56,10 +56,10 @@ export default function EditVehicleForm({
 
         <div className="flex justify-end gap-2">
           <Button onClick={onClose} variant="outline" className="flex gap-1">
-            <X className="w-4 h-4" /> Cancel
+            <X className="w-4 h-4" /> Hủy
           </Button>
           <Button onClick={() => onSave(edited)} className="flex gap-1">
-            <Save className="w-4 h-4" /> Save
+            <Save className="w-4 h-4" /> Lưu
           </Button>
         </div>
       </div>

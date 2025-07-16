@@ -8,64 +8,47 @@ import { Checkbox } from "@/components/ui/checkbox";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { PolicyForm } from "./PolicyForm";
+import { User2, Send, ShieldCheck, AlertTriangle } from "lucide-react";
 import {
-  Building2,
-  MapPin,
-  ParkingSquare,
-  Phone,
-  User2,
-  Mail,
-  Send,
-  ShieldCheck,
-  Upload,
-  AlertTriangle,
-} from "lucide-react";
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+// import axios from "axios";
+
+// // const API = axios.create({
+// //   baseURL: process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000",
+// //   withCredentials: true,
+// // });
 
 export default function BusinessPage() {
   const [formData, setFormData] = useState({
     ownerName: "",
     ownerEmail: "",
-    carParkName: "",
-    address: "",
-    slots: "",
-    slotSize: "",
-    zones: 1,
-    zoneValues: [] as string[],
     phone: "",
     acceptPolicy: false,
-    images: [] as File[],
   });
 
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [showPolicy, setShowPolicy] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
-    const target = e.target as HTMLInputElement | HTMLSelectElement;
+    const target = e.target;
     const name = target.name;
     const value = target.value;
-    const files = (target as HTMLInputElement).files;
 
-    if (files && files.length > 0) {
-      setFormData({ ...formData, images: Array.from(files) });
-    } else if (name === "zones") {
-      const zones = parseInt(value) || 0;
-      const zoneValues = Array(zones).fill("");
-      setFormData({ ...formData, zones, zoneValues });
-    } else {
-      setFormData({ ...formData, [name]: value });
-    }
+    setFormData({ ...formData, [name]: value });
 
-    if (typeof value === "string" && value.trim() !== "") {
+    if (value.trim() !== "") {
       setErrors((prev) => ({ ...prev, [name]: "" }));
     }
-  };
-
-  const handleZoneInputChange = (index: number, value: string) => {
-    const newZoneValues = [...formData.zoneValues];
-    newZoneValues[index] = value;
-    setFormData({ ...formData, zoneValues: newZoneValues });
   };
 
   const handleCheckboxChange = (checked: boolean) => {
@@ -77,24 +60,20 @@ export default function BusinessPage() {
 
     const newErrors: { [key: string]: string } = {};
 
-    if (!formData.ownerName) newErrors.ownerName = "Required";
-
+    if (!formData.ownerName) newErrors.ownerName = "Bắt buộc";
     if (!formData.ownerEmail) {
-      newErrors.ownerEmail = "Required";
+      newErrors.ownerEmail = "Bắt buộc";
     } else {
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       if (!emailRegex.test(formData.ownerEmail)) {
-        newErrors.ownerEmail = "Invalid email format";
+        newErrors.ownerEmail = "Email không hợp lệ";
       }
     }
 
-    if (!formData.carParkName) newErrors.carParkName = "Required";
-    if (!formData.address) newErrors.address = "Required";
-    if (!formData.slots) newErrors.slots = "Required";
-    if (!formData.phone) newErrors.phone = "Required";
+    if (!formData.phone) newErrors.phone = "Bắt buộc";
 
     if (!formData.acceptPolicy) {
-      alert("❌ You must accept the policy!");
+      alert("❌ Bạn phải đồng ý với điều khoản trước khi gửi!");
       return;
     }
 
@@ -104,9 +83,26 @@ export default function BusinessPage() {
     }
 
     setErrors({});
-    console.log(formData);
-    alert("✅ Registration submitted!");
+    setShowConfirm(true);
   };
+
+  const handleCreateParkingLot = () => {
+  setLoading(true);
+
+  setTimeout(() => {
+    setFormData({
+      ownerName: "",
+      ownerEmail: "",
+      phone: "",
+      acceptPolicy: false,
+    });
+
+    setLoading(false);
+    setShowConfirm(false);
+    setShowSuccess(true);
+  }, 500); // Giả lập delay
+};
+
 
   const renderInputError = (field: string) =>
     errors[field] && (
@@ -120,181 +116,56 @@ export default function BusinessPage() {
       <Header />
       <main className="flex flex-col min-h-screen items-center justify-start mt-16 px-4 py-16 bg-white">
         <h1 className="text-3xl md:text-4xl font-bold mb-12 text-center">
-          Register Your Parking Lot
+          Đăng ký bãi đỗ xe của bạn
         </h1>
 
-        <div className="w-full max-w-screen-xl grid grid-cols-1 md:grid-cols-3 gap-8">
-          {/* Owner Information */}
+        <div className="w-full max-w-2xl md:max-w-3xl grid grid-cols-1 gap-8 justify-center">
           <div className="bg-white border rounded-xl shadow-sm p-6 space-y-4 min-w-0 flex flex-col">
             <h2 className="text-xl font-semibold flex items-center gap-2">
-              <User2 className="w-5 h-5" /> Owner Information
+              <User2 className="w-5 h-5" /> Thông tin chủ bãi
             </h2>
 
             <div>
-              <Label htmlFor="ownerName" className="flex items-center gap-2">
-                <User2 className="w-4 h-4" /> Full Name <span className="text-red-500">*</span>
-              </Label>
+              <Label htmlFor="ownerName">Họ và tên *</Label>
               <Input
                 id="ownerName"
                 name="ownerName"
                 value={formData.ownerName}
                 onChange={handleChange}
-                placeholder="e.g., John Doe"
-                className={`mt-1 ${
-                  errors.ownerName ? "border-yellow-500" : ""
-                }`}
               />
               {renderInputError("ownerName")}
             </div>
 
             <div>
-              <Label htmlFor="ownerEmail" className="flex items-center gap-2">
-                <Mail className="w-4 h-4" /> Email <span className="text-red-500">*</span>
-              </Label>
+              <Label htmlFor="ownerEmail">Email *</Label>
               <Input
                 id="ownerEmail"
                 name="ownerEmail"
-                type="email"
                 value={formData.ownerEmail}
                 onChange={handleChange}
-                placeholder="e.g., john@example.com"
-                className={`mt-1 ${
-                  errors.ownerEmail ? "border-yellow-500" : ""
-                }`}
               />
               {renderInputError("ownerEmail")}
             </div>
 
             <div>
-              <Label htmlFor="phone" className="flex items-center gap-2">
-                <Phone className="w-4 h-4" /> Contact Phone{" "}
-                <span className="text-red-500">*</span>
-              </Label>
+              <Label htmlFor="phone">Số điện thoại *</Label>
               <Input
                 id="phone"
                 name="phone"
                 value={formData.phone}
                 onChange={handleChange}
-                placeholder="e.g., +84 123 456 789"
-                className={`mt-1 ${
-                  errors.phone ? "border-yellow-500" : ""
-                }`}
               />
               {renderInputError("phone")}
             </div>
           </div>
 
-          {/* Parking Lot Information */}
-          <div className="bg-white border rounded-xl shadow-sm p-6 space-y-4 min-w-0 flex flex-col">
-            <h2 className="text-xl font-semibold flex items-center gap-2">
-              <Building2 className="w-5 h-5" /> Parking Lot Information
-            </h2>
-
-            <div>
-              <Label htmlFor="carParkName" className="flex items-center gap-2">
-                <ParkingSquare className="w-4 h-4" /> Parking Lot Name{" "}
-                <span className="text-red-500">*</span>
-              </Label>
-              <Input
-                id="carParkName"
-                name="carParkName"
-                value={formData.carParkName}
-                onChange={handleChange}
-                placeholder="e.g., Downtown Parking Lot"
-                className={`mt-1 ${
-                  errors.carParkName ? "border-yellow-500" : ""
-                }`}
-              />
-              {renderInputError("carParkName")}
-            </div>
-
-            <div>
-              <Label htmlFor="address" className="flex items-center gap-2">
-                <MapPin className="w-4 h-4" /> Address <span className="text-red-500">*</span>
-              </Label>
-              <Input
-                id="address"
-                name="address"
-                value={formData.address}
-                onChange={handleChange}
-                placeholder="e.g., 123 Main Street, City"
-                className={`mt-1 ${
-                  errors.address ? "border-yellow-500" : ""
-                }`}
-              />
-              {renderInputError("address")}
-            </div>
-
-            <div>
-              <Label htmlFor="zones" className="flex items-center gap-2">
-                <ParkingSquare className="w-4 h-4" /> Number of Zones
-              </Label>
-              <select
-                id="zones"
-                name="zones"
-                value={formData.zones}
-                onChange={handleChange}
-                className="mt-1 border rounded px-2 py-2 w-full"
-              >
-                {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((n) => (
-                  <option key={n} value={n}>
-                    {n}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {formData.zoneValues.length > 0 && (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {formData.zoneValues.map((zone, index) => (
-                  <div key={index}>
-                    <Label>Zone {index + 1}</Label>
-                    <Input
-                      value={zone}
-                      onChange={(e) =>
-                        handleZoneInputChange(index, e.target.value)
-                      }
-                      placeholder={`Slots in Zone ${index + 1}`}
-                    />
-                  </div>
-                ))}
-              </div>
-            )}
-
-            <div>
-              <Label className="flex items-center gap-2">
-                <ParkingSquare className="w-4 h-4" /> Vehicle Type
-              </Label>
-              <Input
-                value="Car"
-                readOnly
-                className="mt-1 bg-gray-100 cursor-not-allowed"
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="images" className="flex items-center gap-2">
-                <Upload className="w-4 h-4" /> Upload Images
-              </Label>
-              <Input
-                id="images"
-                name="images"
-                type="file"
-                multiple
-                onChange={handleChange}
-                className="mt-1"
-              />
-            </div>
-          </div>
-
-          {/* Policies */}
           <div className="bg-white border rounded-xl shadow-sm p-6 flex flex-col justify-between min-w-0">
             <div className="space-y-4">
               <h2 className="text-xl font-semibold flex items-center gap-2">
-                <ShieldCheck className="w-5 h-5" /> Policies
+                <ShieldCheck className="w-5 h-5" /> Điều khoản
               </h2>
               <p className="text-sm text-muted-foreground">
-                Please read and agree to our parking policy before submitting.
+                Vui lòng đọc và đồng ý với chính sách trước khi gửi đăng ký.
               </p>
 
               <button
@@ -302,19 +173,17 @@ export default function BusinessPage() {
                 onClick={() => setShowPolicy(true)}
                 className="text-sky-600 underline text-sm hover:text-sky-800"
               >
-                Read Policy
+                Xem chính sách
               </button>
 
               <div className="flex items-center gap-2">
                 <Checkbox
                   id="acceptPolicy"
                   checked={formData.acceptPolicy}
-                  onCheckedChange={(checked) =>
-                    handleCheckboxChange(!!checked)
-                  }
+                  onCheckedChange={(checked) => handleCheckboxChange(!!checked)}
                 />
                 <Label htmlFor="acceptPolicy" className="text-sm">
-                  I agree to the parking policy.
+                  Tôi đồng ý với chính sách bãi đỗ xe.
                 </Label>
               </div>
             </div>
@@ -322,14 +191,50 @@ export default function BusinessPage() {
             <Button
               onClick={handleSubmit}
               className="w-full mt-6 bg-black text-white hover:bg-gray-900"
+              disabled={loading}
             >
-              Submit Registration <Send className="w-4 h-4 ml-2" />
+              {loading ? "Đang gửi..." : "Gửi đăng ký"}
+              <Send className="w-4 h-4 ml-2" />
             </Button>
 
             <PolicyForm open={showPolicy} onOpenChange={setShowPolicy} />
           </div>
         </div>
       </main>
+
+      <Dialog open={showConfirm} onOpenChange={setShowConfirm}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Xác nhận gửi đăng ký</DialogTitle>
+          </DialogHeader>
+          <p>
+            Bạn có chắc chắn muốn gửi đăng ký bãi đỗ xe này tới quản trị viên?
+          </p>
+          <DialogFooter className="flex justify-end gap-2 mt-6">
+            <Button variant="outline" onClick={() => setShowConfirm(false)}>
+              Hủy
+            </Button>
+            <Button onClick={handleCreateParkingLot} disabled={loading}>
+              Xác nhận
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={showSuccess} onOpenChange={setShowSuccess}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Đã gửi yêu cầu!</DialogTitle>
+          </DialogHeader>
+          <p>
+            Cảm ơn bạn đã gửi đăng ký. Yêu cầu đã được chuyển đến quản trị viên.
+            Vui lòng kiểm tra email để nhận xác nhận.
+          </p>
+          <DialogFooter className="flex justify-end gap-2 mt-6">
+            <Button onClick={() => setShowSuccess(false)}>Đóng</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <div className="hidden md:block w-full">
         <Footer />

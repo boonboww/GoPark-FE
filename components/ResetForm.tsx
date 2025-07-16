@@ -8,6 +8,20 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
+interface ApiResponse {
+  message?: string;
+  [key: string]: unknown;
+}
+
+interface ApiError {
+  response?: {
+    data?: {
+      message?: string;
+    };
+  };
+  message?: string;
+}
+
 export function ResetPasswordForm() {
   const searchParams = useSearchParams();
   const token = searchParams.get("token");
@@ -23,19 +37,34 @@ export function ResetPasswordForm() {
     e.preventDefault();
     setMessage("");
     setError("");
+    
+    if (!token) {
+      setError("❌ Thiếu token đặt lại mật khẩu");
+      return;
+    }
+
+    if (password !== passwordConfirm) {
+      setError("❌ Mật khẩu xác nhận không khớp");
+      return;
+    }
+
     setLoading(true);
 
     try {
-      const res = await API.patch(`/users/resetPassword/${token}`, {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const res = await API.patch<ApiResponse>(`/users/resetPassword/${encodeURIComponent(token)}`, {
         password,
         passwordConfirm,
       });
 
-      setMessage("✅ Password has been successfully reset. Redirecting...");
+      setMessage("✅ Đặt lại mật khẩu thành công. Đang chuyển hướng...");
       setTimeout(() => router.push("/account/login?success=1"), 2000);
-    } catch (err: any) {
+    } catch (err) {
+      const error = err as ApiError;
       setError(
-        err.response?.data?.message || "❌ An error occurred. Please try again."
+        error.response?.data?.message || 
+        error.message || 
+        "❌ Đã xảy ra lỗi. Vui lòng thử lại sau."
       );
     } finally {
       setLoading(false);
@@ -46,29 +75,31 @@ export function ResetPasswordForm() {
     <div className="flex min-h-screen items-center justify-center px-4">
       <Card className="w-full max-w-md">
         <CardHeader>
-          <CardTitle className="text-2xl text-center">Reset Your Password</CardTitle>
+          <CardTitle className="text-2xl text-center">Đặt Lại Mật Khẩu</CardTitle>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleReset} className="space-y-6">
             <div className="space-y-2">
-              <Label htmlFor="password">New Password</Label>
+              <Label htmlFor="password">Mật khẩu mới</Label>
               <Input
                 id="password"
                 type="password"
                 placeholder="••••••••"
                 required
+                minLength={8}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="passwordConfirm">Confirm Password</Label>
+              <Label htmlFor="passwordConfirm">Xác nhận mật khẩu</Label>
               <Input
                 id="passwordConfirm"
                 type="password"
                 placeholder="••••••••"
                 required
+                minLength={8}
                 value={passwordConfirm}
                 onChange={(e) => setPasswordConfirm(e.target.value)}
               />
@@ -78,7 +109,7 @@ export function ResetPasswordForm() {
             {message && <p className="text-sm text-green-600 text-center">{message}</p>}
 
             <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? "Resetting..." : "Reset Password"}
+              {loading ? "Đang xử lý..." : "Đặt Lại Mật Khẩu"}
             </Button>
           </form>
         </CardContent>

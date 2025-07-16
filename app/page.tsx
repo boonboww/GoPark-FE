@@ -10,7 +10,6 @@ import TestimonialsSection from "@/components/TestimonialsSection";
 import WavyDivider from "@/components/WavyDivider";
 
 export default function Home() {
-
   return (
     <div className="flex flex-col">
       <Header />
@@ -49,10 +48,6 @@ export default function Home() {
       </section>
 
       <Footer />
-
-
-     
     </div>
   );
 }
-

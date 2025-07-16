@@ -25,31 +25,31 @@ export default function PolicyUserPage() {
 
   const handleSendFeedback = () => {
     if (!feedback.trim()) return;
-    alert(`✅ Thank you for your feedback:\n"${feedback}"`);
+    alert(`✅ Cảm ơn bạn đã gửi phản hồi:\n"${feedback}"`);
     setFeedback("");
   };
 
   const policies = [
     {
-      title: "Parking Lot > Users",
+      title: "Bãi Đậu Xe > Người Dùng",
       icon: ShieldCheck,
       details: [
-        "Ensure safety and security for all parked vehicles.",
-        "Provide 24/7 support for any vehicle issues inside the lot.",
-        "Offer refunds for cancellations that meet the policy terms.",
-        "Guarantee privacy and protect user data.",
-        "Offer extra services: maintenance, car wash, EV charging.",
+        "Đảm bảo an toàn và bảo mật cho tất cả các xe được đậu.",
+        "Cung cấp hỗ trợ 24/7 cho bất kỳ vấn đề nào liên quan đến xe trong bãi.",
+        "Hoàn tiền cho các trường hợp hủy vé đáp ứng điều kiện chính sách.",
+        "Đảm bảo quyền riêng tư và bảo vệ dữ liệu người dùng.",
+        "Cung cấp các dịch vụ bổ sung: bảo dưỡng, rửa xe, sạc xe điện.",
       ],
     },
     {
-      title: "Users > Parking Lot",
+      title: "Người Dùng > Bãi Đậu Xe",
       icon: Handshake,
       details: [
-        "Book and pay with correct vehicle information.",
-        "Follow parking rules and staff instructions.",
-        "Do not misuse reserved spaces or cause damage.",
-        "Respect other users and common spaces.",
-        "Provide honest feedback for continuous improvement.",
+        "Đặt chỗ và thanh toán với thông tin xe chính xác.",
+        "Tuân thủ quy định đậu xe và hướng dẫn của nhân viên.",
+        "Không lạm dụng các chỗ đã đặt trước hoặc gây thiệt hại.",
+        "Tôn trọng người dùng khác và không gian chung.",
+        "Cung cấp phản hồi trung thực để cải thiện liên tục.",
       ],
     },
   ];
@@ -60,7 +60,7 @@ export default function PolicyUserPage() {
 
       <main className="min-h-screen mt-20 px-4 py-12 flex flex-col items-center">
         <h1 className="text-3xl md:text-4xl font-bold mb-8 text-black">
-          Parking Lot User Policies
+          Chính Sách Người Dùng Bãi Đậu Xe
         </h1>
 
         <div className="w-full max-w-3xl flex flex-col gap-4">
@@ -98,12 +98,12 @@ export default function PolicyUserPage() {
         <div className="w-full max-w-3xl mt-12 p-4 border border-black rounded-lg bg-white shadow-sm">
           <div className="flex items-center gap-2 mb-3">
             <MessageSquarePlus className="w-5 h-5 text-black" />
-            <h2 className="text-lg font-semibold">Your Feedback</h2>
+            <h2 className="text-lg font-semibold">Phản Hồi Của Bạn</h2>
           </div>
           <textarea
             rows={4}
             className="w-full border border-gray-300 rounded-lg p-3 focus:outline-none"
-            placeholder="Write your feedback here..."
+            placeholder="Viết phản hồi của bạn tại đây..."
             value={feedback}
             onChange={(e) => setFeedback(e.target.value)}
           />
@@ -112,17 +112,17 @@ export default function PolicyUserPage() {
             className="mt-3 bg-black text-white hover:bg-gray-900 flex gap-2 items-center"
           >
             <SendHorizonal className="w-4 h-4" />
-            Submit Feedback
+            Gửi Phản Hồi
           </Button>
         </div>
 
         {/* Hotline + PDF */}
         <div className="w-full max-w-3xl mt-8 flex flex-col md:flex-row gap-4">
           <Button
-            onClick={() => alert("📞 Hotline: +1 800 123 456")}
+            onClick={() => alert("📞 Hotline: +84 123 456 789")}
             className="flex gap-2 items-center bg-black text-white hover:bg-gray-900"
           >
-            <Phone className="w-4 h-4" /> Hotline Support
+            <Phone className="w-4 h-4" /> Hỗ Trợ Hotline
           </Button>
 
           <a
@@ -130,12 +130,12 @@ export default function PolicyUserPage() {
             download
             className="flex gap-2 items-center justify-center border border-black px-4 py-2 rounded hover:bg-black hover:text-white transition"
           >
-            <Download className="w-4 h-4" /> Download Policy PDF
+            <Download className="w-4 h-4" /> Tải Chính Sách PDF
           </a>
         </div>
 
         <p className="text-xs text-gray-500 mt-6">
-          Version 1.0 — Last updated July 2025
+          Phiên bản 1.0 — Cập nhật lần cuối Tháng 7 2025
         </p>
       </main>
 

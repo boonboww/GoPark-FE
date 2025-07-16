@@ -3,50 +3,76 @@
 import Image from "next/image";
 import { useKeenSlider } from "keen-slider/react";
 import "keen-slider/keen-slider.min.css";
-// import ParkingMap from "./ParkingMap";
-import {
-  MapPin,
-  Star,
-  Clock,
-  CheckCircle,
-  ChevronLeft,
-  ChevronRight,
-  Phone,
-  Mail,
-  User,
-} from "lucide-react";
-import { useState } from "react";
+import { MapPin, Star, Clock, CheckCircle, ChevronLeft, ChevronRight, Phone, Mail, User } from "lucide-react";
+import { useState, useEffect } from "react";
+import { getParkingSlotsByLotId } from "@/lib/api";
 
-export default function ParkingInfo() {
+type Spot = {
+  _id: string;
+  slotNumber: string;
+  status: "available" | "booked" | "reserved";
+  zone: string;
+  pricePerHour: number;
+};
+
+type ParkingInfoProps = {
+  parkingLotId: string;
+};
+
+export default function ParkingInfo({ parkingLotId }: ParkingInfoProps) {
   const [sliderRef, slider] = useKeenSlider({
     loop: true,
   });
+  const [selectedZone, setSelectedZone] = useState<string>("");
+  const [spots, setSpots] = useState<Spot[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const [selectedZone, setSelectedZone] = useState<"A" | "B" | "C">("A");
+  useEffect(() => {
+    getParkingSlotsByLotId(parkingLotId)
+      .then((response) => {
+        console.log("Phản hồi danh sách vị trí đỗ:", response.data); // Debug
+        setSpots(response.data.data?.data || []); // Xử lý trường hợp data.data undefined
+        if (response.data.data?.data.length > 0) {
+          setSelectedZone(response.data.data.data[0].zone);
+        }
+        setLoading(false);
+      })
+      .catch((error) => {
+        console.error("Lỗi khi lấy danh sách vị trí đỗ:", error.response?.data || error.message);
+        setError("Không thể tải danh sách vị trí đỗ. Vui lòng thử lại sau.");
+        setLoading(false);
+      });
+  }, [parkingLotId]);
 
-  const zones = ["A", "B", "C"];
-  const spotsPerZone = 30;
+  const zones = Array.from(new Set(spots.map((spot) => spot.zone)));
+  const currentZoneSpots = spots.filter((spot) => spot.zone === selectedZone);
 
-  const spots = Array.from({ length: spotsPerZone }, (_, i) => ({
-    id: `${selectedZone}${i + 1}`,
-    status:
-      i % 10 === 0
-        ? "occupied"
-        : i % 7 === 0
-        ? "booked"
-        : "available",
-  }));
+  if (error) {
+    return (
+      <div className="flex items-center justify-center min-h-[200px]">
+        <p className="text-red-600">{error}</p>
+      </div>
+    );
+  }
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[200px]">
+        <p className="text-gray-600">Đang tải...</p>
+      </div>
+    );
+  }
 
   return (
     <section className="flex flex-col gap-8">
-      {/* === SLIDER === */}
       <div className="relative w-full rounded-xl overflow-hidden">
         <div ref={sliderRef} className="keen-slider rounded-xl">
           {[...Array(5)].map((_, i) => (
             <div className="keen-slider__slide" key={i}>
               <Image
                 src={`/b1.jpg`}
-                alt={`Parking Image ${i + 1}`}
+                alt={`Hình ảnh bãi đỗ ${i + 1}`}
                 width={1200}
                 height={600}
                 className="w-full h-64 md:h-96 object-cover"
@@ -55,7 +81,6 @@ export default function ParkingInfo() {
           ))}
         </div>
 
-        {/* Prev/Next */}
         <button
           onClick={() => slider.current?.prev()}
           className="absolute top-1/2 left-2 transform -translate-y-1/2 bg-black/50 text-white p-2 rounded-full"
@@ -70,15 +95,14 @@ export default function ParkingInfo() {
         </button>
       </div>
 
-      {/* === Info === */}
-      <h1 className="text-2xl font-bold">DTU Smart Parking Lot</h1>
+      <h1 className="text-2xl font-bold">Bãi đỗ xe An Phú</h1>
 
       <div className="flex items-center gap-2 text-sm text-gray-600">
-        <MapPin className="w-4 h-4" /> 123 DTU Street, Da Nang City
+        <MapPin className="w-4 h-4" /> 81 Dũng Sĩ Thanh Khê, Phường Thanh Khê Tây, Đà Nẵng
       </div>
 
       <div className="flex items-center gap-2 text-sm text-gray-600">
-        <Clock className="w-4 h-4" /> Open: 24/7
+        <Clock className="w-4 h-4" /> Mở cửa: 24/7
       </div>
 
       <div className="flex items-center gap-2 text-sm text-gray-600">
@@ -86,23 +110,21 @@ export default function ParkingInfo() {
       </div>
 
       <div className="text-sm text-gray-600">
-        <strong>Zones:</strong> A, B, C — Total: 150 spots
+        <strong>Khu vực:</strong> {zones.join(", ")} — Tổng: {spots.length} vị trí
       </div>
 
       <div className="text-sm text-gray-600">
-        <strong>Price:</strong> $1.5/hour
+        <strong>Giá:</strong> {spots[0]?.pricePerHour.toLocaleString("vi-VN")} VNĐ/giờ
       </div>
 
       <div className="flex items-center gap-2 text-sm text-gray-600">
-        <CheckCircle className="w-4 h-4 text-green-600" /> Near Airport,
-        University, Mall
+        <CheckCircle className="w-4 h-4 text-green-600" /> Gần sân bay, trường đại học, trung tâm thương mại
       </div>
 
-      {/* === Contact Info === */}
       <div className="flex flex-col gap-2 mt-4 text-sm text-gray-600">
-        <h2 className="text-base font-semibold">Owner Contact</h2>
+        <h2 className="text-base font-semibold">Liên hệ chủ bãi</h2>
         <div className="flex items-center gap-2">
-          <User className="w-4 h-4" /> Mr. John Parking
+          <User className="w-4 h-4" /> Anh John Parking
         </div>
         <div className="flex items-center gap-2">
           <Phone className="w-4 h-4" /> +84 912 345 678
@@ -112,58 +134,54 @@ export default function ParkingInfo() {
         </div>
       </div>
 
-      {/* === ZONE SELECTOR === */}
       <div className="mt-6">
         <label className="text-sm font-medium block mb-2">
-          Select Zone:
+          Chọn khu vực:
         </label>
         <select
           value={selectedZone}
-          onChange={(e) => setSelectedZone(e.target.value as "A" | "B" | "C")}
+          onChange={(e) => setSelectedZone(e.target.value)}
           className="border px-3 py-2 rounded-md"
         >
           {zones.map((zone) => (
             <option key={zone} value={zone}>
-              Zone {zone}
+              Khu vực {zone}
             </option>
           ))}
         </select>
       </div>
 
-      {/* === SPOT GRID === */}
       <div className="grid grid-cols-6 gap-2 mt-4">
-        {spots.map((spot) => (
+        {currentZoneSpots.map((spot) => (
           <div
-            key={spot.id}
+            key={spot._id}
             className={`w-12 h-12 flex items-center justify-center rounded-md text-xs font-medium text-white ${
-              spot.status === "occupied"
+              spot.status === "booked"
                 ? "bg-red-600"
-                : spot.status === "booked"
+                : spot.status === "reserved"
                 ? "bg-yellow-500"
                 : "bg-green-600"
             }`}
           >
-            {spot.id}
+            {spot.slotNumber}
           </div>
         ))}
       </div>
 
-      {/* === LEGEND === */}
       <div className="flex gap-4 mt-4 text-sm">
         <div className="flex items-center gap-1">
-          <div className="w-4 h-4 bg-red-600 rounded"></div> Occupied
+          <div className="w-4 h-4 bg-red-600 rounded"></div> Đã đặt
         </div>
         <div className="flex items-center gap-1">
-          <div className="w-4 h-4 bg-yellow-500 rounded"></div> Booked
+          <div className="w-4 h-4 bg-yellow-500 rounded"></div> Đặt trước
         </div>
         <div className="flex items-center gap-1">
-          <div className="w-4 h-4 bg-green-600 rounded"></div> Available
+          <div className="w-4 h-4 bg-green-600 rounded"></div> Trống
         </div>
       </div>
 
-      {/* === MAP === */}
       <div className="w-full h-64 bg-gray-200 mt-6 rounded-lg flex items-center justify-center">
-        {/* <ParkingMap/> */}
+        <p>Bản đồ sẽ được hiển thị tại đây</p>
       </div>
     </section>
   );
