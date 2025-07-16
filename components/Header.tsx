@@ -37,7 +37,9 @@ export default function Header({
   const [isAvatarClicked, setIsAvatarClicked] = useState(false);
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [showHeader, setShowHeader] = useState(true);
 
+  const lastScrollY = useRef(0);
   const avatarRef = useRef<HTMLDivElement>(null);
   const notificationRef = useRef<HTMLDivElement>(null);
   const mobileMenuRef = useRef<HTMLDivElement>(null);
@@ -89,6 +91,31 @@ export default function Header({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  useEffect(() => {
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+
+      if (isHomepage) {
+        // Ẩn nếu cuộn xuống, chỉ hiện lại khi lên gần top
+        if (currentScrollY < 80) {
+          setShowHeader(true);
+        } else {
+          setShowHeader(false);
+        }
+      } else {
+        if (currentScrollY > lastScrollY.current && currentScrollY > 80) {
+          setShowHeader(false); // scroll down
+        } else {
+          setShowHeader(true); // scroll up
+        }
+        lastScrollY.current = currentScrollY;
+      }
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [isHomepage]);
+
   const handleAvatarClick = () => {
     if (isAvatarMenuOpen && isAvatarClicked) {
       setIsAvatarMenuOpen(false);
@@ -125,44 +152,16 @@ export default function Header({
 
   const DesktopMenuLinks = () => (
     <>
-      <button
-        onClick={() => router.push("/addVehicle")}
-        className={`flex items-center cursor-pointer gap-2 ${
-          isHomepage
-            ? "text-white hover:text-white/80"
-            : "text-gray-800 hover:text-blue-600"
-        }`}
-      >
+      <button onClick={() => router.push("/addVehicle")} className={`flex items-center cursor-pointer gap-2 ${isHomepage ? "text-white hover:text-white/80" : "text-gray-800 hover:text-blue-600"}`}>
         <PlusCircle size={16} /> Thêm phương tiện
       </button>
-      <button
-        onClick={() => router.push("/myBooking")}
-        className={`flex items-center cursor-pointer gap-2 ${
-          isHomepage
-            ? "text-white hover:text-white/80"
-            : "text-gray-800 hover:text-blue-600"
-        }`}
-      >
+      <button onClick={() => router.push("/myBooking")} className={`flex items-center cursor-pointer gap-2 ${isHomepage ? "text-white hover:text-white/80" : "text-gray-800 hover:text-blue-600"}`}>
         <CalendarCheck size={16} /> Đặt chỗ
       </button>
-      <button
-        onClick={() => router.push("/help")}
-        className={`flex items-center cursor-pointer gap-2 ${
-          isHomepage
-            ? "text-white hover:text-white/80"
-            : "text-gray-800 hover:text-blue-600"
-        }`}
-      >
+      <button onClick={() => router.push("/help")} className={`flex items-center cursor-pointer gap-2 ${isHomepage ? "text-white hover:text-white/80" : "text-gray-800 hover:text-blue-600"}`}>
         <HelpCircle size={16} /> Trợ giúp
       </button>
-      <button
-        onClick={() => router.push("/policyUser")}
-        className={`flex items-center cursor-pointer gap-2 ${
-          isHomepage
-            ? "text-white hover:text-white/80"
-            : "text-gray-800 hover:text-blue-600"
-        }`}
-      >
+      <button onClick={() => router.push("/policyUser")} className={`flex items-center cursor-pointer gap-2 ${isHomepage ? "text-white hover:text-white/80" : "text-gray-800 hover:text-blue-600"}`}>
         <ShieldCheck size={16} /> Chính sách
       </button>
     </>
@@ -170,28 +169,16 @@ export default function Header({
 
   const MobileMenuLinks = () => (
     <>
-      <button
-        onClick={() => handleMobileMenuNavigation("/addVehicle")}
-        className="flex items-center cursor-pointer gap-2 text-gray-800 hover:text-blue-600 w-full text-left py-2"
-      >
+      <button onClick={() => handleMobileMenuNavigation("/addVehicle")} className="flex items-center cursor-pointer gap-2 text-gray-800 hover:text-blue-600 w-full text-left py-2">
         <PlusCircle size={16} /> Thêm phương tiện
       </button>
-      <button
-        onClick={() => handleMobileMenuNavigation("/myBooking")}
-        className="flex items-center cursor-pointer gap-2 text-gray-800 hover:text-blue-600 w-full text-left py-2"
-      >
+      <button onClick={() => handleMobileMenuNavigation("/myBooking")} className="flex items-center cursor-pointer gap-2 text-gray-800 hover:text-blue-600 w-full text-left py-2">
         <CalendarCheck size={16} /> Đặt chỗ
       </button>
-      <button
-        onClick={() => handleMobileMenuNavigation("/help")}
-        className="flex items-center cursor-pointer gap-2 text-gray-800 hover:text-blue-600 w-full text-left py-2"
-      >
+      <button onClick={() => handleMobileMenuNavigation("/help")} className="flex items-center cursor-pointer gap-2 text-gray-800 hover:text-blue-600 w-full text-left py-2">
         <HelpCircle size={16} /> Trợ giúp
       </button>
-      <button
-        onClick={() => handleMobileMenuNavigation("/policyUser")}
-        className="flex items-center cursor-pointer gap-2 text-gray-800 hover:text-blue-600 w-full text-left py-2"
-      >
+      <button onClick={() => handleMobileMenuNavigation("/policyUser")} className="flex items-center cursor-pointer gap-2 text-gray-800 hover:text-blue-600 w-full text-left py-2">
         <ShieldCheck size={16} /> Chính sách
       </button>
     </>
@@ -199,82 +186,47 @@ export default function Header({
 
   return (
     <header
-      className={`w-full fixed z-[100] left-0 top-0 px-4 sm:px-6 py-4 flex justify-between items-center ${
-        isHomepage
-          ? "bg-transparent text-white"
-          : "bg-white shadow text-gray-800"
+      className={`w-full fixed z-[100] left-0 top-0 transition-transform duration-300 ${
+        showHeader ? "translate-y-0" : "-translate-y-full"
+      } px-4 sm:px-6 py-4 flex justify-between items-center ${
+        isHomepage ? "bg-transparent text-white" : "bg-white shadow text-gray-800"
       }`}
     >
       {/* Logo */}
-      <div
-        className="text-2xl font-bold cursor-pointer"
-        onClick={() => router.push("/")}
-      >
-        <img
-          src="/logo.png"
-          alt="GoPark Logo"
-          className={`h-8 sm:h-10 ${
-            isHomepage ? "filter brightness-0 invert" : ""
-          }`}
-        />
+      <div className="text-2xl font-bold cursor-pointer" onClick={() => router.push("/")}>
+        <img src="/logo.png" alt="GoPark Logo" className={`h-8 sm:h-10 ${isHomepage ? "filter brightness-0 invert" : ""}`} />
       </div>
 
-      {!isLoggedIn && (
+      {!isLoggedIn ? (
         <div className="flex gap-3">
           <Button
             variant="ghost"
-            className={`text-white hover:bg-white/20 ${
-              !isHomepage && "text-blue-600 hover:text-blue-700"
-            }`}
+            className={`text-white hover:bg-white/20 ${!isHomepage && "text-blue-600 hover:text-blue-700"}`}
             onClick={() => router.push("/account/login")}
           >
             Đăng nhập
           </Button>
           <Button
             variant={isHomepage ? "ghost" : "default"}
-            className={
-              isHomepage
-                ? "text-white hover:bg-white/20"
-                : "bg-blue-600 hover:bg-blue-700 text-white"
-            }
+            className={isHomepage ? "text-white hover:bg-white/20" : "bg-blue-600 hover:bg-blue-700 text-white"}
             onClick={() => router.push("/account/signup")}
           >
             Đăng ký
           </Button>
         </div>
-      )}
-
-      {isLoggedIn && (
+      ) : (
         <div className="flex items-center gap-3 sm:gap-4 relative">
-          <div
-            className={`hidden md:flex items-center gap-4 lg:gap-6 text-sm font-medium ${
-              isHomepage ? "text-white" : "text-gray-800"
-            }`}
-          >
+          <div className={`hidden md:flex items-center gap-4 lg:gap-6 text-sm font-medium ${isHomepage ? "text-white" : "text-gray-800"}`}>
             <DesktopMenuLinks />
           </div>
 
-          <button
-            onClick={() => router.push("/map")}
-            className={`flex items-center cursor-pointer ${
-              isHomepage
-                ? "text-white hover:text-white/80"
-                : "text-gray-800 hover:text-blue-600"
-            }`}
-          >
+          <button onClick={() => router.push("/map")} className={`flex items-center cursor-pointer ${isHomepage ? "text-white hover:text-white/80" : "text-gray-800 hover:text-blue-600"}`}>
             <Map size={20} />
           </button>
 
-          {/* Notification button */}
+          {/* Notification */}
           <div ref={notificationRef} className="relative">
-            <button
-              onClick={handleNotificationClick}
-              className={`relative cursor-pointer ${
-                isHomepage
-                  ? "text-white hover:text-white/80"
-                  : "text-gray-800 hover:text-blue-600"
-              }`}
-            >
+            <button onClick={handleNotificationClick} className={`relative cursor-pointer ${isHomepage ? "text-white hover:text-white/80" : "text-gray-800 hover:text-blue-600"}`}>
               <Bell size={20} />
               {unreadCount > 0 && !isNotificationOpen && (
                 <span className="absolute -top-1 -right-1 bg-red-600 text-white rounded-full text-xs w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center">
@@ -283,30 +235,19 @@ export default function Header({
               )}
             </button>
 
-            {/* Notification dropdown */}
             {isNotificationOpen && (
               <div className="absolute right-0 mt-2 w-72 rounded-md shadow-lg py-2 z-50 bg-white text-gray-800">
                 <div className="flex justify-between items-center px-4 py-2 border-b border-gray-200">
                   <span className="font-semibold">Thông báo</span>
-                  <button
-                    onClick={handleMarkAllAsRead}
-                    className="text-sm text-blue-500 cursor-pointer hover:underline"
-                  >
+                  <button onClick={handleMarkAllAsRead} className="text-sm text-blue-500 cursor-pointer hover:underline">
                     Đánh dấu tất cả là đã đọc
                   </button>
                 </div>
                 {notifications.length === 0 ? (
-                  <div className="px-4 py-4 text-gray-500 text-sm">
-                    Không có thông báo
-                  </div>
+                  <div className="px-4 py-4 text-gray-500 text-sm">Không có thông báo</div>
                 ) : (
                   notifications.map((note) => (
-                    <div
-                      key={note.id}
-                      className={`px-4 py-3 hover:bg-gray-100 border-b border-gray-200 last:border-b-0 ${
-                        !note.read ? "bg-blue-50" : ""
-                      }`}
-                    >
+                    <div key={note.id} className={`px-4 py-3 hover:bg-gray-100 border-b border-gray-200 last:border-b-0 ${!note.read ? "bg-blue-50" : ""}`}>
                       <div className="text-sm">{note.message}</div>
                       <div className="text-xs text-gray-500">{note.time}</div>
                     </div>
@@ -316,17 +257,15 @@ export default function Header({
             )}
           </div>
 
-          {/* Avatar menu */}
+          {/* Avatar */}
           <div
             ref={avatarRef}
             className="relative"
             onMouseEnter={() => {
-              if (window.innerWidth >= 768 && !isAvatarClicked)
-                setIsAvatarMenuOpen(true);
+              if (window.innerWidth >= 768 && !isAvatarClicked) setIsAvatarMenuOpen(true);
             }}
             onMouseLeave={() => {
-              if (window.innerWidth >= 768 && !isAvatarClicked)
-                setIsAvatarMenuOpen(false);
+              if (window.innerWidth >= 768 && !isAvatarClicked) setIsAvatarMenuOpen(false);
             }}
           >
             <img
@@ -340,30 +279,13 @@ export default function Header({
 
             {isAvatarMenuOpen && (
               <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-2 z-50 text-gray-800">
-                <button
-                  onClick={() => {
-                    router.push("/personInfo");
-                    setIsAvatarMenuOpen(false);
-                    setIsAvatarClicked(false);
-                  }}
-                  className="flex items-center px-4 py-2 hover:bg-gray-100 cursor-pointer w-full text-left text-sm sm:text-base"
-                >
+                <button onClick={() => { router.push("/personInfo"); setIsAvatarMenuOpen(false); setIsAvatarClicked(false); }} className="flex items-center px-4 py-2 hover:bg-gray-100 cursor-pointer w-full text-left text-sm sm:text-base">
                   <User size={16} className="mr-2" /> Thông tin cá nhân
                 </button>
-                <button
-                  onClick={() => {
-                    router.push("/settingUser");
-                    setIsAvatarMenuOpen(false);
-                    setIsAvatarClicked(false);
-                  }}
-                  className="flex items-center px-4 py-2 hover:bg-gray-100 cursor-pointer w-full text-left text-sm sm:text-base"
-                >
+                <button onClick={() => { router.push("/settingUser"); setIsAvatarMenuOpen(false); setIsAvatarClicked(false); }} className="flex items-center px-4 py-2 hover:bg-gray-100 cursor-pointer w-full text-left text-sm sm:text-base">
                   <Settings size={16} className="mr-2" /> Cài đặt
                 </button>
-                <button
-                  onClick={handleLogout}
-                  className="flex items-center px-4 py-2 hover:bg-gray-100 w-full text-left cursor-pointer text-red-600 text-sm sm:text-base"
-                >
+                <button onClick={handleLogout} className="flex items-center px-4 py-2 hover:bg-gray-100 w-full text-left cursor-pointer text-red-600 text-sm sm:text-base">
                   <LogOut size={16} className="mr-2" /> Đăng xuất
                 </button>
               </div>
@@ -371,31 +293,18 @@ export default function Header({
           </div>
 
           {/* Mobile menu button */}
-          <button
-            className="md:hidden"
-            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-          >
+          <button className="md:hidden" onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}>
             {isMobileMenuOpen ? (
-              <X
-                size={24}
-                className={isHomepage ? "text-white" : "text-gray-800"}
-              />
+              <X size={24} className={isHomepage ? "text-white" : "text-gray-800"} />
             ) : (
-              <MenuIcon
-                size={24}
-                className={isHomepage ? "text-white" : "text-gray-800"}
-              />
+              <MenuIcon size={24} className={isHomepage ? "text-white" : "text-gray-800"} />
             )}
           </button>
         </div>
       )}
 
-      {/* Mobile menu */}
       {isMobileMenuOpen && isLoggedIn && (
-        <div
-          ref={mobileMenuRef}
-          className="absolute top-full left-0 w-full shadow-md flex flex-col items-start p-4 gap-2 md:hidden bg-white text-gray-800"
-        >
+        <div ref={mobileMenuRef} className="absolute top-full left-0 w-full shadow-md flex flex-col items-start p-4 gap-2 md:hidden bg-white text-gray-800">
           <MobileMenuLinks />
         </div>
       )}
