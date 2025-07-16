@@ -67,7 +67,7 @@ export default function MapSection() {
         >
           <FaMapMarkedAlt className="text-5xl mb-3 text-transparent bg-clip-text bg-gradient-to-r from-sky-400 to-blue-600 animate-bounce" />
           <div className="bg-gradient-to-r from-sky-500 to-blue-600 text-white text-4xl font-bold px-6 py-3 rounded-xl shadow-md">
-            <CountUp end={34} duration={1.5} />
+            <CountUp end={23} duration={1.5} />
           </div>
           <div className="text-gray-700 mt-2 text-lg font-medium">Tỉnh Thành</div>
         </motion.div>
@@ -81,7 +81,7 @@ export default function MapSection() {
         >
           <FaCity className="text-5xl mb-3 text-transparent bg-clip-text bg-gradient-to-r from-sky-400 to-blue-600 animate-bounce delay-200" />
           <div className="bg-gradient-to-r from-sky-500 to-blue-600 text-white text-4xl font-bold px-6 py-3 rounded-xl shadow-md">
-            <CountUp end={1200} duration={2} separator="," />
+            <CountUp end={6} duration={2} separator="," />
           </div>
           <div className="text-gray-700 mt-2 text-lg font-medium">Thành Phố</div>
         </motion.div>
@@ -95,7 +95,7 @@ export default function MapSection() {
         >
           <FaParking className="text-5xl mb-3 text-transparent bg-clip-text bg-gradient-to-r from-sky-400 to-blue-600 animate-bounce delay-500" />
           <div className="bg-gradient-to-r from-sky-500 to-blue-600 text-white text-4xl font-bold px-6 py-3 rounded-xl shadow-md min-w-[160px]">
-            <CountUp start={50000} end={50200} duration={5} separator="," />
+            <CountUp start={5000} end={50200} duration={5} separator="," />
           </div>
           <div className="text-gray-700 mt-2 text-lg font-medium">Chỗ Đậu Xe</div>
         </motion.div>
