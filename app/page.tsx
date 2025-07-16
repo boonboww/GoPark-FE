@@ -11,41 +11,39 @@ import WavyDivider from "@/components/WavyDivider";
 
 export default function Home() {
   return (
-    <div className="flex flex-col">
+    <div className="flex flex-col min-h-screen">
       <Header />
 
-      <div
-        className="relative w-full h-[500px] md:h-[600px] bg-cover bg-center mt-16 md:mt-0"
-        style={{ backgroundImage: "url('/b1.jpg')" }}
-      >
-        <div className="absolute inset-0 bg-black/40"></div>
-        <HeroSection />
+      {/* Hero Section với video background */}
+      <HeroSection />
+
+      {/* Các section nội dung khác */}
+      <div className="space-y-12 md:space-y-24">
+        <WavyDivider targetId="how" />
+        <section id="how" className="scroll-mt-20">
+          <HowItWorksSection />
+        </section>
+
+        <WavyDivider targetId="map" />
+        <section id="map" className="scroll-mt-20">
+          <MapSection />
+        </section>
+
+        <WavyDivider targetId="promotion" />
+        <section id="promotion" className="scroll-mt-20">
+          <PromotionSection />
+        </section>
+
+        <WavyDivider targetId="test" />
+        <section id="test" className="scroll-mt-20">
+          <TestimonialsSection />
+        </section>
+
+        <WavyDivider targetId="contact" />
+        <section id="contact" className="scroll-mt-20">
+          <ContactSection />
+        </section>
       </div>
-
-      <WavyDivider targetId="how" />
-      <section id="how">
-        <HowItWorksSection />
-      </section>
-
-      <WavyDivider targetId="map" />
-      <section id="map">
-        <MapSection />
-      </section>
-
-      <WavyDivider targetId="promotion" />
-      <section id="promotion">
-        <PromotionSection />
-      </section>
-
-      <WavyDivider targetId="test" />
-      <section id="test">
-        <TestimonialsSection />
-      </section>
-
-      <WavyDivider targetId="contact" />
-      <section id="contact">
-        <ContactSection />
-      </section>
 
       <Footer />
     </div>

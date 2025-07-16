@@ -1,4 +1,3 @@
-// HeroSection.tsx
 "use client";
 
 import { useState } from "react";
@@ -23,7 +22,7 @@ const cityNameMap: Record<string, string> = {
   "ha noi": "Hà Nội",
   "bien hoa": "Biên Hòa",
   "nha trang": "Nha Trang",
-  hue: "Huế",
+  "hue": "Huế",
   "can tho": "Cần Thơ",
   "vung tau": "Vũng Tàu",
   "hai phong": "Hải Phòng",
@@ -51,8 +50,7 @@ function normalizeCityName(cityName: string): string {
 
 export default function HeroSection() {
   const router = useRouter();
-  const [selectedLocation, setSelectedLocation] =
-    useState<LocationSuggestion | null>(null);
+  const [selectedLocation, setSelectedLocation] = useState<LocationSuggestion | null>(null);
   const [arriving, setArriving] = useState<Date>(new Date());
   const [leaving, setLeaving] = useState<Date>(() => {
     const date = new Date();
@@ -60,10 +58,7 @@ export default function HeroSection() {
     return date;
   });
   const [isSearching, setIsSearching] = useState(false);
-  const [userCoords, setUserCoords] = useState<{
-    lat: number;
-    lon: number;
-  } | null>(null);
+  const [userCoords, setUserCoords] = useState<{ lat: number; lon: number } | null>(null);
 
   const allLocations: LocationSuggestion[] = [
     { id: "nearby", name: "Near me" },
@@ -105,15 +100,13 @@ export default function HeroSection() {
     toast.message("Đang xác định vị trí của bạn...");
 
     try {
-      const position = await new Promise<GeolocationPosition>(
-        (resolve, reject) => {
-          navigator.geolocation.getCurrentPosition(resolve, reject, {
-            timeout: 10000,
-            maximumAge: 60000,
-            enableHighAccuracy: true,
-          });
-        }
-      );
+      const position = await new Promise<GeolocationPosition>((resolve, reject) => {
+        navigator.geolocation.getCurrentPosition(resolve, reject, {
+          timeout: 10000,
+          maximumAge: 60000,
+          enableHighAccuracy: true,
+        });
+      });
 
       const { latitude, longitude } = position.coords;
       setUserCoords({ lat: latitude, lon: longitude });
@@ -133,11 +126,8 @@ export default function HeroSection() {
     }
   };
 
-  const handleSelectLocation = async (
-    event: React.ChangeEvent<HTMLSelectElement>
-  ) => {
+  const handleSelectLocation = async (event: React.ChangeEvent<HTMLSelectElement>) => {
     const selectedId = event.target.value;
-
     if (selectedId === "nearby") {
       await handleNearbyLocation();
     } else {
@@ -198,29 +188,33 @@ export default function HeroSection() {
   };
 
   return (
-    <section className="relative z-10 flex flex-col items-center justify-center min-h-[80vh] text-center px-4 sm:px-6 md:px-8 pt-24 pb-12 overflow-hidden">
-      <video
-        autoPlay
-        muted
-        loop
-        playsInline
-        className="absolute top-0 left-0 w-full h-full object-cover z-0"
-      >
-        <source
-          src="https://s3.amazonaws.com/random-static.parkwhiz/videos/home-header-3.mp4"
-          type="video/mp4"
-        />
-        Your browser does not support the video tag.
-      </video>
+    <section className="relative flex flex-col items-center justify-center min-h-[65vh] md:min-h-[70vh] text-center px-4 sm:px-6 md:px-8 pt-24 pb-12">
+      {/* Video Background */}
+      <div className="absolute inset-0 w-full h-full z-0 overflow-hidden">
+        <video
+          autoPlay
+          muted
+          loop
+          playsInline
+          preload="auto"
+          className="absolute top-0 left-0 w-full h-full object-cover"
+        >
+          <source
+            src="https://s3.amazonaws.com/random-static.parkwhiz/videos/home-header-3.mp4"
+            type="video/mp4"
+          />
+          Your browser does not support the video tag.
+        </video>
+        <div className="absolute inset-0 bg-black/50 z-0" />
+      </div>
 
-      <div className="absolute inset-0 bg-black/50 z-0" />
-
-      <div className="relative z-10 flex flex-col items-center justify-center w-full">
-        <div className="bg-white/80 backdrop-blur-md p-6 rounded-2xl w-full max-w-md shadow-md ring-1 ring-white/20 mb-4">
+      {/* Nội dung chính */}
+      <div className="relative z-10 w-full max-w-6xl mx-auto">
+        <div className="bg-white/80 backdrop-blur-md p-6 rounded-2xl w-full max-w-md shadow-md ring-1 ring-white/20 mb-4 mx-auto">
           <select
             value={selectedLocation?.id || ""}
             onChange={handleSelectLocation}
-            className="w-full  border border-gray-300 px-3 py-2 rounded-lg text-base font-bold text-gray-800 focus:ring-2 focus:ring-blue-400"
+            className="w-full border border-gray-300 px-3 py-2 rounded-lg text-base font-bold text-gray-800 focus:ring-2 focus:ring-blue-400"
           >
             <option value="" disabled>
               Chọn thành phố...
@@ -234,12 +228,10 @@ export default function HeroSection() {
         </div>
 
         {selectedLocation && (
-          <div className="bg-white/80 backdrop-blur-md p-6 rounded-2xl w-full max-w-md shadow-md ring-1 ring-white/20">
+          <div className="bg-white/80 backdrop-blur-md p-6 rounded-2xl w-full max-w-md shadow-md ring-1 ring-white/20 mx-auto">
             <div className="mb-4">
               <h2 className="text-sm font-medium text-gray-800">
-                {selectedLocation.id === "current"
-                  ? "Vị trí hiện tại"
-                  : "Đã chọn"}
+                {selectedLocation.id === "current" ? "Vị trí hiện tại" : "Đã chọn"}
               </h2>
               <p className="text-xl font-bold text-blue-800">
                 {selectedLocation.name}
