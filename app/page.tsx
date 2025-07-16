@@ -12,13 +12,14 @@ import WavyDivider from "@/components/WavyDivider";
 export default function Home() {
   return (
     <div className="flex flex-col min-h-screen">
-      <Header />
+      {/* Header với background trong suốt */}
+      <Header isHomepage />
 
       {/* Hero Section với video background */}
       <HeroSection />
 
       {/* Các section nội dung khác */}
-      <div className="space-y-12 md:space-y-24">
+      <div className="space-y-12 md:space-y-24 bg-white">
         <WavyDivider targetId="how" />
         <section id="how" className="scroll-mt-20">
           <HowItWorksSection />
