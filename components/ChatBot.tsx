@@ -69,18 +69,19 @@ export default function ChatBot() {
     }
   };
 
+  const toggleChat = () => setVisible(prev => !prev);
+
   return (
     <>
       {visible && (
         <div
-          className={`fixed bottom-20 right-0 left-0 mx-auto w-[95%] max-w-md z-50 shadow-2xl rounded-2xl border ${
+          className={`fixed bottom-20 right-2 sm:right-4 w-[96%] max-w-sm z-50 shadow-2xl rounded-xl border ${
             isDarkMode
               ? "bg-[#0a0f0a] text-white border-[#1f1f1f]"
               : "bg-white text-black border-gray-200"
           }`}
-          style={{ maxHeight: "calc(100vh - 120px)" }}
         >
-          <Card className="rounded-2xl overflow-hidden h-full">
+          <Card className="rounded-xl overflow-hidden">
             <CardHeader
               className={`p-3 flex justify-between items-center ${
                 isDarkMode
@@ -88,21 +89,26 @@ export default function ChatBot() {
                   : "bg-[#00A859] text-white"
               }`}
             >
-              <h2 className="font-semibold text-base">GoPark AI</h2>
-              <div className="flex gap-2">
+              <button 
+                onClick={toggleChat}
+                className="font-semibold text-base hover:opacity-80 transition-opacity"
+              >
+                GoPark AI
+              </button>
+              <div className="flex gap-1">
                 <Button
                   size="icon"
                   variant="ghost"
                   onClick={() => setIsDarkMode((prev) => !prev)}
-                  className={`${isDarkMode ? "text-[#00A859]" : "text-white"} h-8 w-8`}
+                  className={`h-8 w-8 ${isDarkMode ? "text-[#00A859]" : "text-white"}`}
                 >
                   {isDarkMode ? <Sun size={16} /> : <Moon size={16} />}
                 </Button>
                 <Button
                   size="icon"
                   variant="ghost"
-                  onClick={() => setVisible(false)}
-                  className={`${isDarkMode ? "text-[#00A859]" : "text-white"} h-8 w-8`}
+                  onClick={toggleChat}
+                  className={`h-8 w-8 ${isDarkMode ? "text-[#00A859]" : "text-white"}`}
                 >
                   <X size={16} />
                 </Button>
@@ -110,12 +116,12 @@ export default function ChatBot() {
             </CardHeader>
             <CardContent className={`p-3 ${isDarkMode ? "bg-[#0a0f0a]" : "bg-gray-50"}`}>
               {/* Gợi ý */}
-              <div className="mb-2 flex flex-wrap gap-1">
+              <div className="mb-2 flex flex-wrap gap-1.5">
                 {showSuggestions
                   ? SUGGESTIONS.map((sugg, idx) => (
                       <button
                         key={idx}
-                        className={`text-xs rounded-full px-2 py-1 border ${
+                        className={`text-xs rounded-full px-2.5 py-1 border ${
                           isDarkMode
                             ? "border-[#00A859] text-[#00A859] hover:bg-[#003d28]"
                             : "border-gray-300 text-black hover:bg-[#d8f3e1]"
@@ -139,11 +145,11 @@ export default function ChatBot() {
 
               {/* Tin nhắn */}
               <ScrollArea className="h-[200px] px-1 py-1 mb-2 rounded-md">
-                <div className="flex flex-col gap-1">
+                <div className="flex flex-col gap-1.5">
                   {messages.map((msg, idx) => (
                     <div
                       key={idx}
-                      className={`text-xs px-3 py-1.5 rounded-xl whitespace-pre-line shadow-sm transition-all duration-200 max-w-[85%] ${
+                      className={`text-xs sm:text-sm px-3 py-1.5 rounded-xl whitespace-pre-line shadow-sm transition-all duration-200 max-w-[85%] ${
                         msg.role === "user"
                           ? "self-end bg-[#00A859] text-white"
                           : isDarkMode
@@ -170,14 +176,14 @@ export default function ChatBot() {
               </ScrollArea>
 
               {/* Input */}
-              <div className="flex gap-1 items-end">
+              <div className="flex gap-1.5 items-end">
                 <Textarea
                   ref={inputRef}
                   rows={1}
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   placeholder="Nhập câu hỏi..."
-                  className={`resize-none max-h-20 text-xs border rounded-lg px-2 py-1 flex-1 ${
+                  className={`resize-none max-h-20 text-xs sm:text-sm border rounded-lg px-2.5 py-1.5 flex-1 ${
                     isDarkMode
                       ? "bg-[#0a0f0a] text-white border-[#444] focus:ring-[#00A859]"
                       : "bg-white text-black border-gray-300 focus:ring-[#00A859]"
@@ -192,7 +198,7 @@ export default function ChatBot() {
                 <Button
                   onClick={() => sendMessage(input)}
                   disabled={!input.trim() || isLoading}
-                  className="bg-[#00A859] hover:bg-[#007d42] text-white rounded-lg px-3 py-1 text-xs h-8"
+                  className="bg-[#00A859] hover:bg-[#007d42] text-white rounded-lg px-3 py-1.5 h-8 text-xs sm:text-sm"
                 >
                   Gửi
                 </Button>
@@ -204,10 +210,10 @@ export default function ChatBot() {
 
       {/* Nút mở chat */}
       <Button
-        onClick={() => setVisible(true)}
-        className="fixed bottom-4 right-4 z-40 w-12 h-12 rounded-full shadow-lg bg-black hover:bg-[#007d42] text-green-600 flex items-center justify-center transition-all duration-200 hover:scale-110"
+        onClick={toggleChat}
+        className="fixed bottom-4 right-4 z-50 w-12 h-12 sm:w-14 sm:h-14 rounded-full shadow-xl bg-black hover:bg-[#007d42] text-green-600 flex items-center justify-center transition-all duration-200 hover:scale-110"
       >
-        <Bot className="w-6 h-6" />
+        <Bot className="w-6 h-6 sm:w-7 sm:h-7" />
       </Button>
 
       {/* Hiệu ứng chấm nhấp nháy */}
