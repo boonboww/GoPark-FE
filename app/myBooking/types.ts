@@ -1,17 +1,19 @@
+// app/myBooking/types.ts
 export interface Booking {
   id: number;
-  ticketId: string;
   parkingName: string;
   location: string;
   time: string;
-  status: 'active' | 'completed' | 'cancelled';
+  status: "active" | "completed" | "cancelled";
   image: string;
-  fee: string;
+  feeEstimate: string;
   package: string;
   plateNumber: string;
   spotNumber: string;
   zone: string;
+  ticketId: string;
   startTime: string;
   endTime: string;
-  paymentMethod: string;
+  paymentMethod: "prepaid" | "onsite";
+  fee: string;
 }

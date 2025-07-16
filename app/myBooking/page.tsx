@@ -34,6 +34,11 @@ export default function MyBookingPage() {
       plateNumber: "43A-12345",
       spotNumber: "A12",
       zone: "Khu vực 1",
+      ticketId: "TKT123456",
+      startTime: "2025-07-10T10:00:00",
+      endTime: "2025-07-10T12:00:00",
+      paymentMethod: "prepaid",
+      fee: "150.000 VNĐ"
     },
   ]);
 
@@ -50,6 +55,11 @@ export default function MyBookingPage() {
       plateNumber: "43B1-67890",
       spotNumber: "B7",
       zone: "Khu vực 2",
+      ticketId: "TKT654321",
+      startTime: "2025-07-01T14:00:00",
+      endTime: "2025-07-01T20:00:00",
+      paymentMethod: "onsite",
+      fee: "300.000 VNĐ"
     },
     {
       id: 3,
@@ -63,6 +73,11 @@ export default function MyBookingPage() {
       plateNumber: "43C-11223",
       spotNumber: "C3",
       zone: "Khu vực 1",
+      ticketId: "TKT112233",
+      startTime: "2025-06-15T09:00:00",
+      endTime: "2025-06-15T11:00:00",
+      paymentMethod: "prepaid",
+      fee: "160.000 VNĐ"
     },
   ]);
 
@@ -74,8 +89,11 @@ export default function MyBookingPage() {
       const cancelled = activeBookings.find((b) => b.id === id);
       if (cancelled) {
         setActiveBookings(activeBookings.filter((b) => b.id !== id));
-        setHistoryBookings([{ ...cancelled, status: "cancelled" }, ...historyBookings]);
-        setShowNoBookingMsg(true);
+        setHistoryBookings([
+          { ...cancelled, status: "cancelled" }, 
+          ...historyBookings
+        ]);
+        setShowNoBookingMsg(activeBookings.length <= 1);
       }
     }
   };

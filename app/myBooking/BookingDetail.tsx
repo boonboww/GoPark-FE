@@ -24,7 +24,6 @@ export default function BookingDetail({
           <X className="w-5 h-5" />
         </button>
 
-        {/* Ticket Section */}
         <div className="border-2 border-dashed border-gray-300 p-4 rounded-lg mb-6">
           <div className="flex justify-between items-start mb-4">
             <div>
@@ -32,7 +31,8 @@ export default function BookingDetail({
               <p className="text-sm text-gray-500">#{booking.ticketId}</p>
             </div>
             <div className="bg-black text-white px-2 py-1 rounded text-xs">
-              ĐANG HOẠT ĐỘNG
+              {booking.status === "active" ? "ĐANG HOẠT ĐỘNG" : 
+               booking.status === "completed" ? "HOÀN THÀNH" : "ĐÃ HỦY"}
             </div>
           </div>
 
@@ -74,7 +74,9 @@ export default function BookingDetail({
               <p className="text-sm text-gray-600 flex items-center gap-1">
                 <CreditCard className="w-4 h-4" /> Thanh toán
               </p>
-              <p className="font-medium">{booking.paymentMethod === "prepaid" ? "Thanh toán trước" : "Thanh toán tại bãi"}</p>
+              <p className="font-medium">
+                {booking.paymentMethod === "prepaid" ? "Thanh toán trước" : "Thanh toán tại bãi"}
+              </p>
             </div>
             <div className="text-right">
               <p className="text-sm text-gray-600">Tổng cộng</p>
@@ -82,20 +84,21 @@ export default function BookingDetail({
             </div>
           </div>
 
-          <div className="mt-6 flex justify-center">
-            <QRCode 
-              value={qrValue} 
-              size={128} 
-              bgColor="#ffffff"
-              fgColor="#000000"
-            />
-          </div>
-          <p className="text-xs text-center text-gray-500 mt-2">
-            Quét mã QR tại cổng bãi đỗ
-          </p>
+          {booking.status === "active" && (
+            <div className="mt-6 flex justify-center">
+              <QRCode 
+                value={qrValue} 
+                size={128} 
+                bgColor="#ffffff"
+                fgColor="#000000"
+              />
+              <p className="text-xs text-center text-gray-500 mt-2">
+                Quét mã QR tại cổng bãi đỗ
+              </p>
+            </div>
+          )}
         </div>
 
-        {/* Parking Info Section */}
         <div className="space-y-4">
           <h3 className="font-semibold text-lg">{booking.parkingName}</h3>
           <p className="text-sm text-gray-600">{booking.location}</p>
