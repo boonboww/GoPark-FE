@@ -144,7 +144,7 @@ export default function ChatBot() {
               </div>
 
               {/* Tin nhắn */}
-              <ScrollArea className="h-[200px] px-1 py-1 mb-2 rounded-md">
+              <ScrollArea className="h-[180px] px-1 py-1 mb-2 rounded-md">
                 <div className="flex flex-col gap-1.5">
                   {messages.map((msg, idx) => (
                     <div
@@ -183,7 +183,7 @@ export default function ChatBot() {
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   placeholder="Nhập câu hỏi..."
-                  className={`resize-none max-h-20 text-xs sm:text-sm border rounded-lg px-2.5 py-1.5 flex-1 ${
+                  className={`resize-none max-h-20 text-xs border rounded-md px-2 py-1 flex-1 min-h-[36px] ${
                     isDarkMode
                       ? "bg-[#0a0f0a] text-white border-[#444] focus:ring-[#00A859]"
                       : "bg-white text-black border-gray-300 focus:ring-[#00A859]"
