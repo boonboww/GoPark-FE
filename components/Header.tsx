@@ -43,11 +43,11 @@ export default function Header() {
 
     if (token) {
       const now = new Date();
-      const timeString = now.toLocaleString();
+      const timeString = now.toLocaleString("vi-VN");
       setNotifications([
         {
           id: 1,
-          message: "You signed in to Go Park",
+          message: "Bạn đã đăng nhập vào Go Park",
           time: timeString,
           read: false,
         },
@@ -117,25 +117,25 @@ export default function Header() {
         onClick={() => router.push("/addVehicle")}
         className="flex items-center cursor-pointer gap-2 hover:text-blue-600"
       >
-        <PlusCircle size={16} /> Add Vehicle
+        <PlusCircle size={16} /> Thêm phương tiện
       </button>
       <button
         onClick={() => router.push("/myBooking")}
         className="flex items-center cursor-pointer gap-2 hover:text-blue-600"
       >
-        <CalendarCheck size={16} /> Bookings
+        <CalendarCheck size={16} /> Đặt chỗ
       </button>
       <button
         onClick={() => router.push("/help")}
         className="flex items-center cursor-pointer gap-2 hover:text-blue-600"
       >
-        <HelpCircle size={16} /> Help
+        <HelpCircle size={16} /> Trợ giúp
       </button>
       <button
         onClick={() => router.push("/policyUser")}
         className="flex items-center cursor-pointer gap-2 hover:text-blue-600"
       >
-        <ShieldCheck size={16} /> Policy
+        <ShieldCheck size={16} /> Chính sách
       </button>
     </>
   );
@@ -152,10 +152,10 @@ export default function Header() {
       {!isLoggedIn && (
         <div className="flex gap-3">
           <Button variant="ghost" onClick={() => router.push("/account/login")}>
-            Sign in
+            Đăng nhập
           </Button>
           <Button onClick={() => router.push("/account/signup")}>
-            Sign up
+            Đăng ký
           </Button>
         </div>
       )}
@@ -176,7 +176,7 @@ export default function Header() {
           <div ref={notificationRef} className="relative">
             <button
               onClick={handleNotificationClick}
-              className="relative hover:text-blue-600 cursor-pointer"
+              className="relative hover:text-blue-600 cursor妇-pointer"
             >
               <Bell size={20} />
               {unreadCount > 0 && !isNotificationOpen && (
@@ -196,17 +196,17 @@ export default function Header() {
                 "
               >
                 <div className="flex justify-between items-center px-4 py-2 border-b border-gray-600">
-                  <span className="font-semibold">Notifications</span>
+                  <span className="font-semibold">Thông báo</span>
                   <button
                     onClick={handleMarkAllAsRead}
                     className="text-sm text-blue-300 cursor-pointer hover:underline"
                   >
-                    Mark all as read
+                    Đánh dấu tất cả là đã đọc
                   </button>
                 </div>
                 {notifications.length === 0 ? (
                   <div className="px-4 py-4 text-gray-300 text-sm">
-                    No notifications
+                    Không có thông báo
                   </div>
                 ) : (
                   notifications.map((note) => (
@@ -237,13 +237,13 @@ export default function Header() {
           >
             <img
               src="/avt.png"
-              alt="User Avatar"
+              alt="Ảnh đại diện"
               className="w-10 h-10 rounded-full object-cover border cursor-pointer"
               onClick={handleAvatarClick}
             />
 
             {isAvatarMenuOpen && (
-              <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-2 z-50">
+              <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-2 z continuation-50">
                 <button
                   onClick={() => {
                     router.push("/personInfo");
@@ -252,7 +252,7 @@ export default function Header() {
                   }}
                   className="flex items-center px-4 py-2 hover:bg-gray-100 cursor-pointer w-full text-left"
                 >
-                  <User size={16} className="mr-2" /> Personal Info
+                  <User size={16} className="mr-2" /> Thông tin cá nhân
                 </button>
                 <button
                   onClick={() => {
@@ -262,13 +262,13 @@ export default function Header() {
                   }}
                   className="flex items-center px-4 py-2 hover:bg-gray-100 cursor-pointer w-full text-left"
                 >
-                  <Settings size={16} className="mr-2" /> Settings
+                  <Settings size={16} className="mr-2" /> Cài đặt
                 </button>
                 <button
                   onClick={handleLogout}
                   className="flex items-center px-4 py-2 hover:bg-gray-100 w-full text-left cursor-pointer text-red-600"
                 >
-                  <LogOut size={16} className="mr-2" /> Logout
+                  <LogOut size={16} className="mr-2" /> Đăng xuất
                 </button>
               </div>
             )}

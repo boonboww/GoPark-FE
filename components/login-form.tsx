@@ -36,7 +36,7 @@ export function LoginForm({ className, ...props }: React.ComponentProps<"div">) 
     if (res.error) {
       setMessage(`❌ ${res.error}`);
     } else {
-      setMessage("✅ Successfully logged in!");
+      setMessage("✅ Đăng nhập thành công!");
 
       const role = res.data?.role;
       console.log("Logged in role:", role);
@@ -57,9 +57,9 @@ export function LoginForm({ className, ...props }: React.ComponentProps<"div">) 
     <div className={cn("flex flex-col gap-6", className)} {...props}>
       <Card>
         <CardHeader>
-          <CardTitle>Sign in to your account</CardTitle>
+          <CardTitle>Đăng nhập tài khoản</CardTitle>
           <CardDescription>
-            Please enter your credentials to access your account
+            Vui lòng nhập thông tin đăng nhập để truy cập tài khoản của bạn.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -70,16 +70,16 @@ export function LoginForm({ className, ...props }: React.ComponentProps<"div">) 
                 <Input
                   id="email"
                   type="email"
-                  placeholder="your@email.com"
+                  placeholder="email@example.com"
                   required
                   onChange={handleChange}
                 />
               </div>
               <div className="grid gap-3">
                 <div className="flex items-center">
-                  <Label htmlFor="password">Password</Label>
+                  <Label htmlFor="password">Mật khẩu</Label>
                   <a href="/account/reset" className="ml-auto text-sm underline">
-                    Forgot your password?
+                    Quên mật khẩu?
                   </a>
                 </div>
                 <Input
@@ -91,10 +91,10 @@ export function LoginForm({ className, ...props }: React.ComponentProps<"div">) 
               </div>
               <div className="flex flex-col gap-3">
                 <Button type="submit" className="w-full" disabled={loading}>
-                  {loading ? "Logging in..." : "Sign in"}
+                  {loading ? "Đang đăng nhập..." : "Đăng nhập"}
                 </Button>
                 <Button type="button" variant="outline" className="w-full">
-                  Sign in with Google
+                  Đăng nhập bằng Google
                 </Button>
               </div>
               {message && (
@@ -104,9 +104,9 @@ export function LoginForm({ className, ...props }: React.ComponentProps<"div">) 
               )}
             </div>
             <div className="mt-4 text-center text-sm">
-              Don&apos;t have an account?{" "}
+              Chưa có tài khoản?{" "}
               <a href="/account/signup" className="underline">
-                Sign up
+                Đăng ký ngay
               </a>
             </div>
           </form>

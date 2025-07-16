@@ -21,7 +21,7 @@ export const ParkingDetail = ({ parking, arriving, leaving, onBack, onNavigate }
         className="flex items-center mb-6 text-blue-600 hover:text-blue-800 transition-colors group"
       >
         <ArrowLeft className="w-5 h-5 mr-2 group-hover:-translate-x-1 transition-transform" />
-        Back to List
+        Quay lại danh sách
       </button>
 
       <div className="border border-gray-200 p-6 rounded-xl shadow-lg bg-white">
@@ -33,7 +33,7 @@ export const ParkingDetail = ({ parking, arriving, leaving, onBack, onNavigate }
           />
           <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full flex items-center shadow-sm">
             <ParkingSquare className="w-4 h-4 text-blue-600 mr-1" />
-            <span className="text-sm font-medium">Parking Lot</span>
+            <span className="text-sm font-medium">Bãi đỗ xe</span>
           </div>
         </div>
 
@@ -45,14 +45,14 @@ export const ParkingDetail = ({ parking, arriving, leaving, onBack, onNavigate }
         <div className="space-y-3 text-gray-700">
           <div className="flex items-start">
             <MapPin className="w-4 h-4 text-gray-500 mt-0.5 mr-2 flex-shrink-0" />
-            <p className="text-sm"><span className="font-medium">Address:</span> {parking.address}</p>
+            <p className="text-sm"><span className="font-medium">Địa chỉ:</span> {parking.address}</p>
           </div>
 
           <div className="flex items-start">
             <Wallet className="w-4 h-4 text-gray-500 mt-0.5 mr-2 flex-shrink-0" />
             <p className="text-sm">
-              <span className="font-medium">Price:</span>{" "}
-              {parking.pricePerHour != null ? parking.pricePerHour.toLocaleString() : "N/A"} VND/hour
+              <span className="font-medium">Giá:</span>{" "}
+              {parking.pricePerHour != null ? parking.pricePerHour.toLocaleString() : "Không có"} VND/giờ
             </p>
           </div>
 
@@ -63,9 +63,9 @@ export const ParkingDetail = ({ parking, arriving, leaving, onBack, onNavigate }
               <XCircle className="w-4 h-4 text-red-500 mr-2" />
             )}
             <p className="text-sm">
-              <span className="font-medium">Status:</span>{" "}
+              <span className="font-medium">Trạng thái:</span>{" "}
               <span className={parking.isActive ? "text-green-600 font-medium" : "text-red-600 font-medium"}>
-                {parking.isActive ? "Available" : "Full"}
+                {parking.isActive ? "Còn chỗ" : "Hết chỗ"}
               </span>
             </p>
           </div>
@@ -74,7 +74,7 @@ export const ParkingDetail = ({ parking, arriving, leaving, onBack, onNavigate }
             <div className="flex items-start">
               <Info className="w-4 h-4 text-gray-500 mt-0.5 mr-2 flex-shrink-0" />
               <p className="text-sm">
-                <span className="font-medium">Description:</span> {parking.description}
+                <span className="font-medium">Mô tả:</span> {parking.description}
               </p>
             </div>
           )}
@@ -83,7 +83,7 @@ export const ParkingDetail = ({ parking, arriving, leaving, onBack, onNavigate }
             <div className="flex items-start">
               <ParkingSquare className="w-4 h-4 text-gray-500 mt-0.5 mr-2 flex-shrink-0" />
               <div className="text-sm">
-                <span className="font-medium">Zones:</span>
+                <span className="font-medium">Khu vực:</span>
                 <div className="flex flex-wrap gap-2 mt-1">
                   {parking.zones.map((zone) => (
                     <span 
@@ -91,7 +91,7 @@ export const ParkingDetail = ({ parking, arriving, leaving, onBack, onNavigate }
                       className="bg-blue-50 text-blue-700 px-2.5 py-1 rounded-full text-xs flex items-center"
                     >
                       <span className="w-2 h-2 bg-blue-500 rounded-full mr-1.5"></span>
-                      {zone.zone}: {zone.count} slots
+                      {zone.zone}: {zone.count} chỗ
                     </span>
                   ))}
                 </div>
@@ -103,8 +103,8 @@ export const ParkingDetail = ({ parking, arriving, leaving, onBack, onNavigate }
             <div className="flex items-center">
               <Calendar className="w-4 h-4 text-gray-500 mr-2" />
               <p className="text-sm">
-                <span className="font-medium">Arrival:</span>{" "}
-                {arriving.toLocaleString("en-US", { dateStyle: "short", timeStyle: "short" })}
+                <span className="font-medium">Thời gian đến:</span>{" "}
+                {arriving.toLocaleString("vi-VN", { dateStyle: "short", timeStyle: "short" })}
               </p>
             </div>
           )}
@@ -113,8 +113,8 @@ export const ParkingDetail = ({ parking, arriving, leaving, onBack, onNavigate }
             <div className="flex items-center">
               <Clock className="w-4 h-4 text-gray-500 mr-2" />
               <p className="text-sm">
-                <span className="font-medium">Departure:</span>{" "}
-                {leaving.toLocaleString("en-US", { dateStyle: "short", timeStyle: "short" })}
+                <span className="font-medium">Thời gian rời:</span>{" "}
+                {leaving.toLocaleString("vi-VN", { dateStyle: "short", timeStyle: "short" })}
               </p>
             </div>
           )}
@@ -126,15 +126,15 @@ export const ParkingDetail = ({ parking, arriving, leaving, onBack, onNavigate }
             className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-3 rounded-lg hover:from-blue-700 hover:to-indigo-700 transition-all flex items-center justify-center"
           >
             <Navigation className="w-5 h-5 mr-2" />
-            Get Directions
+            Chỉ đường
           </button>
 
           <button
-            onClick={() => router.push(`/detailParking?id=${parking._id}`)}
+            onClick={() => router.push(`/detailParking/${parking._id}`)}
             className="w-full bg-indigo-100 text-indigo-700 py-2.5 rounded-lg hover:bg-indigo-200 transition-colors flex items-center justify-center"
           >
             <Info className="w-5 h-5 mr-2" />
-            View More Details
+            Xem thêm chi tiết
           </button>
         </div>
       </div>

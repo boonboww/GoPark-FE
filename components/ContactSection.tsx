@@ -12,7 +12,9 @@ export default function ContactSection() {
     message: "",
   });
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
@@ -60,7 +62,7 @@ export default function ContactSection() {
         viewport={{ once: true }}
         className="text-4xl sm:text-5xl font-bold text-sky-600 mb-4 z-10"
       >
-        Contact Us
+        Liên Hệ Với Chúng Tôi
       </motion.h2>
 
       <motion.p
@@ -70,7 +72,8 @@ export default function ContactSection() {
         viewport={{ once: true }}
         className="text-gray-600 max-w-2xl mb-12 px-4 z-10"
       >
-        We love to hear from you. Fill out the form below and our team will get back to you as soon as possible.
+        Chúng tôi rất mong nhận được ý kiến từ bạn. Vui lòng điền vào biểu mẫu
+        dưới đây và đội ngũ của chúng tôi sẽ phản hồi sớm nhất có thể.
       </motion.p>
 
       {/* Info */}
@@ -91,7 +94,7 @@ export default function ContactSection() {
         </div>
         <div className="flex items-center gap-3 text-sky-600">
           <FaMapMarkerAlt className="text-2xl" />
-          <span className="text-gray-700">Hanoi, Vietnam</span>
+          <span className="text-gray-700">Hà Nội, Việt Nam</span>
         </div>
       </motion.div>
 
@@ -110,7 +113,7 @@ export default function ContactSection() {
             name="name"
             value={formData.name}
             onChange={handleChange}
-            placeholder="Your Name"
+            placeholder="Họ và Tên"
             className="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-sky-400"
             required
           />
@@ -119,7 +122,7 @@ export default function ContactSection() {
             name="email"
             value={formData.email}
             onChange={handleChange}
-            placeholder="Your Email"
+            placeholder="Email của bạn"
             className="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-sky-400"
             required
           />
@@ -127,7 +130,7 @@ export default function ContactSection() {
             name="message"
             value={formData.message}
             onChange={handleChange}
-            placeholder="Your Message"
+            placeholder="Tin nhắn của bạn"
             rows={5}
             className="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-sky-400"
             required
@@ -137,7 +140,7 @@ export default function ContactSection() {
           type="submit"
           className="bg-gradient-to-r from-sky-400 to-sky-500 text-white px-8 py-3 rounded-full text-lg font-medium shadow-lg hover:scale-105 hover:shadow-xl transition duration-300"
         >
-          Send Message
+          Gửi Tin Nhắn
         </button>
       </motion.form>
     </section>

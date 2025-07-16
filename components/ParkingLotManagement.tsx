@@ -1,3 +1,4 @@
+// ✅ Full ParkingLotManagement with zone object input (zone & count), edit/delete support
 "use client";
 
 import { useEffect, useState } from "react";
@@ -25,7 +26,6 @@ import {
   SelectContent,
   SelectItem,
 } from "@/components/ui/select";
-
 import type { ParkingLot } from "@/app/owner/types";
 import {
   fetchMyParkingLots,
@@ -39,13 +39,17 @@ export default function ParkingLotManagement() {
   const [selectedLotId, setSelectedLotId] = useState<string>("");
   const [newLotDialogOpen, setNewLotDialogOpen] = useState(false);
   const [imageUrl, setImageUrl] = useState<string>("");
+  const [zoneCount, setZoneCount] = useState<number>(1);
+  const [zoneValues, setZoneValues] = useState<
+    { zone: string; count: number }[]
+  >([{ zone: "", count: 0 }]);
 
-  const [newParkingLot, setNewParkingLot] = useState<Omit<ParkingLot, "_id" | "isActive">>({
+  const [newParkingLot, setNewParkingLot] = useState({
     name: "",
     address: "",
-    capacity: 0,
     pricePerHour: 0,
     image: [],
+    zones: [],
   });
 
   const [streetAddress, setStreetAddress] = useState("");
@@ -75,11 +79,18 @@ export default function ParkingLotManagement() {
     }
   }, [selectedLot]);
 
+  const handleZoneChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const count = Number(e.target.value);
+    setZoneCount(count);
+    setZoneValues(Array(count).fill({ zone: "", count: 0 }));
+  };
+
   const handleAddParkingLot = async () => {
     const payload = {
       ...newParkingLot,
       address: `${streetAddress}, ${district}, ${city}`,
       image: imageUrl ? [imageUrl] : [],
+      zones: zoneValues,
     };
 
     await createParkingLot(payload);
@@ -88,14 +99,16 @@ export default function ParkingLotManagement() {
     setNewParkingLot({
       name: "",
       address: "",
-      capacity: 0,
       pricePerHour: 0,
       image: [],
+      zones: [],
     });
     setImageUrl("");
     setStreetAddress("");
     setDistrict("");
     setCity("");
+    setZoneCount(1);
+    setZoneValues([{ zone: "", count: 0 }]);
   };
 
   const handleUpdateParkingLot = async () => {
@@ -106,15 +119,10 @@ export default function ParkingLotManagement() {
     const payload = {
       ...updated,
       address: `${streetAddress}, ${district}, ${city}`,
-      image: updated.image ? updated.image : [],
     };
 
-    try {
-      await updateParkingLot(selectedLotId, payload);
-      await loadParkingLots();
-    } catch (error) {
-      console.error("❌ Error while updating:", error);
-    }
+    await updateParkingLot(selectedLotId, payload);
+    await loadParkingLots();
   };
 
   const handleDeleteParkingLot = async (id: string) => {
@@ -125,9 +133,9 @@ export default function ParkingLotManagement() {
   return (
     <Card className="shadow-xl rounded-2xl p-4 bg-white">
       <CardHeader>
-        <CardTitle className="text-2xl font-bold">Parking Lot Management</CardTitle>
+        <CardTitle className="text-2xl font-bold">Quản Lý Bãi Đậu Xe</CardTitle>
         <CardDescription className="text-gray-500">
-          Add, edit, and manage your parking lots
+          Thêm, sửa và quản lý các bãi đậu xe của bạn
         </CardDescription>
       </CardHeader>
 
@@ -135,89 +143,145 @@ export default function ParkingLotManagement() {
         <div className="flex flex-col md:flex-row justify-between gap-4">
           <Dialog open={newLotDialogOpen} onOpenChange={setNewLotDialogOpen}>
             <DialogTrigger asChild>
-              <Button className="w-full md:w-auto">+ Add New Parking Lot</Button>
+              <Button className="w-full md:w-auto">
+                + Thêm Bãi Đậu Xe Mới
+              </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[450px] rounded-2xl">
+            <DialogContent className="sm:max-w-[650px] rounded-2xl">
               <DialogHeader>
-                <DialogTitle>Create New Parking Lot</DialogTitle>
+                <DialogTitle>Tạo Bãi Đậu Xe Mới</DialogTitle>
               </DialogHeader>
-              <div className="space-y-4 pt-4">
-                <Label>Name</Label>
-                <Input
-                  className="rounded-xl"
-                  value={newParkingLot.name}
-                  onChange={(e) =>
-                    setNewParkingLot({ ...newParkingLot, name: e.target.value })
-                  }
-                />
-                <Label>Street Address</Label>
-                <Input
-                  className="rounded-xl"
-                  value={streetAddress}
-                  onChange={(e) => setStreetAddress(e.target.value)}
-                  placeholder="123 Lê Lợi"
-                />
-                <Label>District</Label>
-                <Input
-                  className="rounded-xl"
-                  value={district}
-                  onChange={(e) => setDistrict(e.target.value)}
-                  placeholder="Thanh Khê"
-                />
-                <Label>City</Label>
-                <Input
-                  className="rounded-xl"
-                  value={city}
-                  onChange={(e) => setCity(e.target.value)}
-                  placeholder="Đà Nẵng"
-                />
-                <Label>Capacity</Label>
-                <Input
-                  type="number"
-                  className="rounded-xl"
-                  value={newParkingLot.capacity}
-                  onChange={(e) =>
-                    setNewParkingLot({ ...newParkingLot, capacity: Number(e.target.value) })
-                  }
-                />
-                <Label>Price per Hour</Label>
-                <Input
-                  type="number"
-                  className="rounded-xl"
-                  value={newParkingLot.pricePerHour}
-                  onChange={(e) =>
-                    setNewParkingLot({
-                      ...newParkingLot,
-                      pricePerHour: Number(e.target.value),
-                    })
-                  }
-                />
-                <Label>Image URL</Label>
-                <Input
-                  className="rounded-xl"
-                  value={imageUrl}
-                  onChange={(e) => setImageUrl(e.target.value)}
-                  placeholder="https://example.com/image.jpg"
-                />
-                {imageUrl && (
-                  <img
-                    src={imageUrl}
-                    alt="preview"
-                    className="rounded-xl border shadow w-full h-48 object-cover"
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 max-h-[80vh] overflow-y-auto pr-2">
+                <div className="md:col-span-2">
+                  <Label>Tên</Label>
+                  <Input
+                    className="rounded-xl"
+                    value={newParkingLot.name}
+                    onChange={(e) =>
+                      setNewParkingLot({
+                        ...newParkingLot,
+                        name: e.target.value,
+                      })
+                    }
                   />
-                )}
-                <Button className="w-full rounded-xl" onClick={handleAddParkingLot}>
-                  Create
-                </Button>
+                </div>
+                <div>
+                  <Label>Địa Chỉ Đường</Label>
+                  <Input
+                    className="rounded-xl"
+                    value={streetAddress}
+                    onChange={(e) => setStreetAddress(e.target.value)}
+                  />
+                </div>
+                <div>
+                  <Label>Quận/Huyện</Label>
+                  <Input
+                    className="rounded-xl"
+                    value={district}
+                    onChange={(e) => setDistrict(e.target.value)}
+                  />
+                </div>
+                <div className="md:col-span-2">
+                  <Label>Thành Phố</Label>
+                  <Input
+                    className="rounded-xl"
+                    value={city}
+                    onChange={(e) => setCity(e.target.value)}
+                  />
+                </div>
+                <div className="md:col-span-2">
+                  <Label>Số Khu Vực</Label>
+                  <select
+                    className="w-full border rounded px-3 py-2"
+                    value={zoneCount}
+                    onChange={handleZoneChange}
+                  >
+                    {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((n) => (
+                      <option key={n} value={n}>
+                        {n}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                {zoneValues.map((z, index) => (
+                  <div
+                    className="grid grid-cols-2 gap-2 md:col-span-2"
+                    key={index}
+                  >
+                    <div>
+                      <Label>Tên Khu Vực</Label>
+                      <Input
+                        value={z.zone}
+                        onChange={(e) => {
+                          const updated = [...zoneValues];
+                          updated[index].zone = e.target.value;
+                          setZoneValues(updated);
+                        }}
+                        placeholder="A"
+                      />
+                    </div>
+                    <div>
+                      <Label>Số Chỗ Đậu</Label>
+                      <Input
+                        type="number"
+                        value={z.count}
+                        onChange={(e) => {
+                          const updated = [...zoneValues];
+                          updated[index].count = Number(e.target.value);
+                          setZoneValues(updated);
+                        }}
+                        placeholder="10"
+                      />
+                    </div>
+                  </div>
+                ))}
+                <div className="md:col-span-2">
+                  <Label>Giá mỗi giờ (VND)</Label>
+                  <Input
+                    type="number"
+                    className="rounded-xl"
+                    value={newParkingLot.pricePerHour}
+                    onChange={(e) =>
+                      setNewParkingLot({
+                        ...newParkingLot,
+                        pricePerHour: Number(e.target.value),
+                      })
+                    }
+                  />
+                </div>
+                <div className="md:col-span-2">
+                  <Label>URL Hình Ảnh</Label>
+                  <Input
+                    className="rounded-xl"
+                    value={imageUrl}
+                    onChange={(e) => setImageUrl(e.target.value)}
+                    placeholder="https://example.com/image.jpg"
+                  />
+                  {imageUrl && (
+                    <img
+                      src={imageUrl}
+                      alt="xem trước"
+                      className="rounded-xl border shadow w-full max-h-[200px] object-contain mt-2"
+                    />
+                  )}
+                </div>
+                <div className="md:col-span-2">
+                  <Button
+                    className="w-full rounded-xl"
+                    onClick={handleAddParkingLot}
+                  >
+                    Tạo
+                  </Button>
+                </div>
               </div>
             </DialogContent>
           </Dialog>
 
           <div className="w-full md:w-64">
-            <Label>Select Parking Lot</Label>
+            <Label>Chọn Bãi Đậu Xe</Label>
             <Select value={selectedLotId} onValueChange={setSelectedLotId}>
               <SelectTrigger className="rounded-xl">
-                <SelectValue placeholder="Select a lot" />
+                <SelectValue placeholder="Chọn bãi đậu xe" />
               </SelectTrigger>
               <SelectContent>
                 {parkingLots.map((lot) => (
@@ -232,59 +296,80 @@ export default function ParkingLotManagement() {
 
         {selectedLot && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-6 bg-gray-50 rounded-2xl border">
-            <h3 className="text-lg font-semibold col-span-full">📝 Edit Parking Lot</h3>
-
-            <Label>Name</Label>
+            <h3 className="text-lg font-semibold col-span-full">
+              📝 Sửa Bãi Đậu Xe
+            </h3>
+            <Label>Tên</Label>
             <Input
               className="rounded-xl"
               value={selectedLot.name}
               onChange={(e) =>
                 setParkingLots((prev) =>
                   prev.map((lot) =>
-                    lot._id === selectedLot._id ? { ...lot, name: e.target.value } : lot
-                  )
-                )
-              }
-            />
-
-            <Label>Street Address</Label>
-            <Input
-              className="rounded-xl"
-              value={streetAddress}
-              onChange={(e) => setStreetAddress(e.target.value)}
-            />
-
-            <Label>District</Label>
-            <Input
-              className="rounded-xl"
-              value={district}
-              onChange={(e) => setDistrict(e.target.value)}
-            />
-
-            <Label>City</Label>
-            <Input
-              className="rounded-xl"
-              value={city}
-              onChange={(e) => setCity(e.target.value)}
-            />
-
-            <Label>Capacity</Label>
-            <Input
-              type="number"
-              className="rounded-xl"
-              value={selectedLot.capacity ?? 0}
-              onChange={(e) =>
-                setParkingLots((prev) =>
-                  prev.map((lot) =>
                     lot._id === selectedLot._id
-                      ? { ...lot, capacity: Number(e.target.value) }
+                      ? { ...lot, name: e.target.value }
                       : lot
                   )
                 )
               }
             />
-
-            <Label>Price per Hour</Label>
+            <Label>Địa Chỉ Đường</Label>
+            <Input
+              className="rounded-xl"
+              value={streetAddress}
+              onChange={(e) => setStreetAddress(e.target.value)}
+            />
+            <Label>Quận/Huyện</Label>
+            <Input
+              className="rounded-xl"
+              value={district}
+              onChange={(e) => setDistrict(e.target.value)}
+            />
+            <Label>Thành Phố</Label>
+            <Input
+              className="rounded-xl"
+              value={city}
+              onChange={(e) => setCity(e.target.value)}
+            />
+            <Label>Khu Vực</Label>
+            <div className="col-span-full grid grid-cols-1 md:grid-cols-2 gap-4">
+              {(selectedLot.zones ?? []).map((zoneObj, index) => (
+                <div key={index} className="grid grid-cols-2 gap-2">
+                  <Input
+                    value={zoneObj.zone}
+                    onChange={(e) => {
+                      const updatedZones = [...(selectedLot.zones ?? [])];
+                      updatedZones[index].zone = e.target.value;
+                      setParkingLots((prev) =>
+                        prev.map((lot) =>
+                          lot._id === selectedLot._id
+                            ? { ...lot, zones: updatedZones }
+                            : lot
+                        )
+                      );
+                    }}
+                    placeholder="Tên khu vực"
+                  />
+                  <Input
+                    type="number"
+                    value={zoneObj.count}
+                    onChange={(e) => {
+                      const updatedZones = [...(selectedLot.zones ?? [])];
+                      updatedZones[index].count = Number(e.target.value);
+                      setParkingLots((prev) =>
+                        prev.map((lot) =>
+                          lot._id === selectedLot._id
+                            ? { ...lot, zones: updatedZones }
+                            : lot
+                        )
+                      );
+                    }}
+                    placeholder="Số chỗ"
+                  />
+                </div>
+              ))}
+            </div>
+            <Label>Giá mỗi giờ (VND)</Label>
             <Input
               type="number"
               className="rounded-xl"
@@ -299,8 +384,7 @@ export default function ParkingLotManagement() {
                 )
               }
             />
-
-            <Label>Image URL</Label>
+            <Label>URL Hình Ảnh</Label>
             <Input
               className="rounded-xl col-span-full"
               value={selectedLot.image?.[0] || ""}
@@ -314,25 +398,26 @@ export default function ParkingLotManagement() {
                 )
               }
             />
-
             {selectedLot.image?.[0] && (
               <img
                 src={selectedLot.image[0]}
-                alt="parking"
+                alt="bãi đậu xe"
                 className="rounded-xl border shadow-md w-full h-48 object-cover col-span-full"
               />
             )}
-
             <div className="flex gap-4 col-span-full pt-4">
-              <Button className="rounded-xl px-6 py-2" onClick={handleUpdateParkingLot}>
-                Save Changes
+              <Button
+                className="rounded-xl px-6 py-2"
+                onClick={handleUpdateParkingLot}
+              >
+                Lưu Thay Đổi
               </Button>
               <Button
                 variant="destructive"
                 className="rounded-xl px-6 py-2"
                 onClick={() => handleDeleteParkingLot(selectedLot._id)}
               >
-                Delete Lot
+                Xóa Bãi Đậu Xe
               </Button>
             </div>
           </div>

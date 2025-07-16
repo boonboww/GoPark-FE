@@ -28,18 +28,18 @@ export default function BookingDetail({
         <div className="border-2 border-dashed border-gray-300 p-4 rounded-lg mb-6">
           <div className="flex justify-between items-start mb-4">
             <div>
-              <h2 className="text-xl font-bold">PARKING TICKET</h2>
+              <h2 className="text-xl font-bold">VÉ ĐỖ XE</h2>
               <p className="text-sm text-gray-500">#{booking.ticketId}</p>
             </div>
             <div className="bg-black text-white px-2 py-1 rounded text-xs">
-              ACTIVE
+              ĐANG HOẠT ĐỘNG
             </div>
           </div>
 
           <div className="grid grid-cols-2 gap-4 mb-4">
             <div className="space-y-2">
               <p className="text-sm text-gray-600 flex items-center gap-1">
-                <MapPin className="w-4 h-4" /> Location
+                <MapPin className="w-4 h-4" /> Vị trí
               </p>
               <p className="font-medium">
                 {booking.zone}-{booking.spotNumber}
@@ -47,24 +47,24 @@ export default function BookingDetail({
             </div>
             <div className="space-y-2">
               <p className="text-sm text-gray-600 flex items-center gap-1">
-                <Car className="w-4 h-4" /> Plate
+                <Car className="w-4 h-4" /> Biển số
               </p>
               <p className="font-medium">{booking.plateNumber}</p>
             </div>
             <div className="space-y-2">
               <p className="text-sm text-gray-600 flex items-center gap-1">
-                <Clock className="w-4 h-4" /> Start
+                <Clock className="w-4 h-4" /> Bắt đầu
               </p>
               <p className="font-medium">
-                {new Date(booking.startTime).toLocaleString()}
+                {new Date(booking.startTime).toLocaleString("vi-VN")}
               </p>
             </div>
             <div className="space-y-2">
               <p className="text-sm text-gray-600 flex items-center gap-1">
-                <Clock className="w-4 h-4" /> End
+                <Clock className="w-4 h-4" /> Kết thúc
               </p>
               <p className="font-medium">
-                {new Date(booking.endTime).toLocaleString()}
+                {new Date(booking.endTime).toLocaleString("vi-VN")}
               </p>
             </div>
           </div>
@@ -72,12 +72,12 @@ export default function BookingDetail({
           <div className="flex justify-between items-center mt-4 pt-4 border-t border-gray-200">
             <div className="space-y-2">
               <p className="text-sm text-gray-600 flex items-center gap-1">
-                <CreditCard className="w-4 h-4" /> Payment
+                <CreditCard className="w-4 h-4" /> Thanh toán
               </p>
-              <p className="font-medium">{booking.paymentMethod}</p>
+              <p className="font-medium">{booking.paymentMethod === "prepaid" ? "Thanh toán trước" : "Thanh toán tại bãi"}</p>
             </div>
             <div className="text-right">
-              <p className="text-sm text-gray-600">Total</p>
+              <p className="text-sm text-gray-600">Tổng cộng</p>
               <p className="font-bold text-lg">{booking.fee}</p>
             </div>
           </div>
@@ -91,7 +91,7 @@ export default function BookingDetail({
             />
           </div>
           <p className="text-xs text-center text-gray-500 mt-2">
-            Scan QR code at parking entrance
+            Quét mã QR tại cổng bãi đỗ
           </p>
         </div>
 
@@ -104,7 +104,7 @@ export default function BookingDetail({
             className="w-full mt-4 bg-black hover:bg-gray-800 text-white"
             onClick={() => window.print()}
           >
-            <Ticket className="w-4 h-4 mr-2" /> Print Ticket
+            <Ticket className="w-4 h-4 mr-2" /> In vé
           </Button>
         </div>
       </div>

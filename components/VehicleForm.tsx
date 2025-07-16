@@ -37,30 +37,33 @@ export default function VehicleForm({ onSubmit, onCancel }: VehicleFormProps) {
   return (
     <div className="space-y-4 p-4">
       <div>
-        <Label>License Plate</Label>
+        <Label>Biển số xe</Label>
         <Input
           value={formData.licensePlate}
           onChange={(e) => handleChange("licensePlate", e.target.value)}
+          placeholder="Nhập biển số xe"
         />
       </div>
       <div>
-        <Label>Capacity</Label>
+        <Label>Sức chứa</Label>
         <Input
           type="number"
           value={formData.capacity}
           onChange={(e) => handleChange("capacity", parseInt(e.target.value))}
+          placeholder="Nhập sức chứa"
         />
       </div>
       <div>
-        <Label>Image URL (optional)</Label>
+        <Label>URL hình ảnh (không bắt buộc)</Label>
         <Input
           value={formData.imageVehicle}
           onChange={(e) => handleChange("imageVehicle", e.target.value)}
+          placeholder="Nhập URL hình ảnh"
         />
       </div>
       <div className="flex justify-end gap-2 pt-4">
-        <Button variant="outline" onClick={onCancel}>Cancel</Button>
-        <Button onClick={handleSubmit}>Add</Button>
+        <Button variant="outline" onClick={onCancel}>Hủy</Button>
+        <Button onClick={handleSubmit}>Thêm</Button>
       </div>
     </div>
   );

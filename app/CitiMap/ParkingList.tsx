@@ -1,6 +1,6 @@
 "use client";
 import { useRouter } from "next/navigation";
-import { LocateFixed, Loader2, ChevronLeft, MapPin, ParkingSquare, Home } from "lucide-react";
+import { LocateFixed, Loader2, ChevronLeft, MapPin, Home } from "lucide-react";
 import { ParkingCard } from "./ParkingCard";
 import { Parking } from "./types";
 
@@ -15,7 +15,6 @@ interface ParkingListProps {
 }
 
 export const ParkingList = ({
-  city,
   parkings,
   isLocating,
   isNearby,
@@ -36,17 +35,9 @@ export const ParkingList = ({
           <ChevronLeft className="w-5 h-5 group-hover:-translate-x-0.5 transition-transform" />
           <span className="flex items-center gap-1 text-sm">
             <Home className="w-4 h-4" />
-            Home
+            Trang chủ
           </span>
         </button>
-
-        {/* Title with parking icon */}
-        <div className="flex items-center gap-2 bg-blue-50 px-3 py-1.5 rounded-full">
-          <ParkingSquare className="w-5 h-5 text-blue-600" />
-          <h2 className="text-lg font-semibold text-gray-800">
-            Parking in {city}
-          </h2>
-        </div>
       </div>
 
       {/* Find nearby parking button */}
@@ -61,7 +52,7 @@ export const ParkingList = ({
           ) : (
             <LocateFixed className="w-5 h-5" />
           )}
-          Find Nearby Parking
+          Tìm bãi đỗ xe gần đây
         </button>
       )}
 
@@ -69,8 +60,8 @@ export const ParkingList = ({
       {parkings.length === 0 ? (
         <div className="text-center py-12 text-gray-500 flex flex-col items-center">
           <MapPin className="w-10 h-10 text-gray-400 mb-2" />
-          <p className="text-lg">No parking spots found</p>
-          <p className="text-sm mt-1">Try adjusting your search criteria</p>
+          <p className="text-lg">Không tìm thấy bãi đỗ xe</p>
+          <p className="text-sm mt-1">Hãy thử điều chỉnh tiêu chí tìm kiếm</p>
         </div>
       ) : (
         <div className="grid gap-4 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-1">

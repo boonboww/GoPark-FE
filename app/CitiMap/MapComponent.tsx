@@ -72,7 +72,7 @@ const MapComponent = ({
     if (userCoords) {
       userMarker = L.marker(userCoords, { icon: userIcon })
         .addTo(mapInstance)
-        .bindPopup("Your current location");
+        .bindPopup("Vị trí hiện tại của bạn");
     }
 
     // Parking markers
@@ -86,10 +86,10 @@ const MapComponent = ({
           <img src="${p.avtImage || "/default-parking.jpg"}" alt="${p.name}" 
               class="w-full h-24 object-cover mb-2 rounded-md">
           <strong class="text-base">${p.name}</strong><br>
-          <span class="text-gray-600">Address: ${p.address}</span><br>
-          <span class="text-gray-600">Price: ${
-            p.pricePerHour != null ? p.pricePerHour.toLocaleString() : "N/A"
-          } VND/hour</span><br>
+          <span class="text-gray-600">Địa chỉ: ${p.address}</span><br>
+          <span class="text-gray-600">Giá: ${
+            p.pricePerHour != null ? p.pricePerHour.toLocaleString() : "Không có"
+          } VND/giờ</span><br>
           <a href="/detailParking?id=${p._id}" class="text-blue-600 hover:underline text-sm mt-1 inline-block">Xem chi tiết</a>
         </div>
       `;
@@ -126,7 +126,7 @@ const MapComponent = ({
       });
 
       routingControl.on("routingerror", (err) => {
-        console.error("Routing error:", err);
+        console.error("Lỗi định tuyến:", err);
       });
     }
 

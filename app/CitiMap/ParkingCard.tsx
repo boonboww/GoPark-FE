@@ -29,7 +29,7 @@ export const ParkingCard = ({ parking, onSelect, onNavigate }: ParkingCardProps)
           ) : (
             <XCircle className="w-3 h-3 text-red-600 mr-1" />
           )}
-          {parking.isActive ? "Available" : "Full"}
+          {parking.isActive ? "Còn chỗ" : "Hết chỗ"}
         </div>
       </div>
 
@@ -45,8 +45,8 @@ export const ParkingCard = ({ parking, onSelect, onNavigate }: ParkingCardProps)
           <Wallet className="w-4 h-4 text-gray-500 mr-1.5" />
           <span>
             {parking.pricePerHour != null ? 
-              `${parking.pricePerHour.toLocaleString()} VND/hour` : 
-              "Price: N/A"}
+              `${parking.pricePerHour.toLocaleString()} VND/giờ` : 
+              "Giá: Không có"}
           </span>
         </div>
       </div>
@@ -60,18 +60,18 @@ export const ParkingCard = ({ parking, onSelect, onNavigate }: ParkingCardProps)
           className="flex items-center justify-center bg-blue-600 text-white px-3 py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm"
         >
           <Navigation className="w-4 h-4 mr-1.5" />
-          Directions
+          Chỉ đường
         </button>
         
         <button
           onClick={(e) => {
             e.stopPropagation();
-            router.push(`/detailParking?id=${parking._id}`);
+            router.push(`/detailParking/${parking._id}`);
           }}
           className="flex items-center justify-center bg-gray-100 text-gray-700 px-3 py-2 rounded-lg hover:bg-gray-200 transition-colors text-sm"
         >
           <Info className="w-4 h-4 mr-1.5" />
-          Details
+          Chi tiết
         </button>
       </div>
     </div>

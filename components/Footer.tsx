@@ -4,40 +4,40 @@ import { Facebook, Twitter, Instagram, Youtube } from "lucide-react";
 
 const Footer = () => {
   const footerSections = {
-    resources: [
-      { name: "Find Parking", href: "/book" },
-      { name: "Mobile App", href: "/app" },
-      { name: "Pricing", href: "/pricing" },
-      { name: "FAQs", href: "/faq" },
-      { name: "Feedback", href: "/feedback" },
+    tài_nguyên: [
+      { name: "Tìm bãi đỗ", href: "/book" },
+      { name: "Ứng dụng di động", href: "/app" },
+      { name: "Bảng giá", href: "/pricing" },
+      { name: "Câu hỏi thường gặp", href: "/faq" },
+      { name: "Phản hồi", href: "/feedback" },
     ],
-    help: [
-      { name: "Customer Support", href: "/support" },
-      { name: "Booking Status", href: "/booking-status" },
-      { name: "Cancellation Policy", href: "/cancel" },
-      { name: "Payment Methods", href: "/payment" },
-      { name: "Contact Us", href: "/contact" },
+    hỗ_trợ: [
+      { name: "Hỗ trợ khách hàng", href: "/support" },
+      { name: "Trạng thái đặt chỗ", href: "/booking-status" },
+      { name: "Chính sách hủy", href: "/cancel" },
+      { name: "Phương thức thanh toán", href: "/payment" },
+      { name: "Liên hệ", href: "/contact" },
     ],
-    company: [
-      { name: "About GoPark", href: "/about" },
-      { name: "News & Updates", href: "/news" },
-      { name: "Careers", href: "/careers" },
-      { name: "Partnerships", href: "/partners" },
-      { name: "Terms of Use", href: "/terms" },
-      { name: "Privacy Policy", href: "/privacy" },
+    công_ty: [
+      { name: "Về GoPark", href: "/about" },
+      { name: "Tin tức & Cập nhật", href: "/news" },
+      { name: "Tuyển dụng", href: "/careers" },
+      { name: "Hợp tác", href: "/partners" },
+      { name: "Điều khoản sử dụng", href: "/terms" },
+      { name: "Chính sách bảo mật", href: "/privacy" },
     ],
-    promotions: [
-      { name: "First-Time User", href: "/promo/first-time" },
-      { name: "Monthly Pass", href: "/promo/monthly" },
-      { name: "Referral Bonus", href: "/promo/referral" },
-      { name: "Corporate Plans", href: "/promo/corporate" },
+    khuyến_mãi: [
+      { name: "Người dùng mới", href: "/promo/first-time" },
+      { name: "Vé tháng", href: "/promo/monthly" },
+      { name: "Thưởng giới thiệu", href: "/promo/referral" },
+      { name: "Gói doanh nghiệp", href: "/promo/corporate" },
     ],
   };
 
   const legalLinks = [
-    { name: "Terms of Service", href: "/terms" },
-    { name: "Privacy Policy", href: "/privacy" },
-    { name: "Cookie Policy", href: "/cookies" },
+    { name: "Điều khoản dịch vụ", href: "/terms" },
+    { name: "Chính sách bảo mật", href: "/privacy" },
+    { name: "Chính sách cookie", href: "/cookies" },
   ];
 
   const socialIcons = [
@@ -55,7 +55,7 @@ const Footer = () => {
           {Object.entries(footerSections).map(([section, links]) => (
             <div key={section}>
               <h3 className="text-sm font-semibold mb-4 capitalize">
-                {section}
+                {section.replace("_", " ")}
               </h3>
               <ul className="space-y-2">
                 {links.map((item) => (
@@ -77,7 +77,7 @@ const Footer = () => {
         <div className="border-t border-gray-800 pt-8 flex flex-col md:flex-row justify-between items-start md:items-center">
           <div className="mb-4 md:mb-0">
             <p className="text-gray-400 text-xs mb-2">
-              © 2025 GoPark. All Rights Reserved.
+              © 2025 GoPark. Mọi quyền được bảo lưu.
             </p>
             <div className="flex flex-wrap gap-4">
               {legalLinks.map((link) => (

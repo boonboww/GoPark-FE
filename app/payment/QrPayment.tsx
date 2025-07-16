@@ -9,6 +9,7 @@ import { BookingInfo } from "./page";
 export default function QrPayment({
   onBack,
   onComplete,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   bookingInfo
 }: {
   onBack: () => void;
@@ -40,7 +41,7 @@ export default function QrPayment({
               {step}
             </div>
             <span className="text-xs text-gray-500">
-              {index === 0 ? 'Information' : index === 1 ? 'Payment' : 'Completion'}
+              {index === 0 ? 'Thông Tin' : index === 1 ? 'Thanh Toán' : 'Hoàn Thành'}
             </span>
           </div>
         ))}
@@ -49,10 +50,10 @@ export default function QrPayment({
       <div className="text-center">
         <h1 className="text-xl font-semibold mb-2 flex items-center justify-center gap-2 text-gray-800">
           <QrCode className="w-5 h-5 text-gray-600" />
-          QR Payment
+          Thanh Toán QR
         </h1>
         <p className="text-sm text-gray-500 mb-6">
-          Scan the QR code to complete your payment
+          Quét mã QR để hoàn tất thanh toán
         </p>
 
         <motion.div
@@ -88,7 +89,7 @@ export default function QrPayment({
             className="flex-1 h-12 border-gray-300 hover:bg-gray-50"
           >
             <ArrowLeft className="w-5 h-5 mr-2" />
-            Back
+            Quay Lại
           </Button>
           <Button 
             onClick={handlePaymentComplete} 
@@ -98,12 +99,12 @@ export default function QrPayment({
             {isProcessing ? (
               <>
                 <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                Processing...
+                Đang Xử Lý...
               </>
             ) : (
               <>
                 <CheckCircle className="w-5 h-5 mr-2" />
-                Confirm Payment
+                Xác Nhận Thanh Toán
               </>
             )}
           </Button>

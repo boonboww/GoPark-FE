@@ -2,30 +2,33 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import {
-  Star,
-  ChevronDown,
-  ChevronUp,
-  Filter,
-  ImageIcon,
-  MessageSquare,
-} from "lucide-react";
+import { Star, ChevronDown, ChevronUp, Filter, ImageIcon, MessageSquare } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-const allReviews = [
+type Review = {
+  id: number;
+  name: string;
+  comment: string;
+  stars: number;
+  image?: string;
+  avatar: string;
+  ownerReply?: string;
+};
+
+const allReviews: Review[] = [
   {
     id: 1,
     name: "John Doe",
-    comment: "Great parking spot, easy to find and secure.",
+    comment: "Bãi đỗ tuyệt vời, dễ tìm và an toàn.",
     stars: 5,
     image: "/bg.jpg",
     avatar: "/avt.png",
-    ownerReply: "Thank you so much for your feedback! Hope to see you again.",
+    ownerReply: "Cảm ơn bạn rất nhiều vì phản hồi! Hy vọng sẽ gặp lại bạn.",
   },
   {
     id: 2,
     name: "Jane Smith",
-    comment: "Close to the airport, super convenient!",
+    comment: "Gần sân bay, rất tiện lợi!",
     stars: 4,
     image: "/bg.jpg",
     avatar: "/avt.png",
@@ -33,15 +36,15 @@ const allReviews = [
   {
     id: 3,
     name: "David Brown",
-    comment: "Good service but a bit crowded at peak times.",
+    comment: "Dịch vụ tốt nhưng hơi đông vào giờ cao điểm.",
     stars: 3,
     avatar: "/avt.png",
-    ownerReply: "We appreciate your comment and will try to manage peak times better.",
+    ownerReply: "Chúng tôi đánh giá cao ý kiến của bạn và sẽ cố gắng quản lý giờ cao điểm tốt hơn.",
   },
   {
     id: 4,
     name: "Emma White",
-    comment: "Not satisfied, the staff was not helpful.",
+    comment: "Không hài lòng, nhân viên không hỗ trợ tốt.",
     stars: 2,
     image: "/bg.jpg",
     avatar: "/avt.png",
@@ -49,10 +52,10 @@ const allReviews = [
   {
     id: 5,
     name: "Oliver Black",
-    comment: "Terrible experience, my car got scratched.",
+    comment: "Trải nghiệm tệ, xe của tôi bị trầy xước.",
     stars: 1,
     avatar: "/avt.png",
-    ownerReply: "We sincerely apologize and are investigating this issue immediately.",
+    ownerReply: "Chúng tôi thành thật xin lỗi và đang điều tra vấn đề này ngay lập tức.",
   },
 ];
 
@@ -76,17 +79,16 @@ export default function ParkingReview() {
 
   return (
     <section className="w-full">
-      <h2 className="text-lg font-semibold mb-4">Customer Reviews</h2>
+      <h2 className="text-lg font-semibold mb-4">Đánh giá khách hàng</h2>
 
-      {/* Filter Buttons */}
-      <div className="flex flex-wrap gap-2  mb-4">
+      <div className="flex flex-wrap gap-2 mb-4">
         <Button
           variant="outline"
           size="sm"
           onClick={() => setShowFilter(!showFilter)}
           className="flex gap-1 items-center"
         >
-          <Filter className="w-4 h-4" /> Filter by Stars
+          <Filter className="w-4 h-4" /> Lọc theo số sao
         </Button>
 
         <Button
@@ -95,7 +97,7 @@ export default function ParkingReview() {
           onClick={() => setOnlyImages(!onlyImages)}
           className="flex gap-1 items-center"
         >
-          <ImageIcon className="w-4 h-4" /> Show with Images
+          <ImageIcon className="w-4 h-4" /> Hiển thị có hình ảnh
         </Button>
       </div>
 
@@ -110,17 +112,16 @@ export default function ParkingReview() {
             }
             className="border rounded-md px-3 py-2 w-40"
           >
-            <option value="">All Stars</option>
+            <option value="">Tất cả sao</option>
             {[5, 4, 3, 2, 1].map((star) => (
               <option key={star} value={star}>
-                {star} Star{star > 1 && "s"}
+                {star} Sao
               </option>
             ))}
           </select>
         </div>
       )}
 
-      {/* Scroll Container */}
       <div
         className={`flex flex-col gap-4 transition-all ${
           expanded ? "" : "max-h-96 overflow-y-auto"
@@ -129,9 +130,8 @@ export default function ParkingReview() {
         {visible.map((r) => (
           <div
             key={r.id}
-            className="flex flex-col gap-2 bg-gray-300 border rounded-md shadow-sm p-4 bg-white"
+            className="flex flex-col gap-2 border rounded-md shadow-sm p-4 bg-white"
           >
-            {/* User Review */}
             <div className="flex items-start gap-3">
               <Image
                 src={r.avatar || "/avatars/default.jpg"}
@@ -143,14 +143,14 @@ export default function ParkingReview() {
 
               <div className="flex-1">
                 <div className="flex items-center gap-2 text-sm">
-                  <Star className="w-4 h-4 text-yellow-500" /> {r.stars} Stars
+                  <Star className="w-4 h-4 text-yellow-500" /> {r.stars} Sao
                 </div>
                 <p className="text-sm text-gray-800 mt-1">{r.comment}</p>
                 <p className="text-xs text-gray-500 italic mt-1">— {r.name}</p>
                 {r.image && (
                   <Image
                     src={r.image}
-                    alt={`Review ${r.id}`}
+                    alt={`Đánh giá ${r.id}`}
                     width={400}
                     height={300}
                     className="mt-2 rounded-md object-cover w-full md:w-1/2"
@@ -159,7 +159,6 @@ export default function ParkingReview() {
               </div>
             </div>
 
-            {/* Owner Reply */}
             {r.ownerReply && (
               <div className="flex items-start gap-3 pl-12 mt-2">
                 <div className="flex items-center justify-center w-10 h-10 rounded-full bg-yellow-100">
@@ -167,7 +166,7 @@ export default function ParkingReview() {
                 </div>
                 <div className="border border-yellow-200 bg-yellow-50 p-3 rounded-md w-full">
                   <p className="text-sm text-yellow-800 font-medium mb-1">
-                    Owner Reply:
+                    Phản hồi của chủ bãi:
                   </p>
                   <p className="text-sm text-yellow-800">{r.ownerReply}</p>
                 </div>
@@ -177,11 +176,10 @@ export default function ParkingReview() {
         ))}
 
         {filtered.length === 0 && (
-          <p className="text-gray-500 text-sm">No reviews found.</p>
+          <p className="text-gray-500 text-sm">Không tìm thấy đánh giá.</p>
         )}
       </div>
 
-      {/* Show More Button */}
       {filtered.length > 3 && (
         <Button
           variant="ghost"
@@ -190,11 +188,11 @@ export default function ParkingReview() {
         >
           {expanded ? (
             <>
-              Collapse <ChevronUp className="w-4 h-4" />
+              Thu gọn <ChevronUp className="w-4 h-4" />
             </>
           ) : (
             <>
-              Show More <ChevronDown className="w-4 h-4" />
+              Xem thêm <ChevronDown className="w-4 h-4" />
             </>
           )}
         </Button>

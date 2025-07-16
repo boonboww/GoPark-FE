@@ -21,7 +21,7 @@ export async function sendResetPasswordEmail(email: string): Promise<ResetRespon
     
     return {
       success: res.status >= 200 && res.status < 300,
-      message: res.data?.message ?? "Password reset email sent successfully. Please check your email.",
+      message: res.data?.message ?? "Email đặt lại mật khẩu đã được gửi. Vui lòng kiểm tra hộp thư của bạn.",
       token: res.data?.resetToken
     };
   } catch (error) {
@@ -30,7 +30,7 @@ export async function sendResetPasswordEmail(email: string): Promise<ResetRespon
       success: false,
       error: err.response?.data?.message ?? 
             err.message ?? 
-            "Failed to send reset email. Please try again later."
+            "Gửi email đặt lại mật khẩu thất bại. Vui lòng thử lại sau."
     };
   }
 }
@@ -49,7 +49,7 @@ export async function resetPasswordWithToken(
 
     return {
       success: res.status >= 200 && res.status < 300,
-      message: res.data?.message ?? "Password reset successfully!",
+      message: res.data?.message ?? "Đặt lại mật khẩu thành công!",
       token: res.data?.token
     };
   } catch (error) {
@@ -58,7 +58,7 @@ export async function resetPasswordWithToken(
       success: false,
       error: err.response?.data?.message ?? 
             err.message ?? 
-            "Password reset failed. The token may be invalid or expired."
+            "Đặt lại mật khẩu thất bại. Token có thể không hợp lệ hoặc đã hết hạn."
     };
   }
 }

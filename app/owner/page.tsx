@@ -3,22 +3,13 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import {
-  Tabs,
-  TabsList,
-  TabsTrigger,
-  TabsContent,
-} from "@/components/ui/tabs";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import CustomerManagement from "@/components/CustomerManagement";
 import VehicleManagement from "@/components/VehicleManagement";
 import TicketManagement from "@/components/TicketManagement";
 import ParkingLotManagement from "@/components/ParkingLotManagement";
 import AccountManagement from "@/components/AccountManagement";
-import type {
-  Customer,
-  Vehicle,
-  Ticket,
-} from "@/app/owner/types";
+import type { Customer, Vehicle, Ticket } from "@/app/owner/types";
 import API from "@/lib/api";
 
 const initialData = {
@@ -92,9 +83,7 @@ export default function OwnerDashboard() {
   const [vehicleList, setVehicleList] = useState<Vehicle[]>(
     initialData.vehicles
   );
-  const [ticketList, setTicketList] = useState<Ticket[]>(
-    initialData.tickets
-  );
+  const [ticketList, setTicketList] = useState<Ticket[]>(initialData.tickets);
   const [accountName, setAccountName] = useState<string>("");
 
   useEffect(() => {
@@ -131,26 +120,28 @@ export default function OwnerDashboard() {
       <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">
-            Parking Management System
+            Hệ thống quản lý bãi đỗ xe
           </h1>
-          <p className="text-sm text-gray-500">Welcome back, {accountName}</p>
+          <p className="text-sm text-gray-500">
+            Chào mừng trở lại, {accountName}
+          </p>
         </div>
         <Button
           variant="outline"
           onClick={handleLogout}
           className="hover:bg-gray-100"
         >
-          Log Out
+          Đăng xuất
         </Button>
       </header>
 
       <Tabs defaultValue="customers" className="w-full">
         <TabsList className="grid w-full grid-cols-2 md:grid-cols-5">
-          <TabsTrigger value="customers">Customers</TabsTrigger>
-          <TabsTrigger value="vehicles">Vehicles</TabsTrigger>
-          <TabsTrigger value="tickets">Tickets</TabsTrigger>
-          <TabsTrigger value="parkingLots">Parking Lots</TabsTrigger>
-          <TabsTrigger value="account">Account</TabsTrigger>
+          <TabsTrigger value="customers">Khách hàng</TabsTrigger>
+          <TabsTrigger value="vehicles">Vị Trí Đỗ </TabsTrigger>
+          <TabsTrigger value="tickets">Vé</TabsTrigger>
+          <TabsTrigger value="parkingLots">Bãi đỗ</TabsTrigger>
+          <TabsTrigger value="account">Tài khoản</TabsTrigger>
         </TabsList>
 
         <div className="mt-6">

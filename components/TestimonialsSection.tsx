@@ -6,10 +6,10 @@ export default function TestimonialsSection() {
   return (
     <section className="py-20 px-6 text-center bg-sky-50">
       <h2 className="text-4xl sm:text-5xl font-bold text-sky-600 mb-4">
-        What Our Users Say
+        Khách Hàng Nói Gì Về Chúng Tôi
       </h2>
       <p className="text-gray-600 max-w-3xl mx-auto mb-12">
-        We’re trusted by drivers and parking owners across Vietnam.
+        Chúng tôi được tin tưởng bởi các tài xế và chủ bãi đỗ xe trên khắp Việt Nam.
       </p>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
@@ -17,30 +17,29 @@ export default function TestimonialsSection() {
         <div className="bg-white p-8 rounded-2xl shadow-md relative hover:shadow-xl transition">
           <FaQuoteLeft className="text-sky-200 text-5xl absolute -top-4 -left-4" />
           <p className="text-gray-700 mb-6 leading-relaxed">
-          " Finding parking has never been this easy! I can book spots online
-            and save so much time "
+            "Việc tìm chỗ đỗ xe chưa bao giờ dễ dàng đến thế! Tôi có thể đặt chỗ trực tuyến
+            và tiết kiệm rất nhiều thời gian"
           </p>
-          <p className="text-sky-500 font-bold">– Tran Minh, Hanoi</p>
+          <p className="text-sky-500 font-bold">– Trần Minh, Hà Nội</p>
         </div>
 
         {/* Testimonial 2 */}
         <div className="bg-white p-8 rounded-2xl shadow-md relative hover:shadow-xl transition">
           <FaQuoteLeft className="text-sky-200 text-5xl absolute -top-4 -left-4" />
           <p className="text-gray-700 mb-6 leading-relaxed">
-            " I earn extra income by sharing my unused parking spots. Great
-            support team too "
+            "Tôi kiếm thêm thu nhập bằng cách chia sẻ chỗ đỗ xe không sử dụng. Đội ngũ hỗ trợ cũng rất tuyệt vời"
           </p>
-          <p className="text-sky-500 font-bold">– Le Hoa, Da Nang</p>
+          <p className="text-sky-500 font-bold">– Lê Hòa, Đà Nẵng</p>
         </div>
 
         {/* Testimonial 3 */}
         <div className="bg-white p-8 rounded-2xl shadow-md relative hover:shadow-xl transition">
           <FaQuoteLeft className="text-sky-200 text-5xl absolute -top-4 -left-4" />
           <p className="text-gray-700 mb-6 leading-relaxed">
-            " Very convenient, secure, and highly recommended for busy cities. "
+            "Rất tiện lợi, an toàn và rất đáng khuyên dùng cho các thành phố đông đúc."
           </p>
           <p className="text-sky-500 font-bold">
-            – Nguyen Bao, Ho Chi Minh City
+            – Nguyễn Bảo, Thành phố Hồ Chí Minh
           </p>
         </div>
       </div>

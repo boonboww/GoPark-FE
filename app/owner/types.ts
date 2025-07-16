@@ -18,7 +18,9 @@ export interface Vehicle {
   owner: string;
   status: "Parked" | "Reserved" | "Available" | "Not Parked";
   plateImage?: string;
+   imageVehicle?: string;
 }
+
 
 // Ticket type
 export interface Ticket {
@@ -32,15 +34,14 @@ export interface Ticket {
 }
 
 // ParkingLot type
-export interface ParkingLot {
-  _id: string;
+export type ParkingLot = {
+  _id?: string;
   name: string;
   address: string;
-  image: string[]; // 👈 sửa thành mảng
-  isActive: boolean;
-  capacity: number;
   pricePerHour: number;
-}
+  image: string[];
+  zones: { zone: string; count: number }[]; // ✅ Sửa lại kiểu này
+};
 
 
 
@@ -68,9 +69,12 @@ export interface Floor {
 }
 
 // Vehicle form type
-export interface VehicleFormData {
+export type VehicleFormData = {
   licensePlate: string;
-}
+  capacity: number;
+  imageVehicle?: string;
+};
+
 
 // Props types for components
 export interface CustomerManagementProps {

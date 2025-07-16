@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { Loader2, CreditCard, Car, MapPin, Clock } from "lucide-react";
+import { Loader2, CreditCard, MapPin } from "lucide-react";
 import { BookingInfo } from "./page";
 import { motion } from "framer-motion";
 
@@ -33,7 +33,7 @@ export default function PaymentForm({
               {step}
             </div>
             <span className="text-xs text-gray-500">
-              {index === 0 ? 'Information' : index === 1 ? 'Payment' : 'Completion'}
+              {index === 0 ? 'Thông Tin' : index === 1 ? 'Thanh Toán' : 'Hoàn Thành'}
             </span>
           </div>
         ))}
@@ -43,23 +43,23 @@ export default function PaymentForm({
         <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
           <h2 className="text-sm font-medium mb-3 flex items-center gap-2 text-gray-800">
             <MapPin className="w-4 h-4 text-gray-600" />
-            Booking Information
+            Thông Tin Đặt Chỗ
           </h2>
           <div className="grid gap-3 text-sm">
             <div className="flex justify-between">
-              <span className="text-gray-600">Customer:</span>
+              <span className="text-gray-600">Khách Hàng:</span>
               <span className="font-medium text-gray-800">{bookingInfo.name}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-gray-600">License Plate:</span>
+              <span className="text-gray-600">Biển Số:</span>
               <span className="font-medium text-gray-800">{bookingInfo.vehicle}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-gray-600">Location:</span>
-              <span className="font-medium text-gray-800">Zone {bookingInfo.zone} - Spot {bookingInfo.spot}</span>
+              <span className="text-gray-600">Vị Trí:</span>
+              <span className="font-medium text-gray-800">Khu {bookingInfo.zone} - Chỗ {bookingInfo.spot}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-gray-600">Time:</span>
+              <span className="text-gray-600">Thời Gian:</span>
               <span className="font-medium text-gray-800">
                 {formatDateTime(bookingInfo.startTime)} - {formatDateTime(bookingInfo.endTime)}
               </span>
@@ -70,14 +70,14 @@ export default function PaymentForm({
         <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
           <h2 className="text-sm font-medium mb-3 flex items-center gap-2 text-gray-800">
             <CreditCard className="w-4 h-4 text-gray-600" />
-            Payment
+            Thanh Toán
           </h2>
           <div className="flex justify-between text-sm">
-            <span className="text-gray-600">Method:</span>
+            <span className="text-gray-600">Phương Thức:</span>
             <span className="font-medium text-gray-800">{bookingInfo.paymentMethod}</span>
           </div>
           <div className="flex justify-between mt-3 pt-3 border-t border-gray-200">
-            <span className="font-semibold text-gray-700">Total:</span>
+            <span className="font-semibold text-gray-700">Tổng Cộng:</span>
             <span className="text-lg font-bold text-black">{bookingInfo.estimatedFee}</span>
           </div>
         </div>
@@ -91,10 +91,10 @@ export default function PaymentForm({
             {isProcessing ? (
               <>
                 <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                Processing...
+                Đang Xử Lý...
               </>
             ) : (
-              "Confirm Payment"
+              "Xác Nhận Thanh Toán"
             )}
           </Button>
         </motion.div>

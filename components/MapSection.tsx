@@ -28,7 +28,7 @@ export default function MapSection() {
         viewport={{ once: true }}
         className="text-4xl sm:text-5xl font-bold text-sky-600 mb-4 z-10"
       >
-        Smart Parking Network
+        Mạng Lưới Đậu Xe Thông Minh
       </motion.h2>
 
       <motion.p
@@ -38,8 +38,7 @@ export default function MapSection() {
         viewport={{ once: true }}
         className="text-gray-600 max-w-2xl mb-12 px-4 z-10"
       >
-        We connect thousands of secure parking spots across Vietnam, bringing
-        convenience and technology closer to drivers every day.
+        Chúng tôi kết nối hàng nghìn chỗ đậu xe an toàn trên khắp Việt Nam, mang lại sự tiện lợi và công nghệ gần gũi hơn với tài xế mỗi ngày.
       </motion.p>
 
       {/* Map Image */}
@@ -52,7 +51,7 @@ export default function MapSection() {
       >
         <img
           src="https://en.parkopedia.co.uk/public/images/map-with-markers.png"
-          alt="Vietnam Map"
+          alt="Bản Đồ Việt Nam"
           className="w-full h-auto rounded-2xl shadow-2xl ring-4 ring-sky-300 transform group-hover:scale-105 group-hover:rotate-2 transition duration-500 ease-out"
         />
       </motion.div>
@@ -70,7 +69,7 @@ export default function MapSection() {
           <div className="bg-gradient-to-r from-sky-500 to-blue-600 text-white text-4xl font-bold px-6 py-3 rounded-xl shadow-md">
             <CountUp end={34} duration={1.5} />
           </div>
-          <div className="text-gray-700 mt-2 text-lg font-medium">Provinces</div>
+          <div className="text-gray-700 mt-2 text-lg font-medium">Tỉnh Thành</div>
         </motion.div>
 
         <motion.div
@@ -84,7 +83,7 @@ export default function MapSection() {
           <div className="bg-gradient-to-r from-sky-500 to-blue-600 text-white text-4xl font-bold px-6 py-3 rounded-xl shadow-md">
             <CountUp end={1200} duration={2} separator="," />
           </div>
-          <div className="text-gray-700 mt-2 text-lg font-medium">Cities</div>
+          <div className="text-gray-700 mt-2 text-lg font-medium">Thành Phố</div>
         </motion.div>
 
         <motion.div
@@ -98,7 +97,7 @@ export default function MapSection() {
           <div className="bg-gradient-to-r from-sky-500 to-blue-600 text-white text-4xl font-bold px-6 py-3 rounded-xl shadow-md min-w-[160px]">
             <CountUp start={50000} end={50200} duration={5} separator="," />
           </div>
-          <div className="text-gray-700 mt-2 text-lg font-medium">Parking Spots</div>
+          <div className="text-gray-700 mt-2 text-lg font-medium">Chỗ Đậu Xe</div>
         </motion.div>
       </div>
 
@@ -116,7 +115,7 @@ export default function MapSection() {
         viewport={{ once: true }}
         className="mt-14 px-8 py-4 bg-gradient-to-r cursor-pointer from-sky-500 to-blue-600 text-white font-semibold rounded-full shadow-lg hover:scale-105 hover:shadow-2xl transition transform duration-300 z-10"
       >
-        Find map
+        Tìm Bản Đồ
       </motion.button>
     </section>
   );

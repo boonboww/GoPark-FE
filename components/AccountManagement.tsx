@@ -90,8 +90,8 @@ export default function AccountManagement() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Account Information</CardTitle>
-        <CardDescription>Update your account details</CardDescription>
+        <CardTitle>Thông Tin Tài Khoản</CardTitle>
+        <CardDescription>Cập nhật thông tin tài khoản của bạn</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="flex flex-row gap-6">
@@ -99,7 +99,7 @@ export default function AccountManagement() {
             <Avatar className="w-24 h-24">
               <AvatarImage
                 src={formData.avatar || ""}
-                alt="Avatar"
+                alt="Ảnh đại diện"
                 onError={(e) => {
                   e.currentTarget.onerror = null;
                   e.currentTarget.src = "";
@@ -117,7 +117,7 @@ export default function AccountManagement() {
 
           <div className="flex flex-col space-y-4 w-3/4">
             <div>
-              <Label htmlFor="name">Name</Label>
+              <Label htmlFor="name">Tên</Label>
               <Input
                 id="name"
                 value={formData.name}
@@ -144,7 +144,7 @@ export default function AccountManagement() {
             </div>
 
             <div>
-              <Label htmlFor="phone">Phone Number</Label>
+              <Label htmlFor="phone">Số Điện Thoại</Label>
               <Input
                 id="phone"
                 value={formData.phone}
@@ -157,16 +157,16 @@ export default function AccountManagement() {
             </div>
 
             {/* <div>
-              <Label htmlFor="avatar">Avatar URL</Label>
-              <Input
-                id="avatar"
-                value={formData.avatar}
-                onChange={handleInputChange}
-              />
-            </div> */}
+          <Label htmlFor="avatar">URL Ảnh Đại Diện</Label>
+          <Input
+            id="avatar"
+            value={formData.avatar}
+            onChange={handleInputChange}
+          />
+        </div> */}
 
             <Button onClick={handleUpdateAccount} disabled={loading}>
-              {loading ? "Saving..." : "Save Changes"}
+              {loading ? "Đang Lưu..." : "Lưu Thay Đổi"}
             </Button>
           </div>
         </div>

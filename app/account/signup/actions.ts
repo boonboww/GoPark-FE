@@ -12,6 +12,7 @@ export async function signupUser(formData: {
   try {
     const res = await API.post('/api/v1/users/signup', formData);
     return res.data;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (err: any) {
     return { error: err.response?.data?.message || 'Signup failed' };
   }

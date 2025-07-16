@@ -9,24 +9,24 @@ import { Button } from "@/components/ui/button";
 
 const faqs = [
   {
-    question: "How do I make a parking reservation?",
+    question: "Làm thế nào để đặt chỗ đỗ xe?",
     answer:
-      "You can reserve a spot by selecting your desired parking lot, choosing a plan, entering your vehicle details, and making an online payment.",
+      "Bạn có thể đặt chỗ bằng cách chọn bãi đỗ mong muốn, chọn gói dịch vụ, nhập thông tin phương tiện và thực hiện thanh toán trực tuyến.",
   },
   {
-    question: "How can I cancel my booking?",
+    question: "Làm thế nào để hủy đặt chỗ?",
     answer:
-      "Go to the My Booking page, select your active booking, and click the Cancel button. The system will process the cancellation and refund if applicable.",
+      "Vào trang Đặt chỗ của tôi, chọn đặt chỗ đang hoạt động và nhấn nút Hủy. Hệ thống sẽ xử lý việc hủy và hoàn tiền nếu áp dụng.",
   },
   {
-    question: "What payment methods are accepted?",
+    question: "Phương thức thanh toán nào được chấp nhận?",
     answer:
-      "We accept payments via local ATM cards, Visa/MasterCard, e-wallets, and VietQR codes.",
+      "Chúng tôi chấp nhận thanh toán qua thẻ ATM nội địa, Visa/MasterCard, ví điện tử và mã VietQR.",
   },
   {
-    question: "What should I do if my vehicle has an issue inside the parking lot?",
+    question: "Tôi phải làm gì nếu phương tiện gặp sự cố trong bãi đỗ?",
     answer:
-      "Please contact our hotline below or chat with our AI Assistant for immediate support and connection to on-site help.",
+      "Vui lòng liên hệ đường dây nóng bên dưới hoặc trò chuyện với Trợ lý AI của chúng tôi để được hỗ trợ ngay lập tức và kết nối với nhân viên tại chỗ.",
   },
 ];
 
@@ -47,7 +47,7 @@ export default function HelpPage() {
       <Header />
 
       <main className="min-h-screen mt-20 px-4 py-12 flex flex-col items-center">
-        <h1 className="text-3xl md:text-4xl font-bold mb-8">Help Center</h1>
+        <h1 className="text-3xl md:text-4xl font-bold mb-8">Trung tâm hỗ trợ</h1>
 
         <div className="w-full max-w-3xl flex flex-col gap-4">
           {faqs.map((faq, index) => (
@@ -77,16 +77,16 @@ export default function HelpPage() {
           <Button
             variant="default"
             className="flex gap-2 items-center bg-black text-white hover:bg-gray-900 cursor-pointer"
-            onClick={() => alert("📞 Call our hotline: +1 800 123 456")}
+            onClick={() => alert("📞 Gọi đường dây nóng: +84 800 123 456")}
           >
-            <Phone className="w-4 h-4" /> Contact Support
+            <Phone className="w-4 h-4" /> Liên hệ hỗ trợ
           </Button>
           <Button
             variant="outline"
             className="flex gap-2 items-center cursor-pointer"
             onClick={handleChatAI}
           >
-            <MessageSquare className="w-4 h-4" /> Chat with AI
+            <MessageSquare className="w-4 h-4" /> Trò chuyện với AI
           </Button>
         </div>
       </main>

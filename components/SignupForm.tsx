@@ -57,11 +57,13 @@ export default function SignupForm() {
         err &&
         typeof err === "object" &&
         "response" in err &&
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         typeof (err as any).response?.data?.message === "string"
       ) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         setError((err as any).response.data.message);
       } else {
-        setError("Signup failed");
+        setError("Đăng ký thất bại");
       }
     }
   };
@@ -70,16 +72,16 @@ export default function SignupForm() {
     <div className="min-h-screen flex items-center justify-center bg-background px-4">
       <Card className="w-full max-w-md">
         <CardHeader>
-          <CardTitle className="text-2xl">Create an Account</CardTitle>
+          <CardTitle className="text-2xl">Tạo tài khoản</CardTitle>
         </CardHeader>
         <CardContent>
           <form className="space-y-4" onSubmit={handleSubmit}>
             <div>
-              <Label htmlFor="userName">Name</Label>
+              <Label htmlFor="userName">Họ và tên</Label>
               <Input
                 id="userName"
                 type="text"
-                placeholder="Your name"
+                placeholder="Nhập họ tên của bạn"
                 value={formData.userName}
                 onChange={handleChange}
                 required
@@ -91,7 +93,7 @@ export default function SignupForm() {
               <Input
                 id="email"
                 type="email"
-                placeholder="you@example.com"
+                placeholder="email@example.com"
                 value={formData.email}
                 onChange={handleChange}
                 required
@@ -99,7 +101,7 @@ export default function SignupForm() {
             </div>
 
             <div>
-              <Label htmlFor="phoneNumber">Phone Number</Label>
+              <Label htmlFor="phoneNumber">Số điện thoại</Label>
               <Input
                 id="phoneNumber"
                 type="tel"
@@ -110,7 +112,7 @@ export default function SignupForm() {
             </div>
 
             <div>
-              <Label htmlFor="password">Password</Label>
+              <Label htmlFor="password">Mật khẩu</Label>
               <Input
                 id="password"
                 type="password"
@@ -122,7 +124,7 @@ export default function SignupForm() {
             </div>
 
             <div>
-              <Label htmlFor="passwordConfirm">Confirm Password</Label>
+              <Label htmlFor="passwordConfirm">Xác nhận mật khẩu</Label>
               <Input
                 id="passwordConfirm"
                 type="password"
@@ -136,7 +138,7 @@ export default function SignupForm() {
             {error && <p className="text-sm text-red-500">{error}</p>}
 
             <Button className="w-full" type="submit">
-              Sign Up
+              Đăng ký
             </Button>
           </form>
         </CardContent>
