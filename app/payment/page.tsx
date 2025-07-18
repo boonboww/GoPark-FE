@@ -6,15 +6,17 @@ import PaymentForm from "./PaymentForm";
 import QrPayment from "./QrPayment";
 import SuccessView from "./SuccessView";
 import { Loader2 } from "lucide-react";
+import { createBookingOnline } from "@/lib/api";
 
 export type BookingInfo = {
   name: string;
   vehicle: string;
   zone: string;
-  spot: string;
+  spot: string; // Slot number (e.g., "B1")
+  parkingSlotId: string; // ✅ This is the ObjectId to send to BE
   startTime: string;
   endTime: string;
-  paymentMethod: string;
+  paymentMethod: "pay-at-parking" | "prepaid" | "QR";
   estimatedFee: string;
 };
 
@@ -25,48 +27,92 @@ export default function PaymentPage() {
   const router = useRouter();
 
   useEffect(() => {
-    const booking = localStorage.getItem('currentBooking');
+    const booking = localStorage.getItem("currentBooking");
     if (booking) {
       try {
         const parsed = JSON.parse(booking) as BookingInfo;
-        if (parsed?.name && parsed.vehicle && parsed.zone) {
+        if (parsed?.name && parsed.vehicle && parsed.zone && parsed.parkingSlotId) {
           setBookingInfo(parsed);
           return;
+        } else {
+          console.warn("⚠️ Dữ liệu booking không đầy đủ:", parsed);
         }
       } catch (e) {
-        console.error("Invalid booking data", e);
+        console.error("❌ Lỗi parse booking:", e);
       }
     }
-    router.push('/');
+    router.push("/");
   }, [router]);
 
   const formatDateTime = (dateString: string): string => {
     try {
-      return new Date(dateString).toLocaleString('en-US', {
-        month: 'short',
-        day: 'numeric',
-        year: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
+      return new Date(dateString).toLocaleString("vi-VN", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
       });
     } catch {
       return dateString;
     }
   };
 
-  const handlePayment = () => {
-    setIsProcessing(true);
-    setTimeout(() => {
-      const ticket = {
-        ...bookingInfo,
-        ticketId: `TKT-${Math.floor(Math.random() * 1000000)}`,
-        paymentStatus: 'paid',
-        paymentTime: new Date().toISOString()
-      };
-      localStorage.setItem('parkingTicket', JSON.stringify(ticket));
+  const handlePayment = async () => {
+    if (!bookingInfo) return;
+
+    const bookingData = {
+      userId: localStorage.getItem("userId") || "",
+      parkingSlotId: bookingInfo.parkingSlotId,
+      startTime: bookingInfo.startTime,
+      endTime: bookingInfo.endTime,
+      vehicleNumber: bookingInfo.vehicle,
+      paymentMethod:
+        bookingInfo.paymentMethod === "QR"
+          ? "prepaid"
+          : bookingInfo.paymentMethod,
+      bookingType: "hours" as "date" | "hours" | "month", // hoặc lấy từ bookingInfo nếu cần linh hoạt
+      totalPrice: parseFloat(bookingInfo.estimatedFee),
+    };
+
+    try {
+      console.log("📤 Payload gửi booking:", bookingData);
+
+      // ✅ Validate thời gian
+      const now = new Date();
+      const start = new Date(bookingData.startTime);
+      const end = new Date(bookingData.endTime);
+      if (start <= now || end <= now || end <= start) {
+        console.error("❌ Thời gian không hợp lệ", {
+          now,
+          start: bookingData.startTime,
+          end: bookingData.endTime,
+        });
+        return;
+      }
+
+      // ✅ Validate parkingSlotId là ObjectId
+      if (!bookingData.parkingSlotId.match(/^[0-9a-fA-F]{24}$/)) {
+        console.error(
+          "❌ parkingSlotId không hợp lệ (phải là ObjectId):",
+          bookingData.parkingSlotId
+        );
+        return;
+      }
+
+      setIsProcessing(true);
+      const response = await createBookingOnline(bookingData);
+      console.log("✅ Booking thành công:", response.data);
       setCurrentStep(3);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (error: any) {
+      console.error("❌ Lỗi khi tạo booking:", error);
+      if (error?.response?.data) {
+        console.log("💥 Response error:", error.response.data);
+      }
+    } finally {
       setIsProcessing(false);
-    }, 2000);
+    }
   };
 
   if (!bookingInfo) {
@@ -96,9 +142,7 @@ export default function PaymentPage() {
             bookingInfo={bookingInfo}
           />
         )}
-        {currentStep === 3 && bookingInfo && (
-          <SuccessView />
-        )}
+        {currentStep === 3 && <SuccessView />}
       </div>
     </div>
   );

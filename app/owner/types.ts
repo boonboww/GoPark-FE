@@ -1,16 +1,12 @@
 // src/types.ts
 
-// Customer type
-// Customer type phù hợp với backend user.controller.js
 export interface Customer {
-  id: string; // _id từ MongoDB
+  id: string;
   userName: string;
   email: string;
   phoneNumber: string;
 }
 
-
-// Vehicle type
 export interface Vehicle {
   id: string;
   licensePlate: string;
@@ -18,11 +14,9 @@ export interface Vehicle {
   owner: string;
   status: "Parked" | "Reserved" | "Available" | "Not Parked";
   plateImage?: string;
-   imageVehicle?: string;
+  imageVehicle?: string;
 }
 
-
-// Ticket type
 export interface Ticket {
   id: string;
   licensePlate: string;
@@ -33,19 +27,42 @@ export interface Ticket {
   expiry: string;
 }
 
-// ParkingLot type
-export type ParkingLot = {
-  _id?: string;
+export interface ParkingLot {
+  _id: string;
   name: string;
   address: string;
   pricePerHour: number;
   image: string[];
-  zones: { zone: string; count: number }[]; // ✅ Sửa lại kiểu này
-};
+  zones: { zone: string; count: number }[];
+  parkingOwner: string;
+  location: {
+    type: string;
+    coordinates: [number, number];
+  };
+  description?: string;
+  isActive: boolean;
+  avtImage?: string;
+  allowedPaymentMethods: string[];
+  createdAt: string;
+  updatedAt: string;
+}
 
+export interface ParkingSlot {
+  _id: string;
+  parkingLot: string;
+  slotNumber: string;
+  status: "available" | "booked" | "reserved";
+  zone: string;
+  pricePerHour: number;
+  vehicle?: Vehicle;
+}
 
+export interface Floor {
+  number: number;
+  name: string;
+  slots: ParkingSlot[];
+}
 
-// Account type
 export interface Account {
   id: string;
   name: string;
@@ -55,28 +72,12 @@ export interface Account {
   avatar?: string;
 }
 
-// ParkingSlot type
-export interface ParkingSlot {
-  number: number;
-  status: "available" | "occupied" | "reserved";
-  vehicle?: Vehicle;
-}
-
-// Floor type
-export interface Floor {
-  number: number;
-  slots: ParkingSlot[];
-}
-
-// Vehicle form type
-export type VehicleFormData = {
+export interface VehicleFormData {
   licensePlate: string;
   capacity: number;
   imageVehicle?: string;
-};
+}
 
-
-// Props types for components
 export interface CustomerManagementProps {
   customers: Customer[];
   setCustomers: React.Dispatch<React.SetStateAction<Customer[]>>;
@@ -120,6 +121,6 @@ export interface TicketFormProps {
   vehicles: Array<{ id: string; licensePlate: string }>;
   customers: Array<{ id: string; name: string }>;
   onSubmit: (ticket: Omit<Ticket, "id">) => void;
-  editingTicket?: Ticket | null; // Thêm | null vào đây
+  editingTicket?: Ticket | null;
   onUpdate?: (ticket: Ticket) => void;
 }

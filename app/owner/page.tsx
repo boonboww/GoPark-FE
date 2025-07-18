@@ -5,11 +5,10 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import CustomerManagement from "@/components/CustomerManagement";
-import VehicleManagement from "@/components/VehicleManagement";
+import CombinedParkingManagement from "@/components/VehicleManagement"; // Thay VehicleManagement
 import TicketManagement from "@/components/TicketManagement";
-import ParkingLotManagement from "@/components/ParkingLotManagement";
 import AccountManagement from "@/components/AccountManagement";
-import type { Customer, Vehicle, Ticket } from "@/app/owner/types";
+import type { Customer, Vehicle, Ticket, ParkingLot } from "@/app/owner/types";
 import API from "@/lib/api";
 
 const initialData = {
@@ -77,14 +76,11 @@ const initialData = {
 export default function OwnerDashboard() {
   const router = useRouter();
 
-  const [customerList, setCustomerList] = useState<Customer[]>(
-    initialData.customers
-  );
-  const [vehicleList, setVehicleList] = useState<Vehicle[]>(
-    initialData.vehicles
-  );
+  const [customerList, setCustomerList] = useState<Customer[]>(initialData.customers);
+  const [vehicleList, setVehicleList] = useState<Vehicle[]>(initialData.vehicles);
   const [ticketList, setTicketList] = useState<Ticket[]>(initialData.tickets);
   const [accountName, setAccountName] = useState<string>("");
+  const [parkingLots, setParkingLots] = useState<ParkingLot[]>([]); // Thêm state cho parkingLots
 
   useEffect(() => {
     const fetchAccountName = async () => {
@@ -136,11 +132,10 @@ export default function OwnerDashboard() {
       </header>
 
       <Tabs defaultValue="customers" className="w-full">
-        <TabsList className="grid w-full grid-cols-2 md:grid-cols-5">
+        <TabsList className="grid w-full grid-cols-2 md:grid-cols-4">
           <TabsTrigger value="customers">Khách hàng</TabsTrigger>
-          <TabsTrigger value="vehicles">Vị Trí Đỗ </TabsTrigger>
+          <TabsTrigger value="vehicles">Quản lý bãi đỗ</TabsTrigger>
           <TabsTrigger value="tickets">Vé</TabsTrigger>
-          <TabsTrigger value="parkingLots">Bãi đỗ</TabsTrigger>
           <TabsTrigger value="account">Tài khoản</TabsTrigger>
         </TabsList>
 
@@ -153,10 +148,12 @@ export default function OwnerDashboard() {
           </TabsContent>
 
           <TabsContent value="vehicles">
-            <VehicleManagement
+            <CombinedParkingManagement
               vehicles={vehicleList}
               setVehicles={setVehicleList}
               customers={customerList}
+              parkingLots={parkingLots}
+              setParkingLots={setParkingLots}
             />
           </TabsContent>
 
@@ -167,10 +164,6 @@ export default function OwnerDashboard() {
               vehicles={ticketManagementData.vehicles}
               customers={ticketManagementData.customers}
             />
-          </TabsContent>
-
-          <TabsContent value="parkingLots">
-            <ParkingLotManagement />
           </TabsContent>
 
           <TabsContent value="account">

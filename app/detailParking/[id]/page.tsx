@@ -22,13 +22,13 @@ type ParkingLot = {
 };
 
 export default function DetailParkingPage() {
-  const params = useParams(); // Lấy params dưới dạng đối tượng đồng bộ
+  const params = useParams();
   const [parkingLot, setParkingLot] = useState<ParkingLot | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const id = params?.id as string | undefined; // Truy cập trực tiếp params.id
+    const id = params?.id as string | undefined;
     if (!id) {
       setError("Không tìm thấy ID bãi đỗ.");
       setLoading(false);
@@ -39,8 +39,8 @@ export default function DetailParkingPage() {
     setError(null);
     getParkingLotById(id)
       .then((response) => {
-        console.log("API response:", response.data);
-        setParkingLot(response.data.data);
+        const lot = response.data.data?.parkingLot || response.data.data;
+        setParkingLot(lot);
         setLoading(false);
       })
       .catch((error) => {
@@ -86,15 +86,11 @@ export default function DetailParkingPage() {
 
       <main className="min-h-screen mt-20 px-4 py-12 flex flex-col items-center">
         <div className="w-full max-w-6xl mb-6">
-          <nav className="text-sm text-gray-600">
-            <Link href="/" className="hover:underline">
-              Trang chủ
-            </Link>
-     
-            <Link href="/parking" className="hover:underline">
-              Bãi đỗ xe
-            </Link>
-
+          <nav className="text-sm text-gray-600 space-x-2">
+            <Link href="/" className="hover:underline">Trang chủ</Link>
+            <span>/</span>
+            <Link href="/parking" className="hover:underline">Bãi đỗ xe</Link>
+            <span>/</span>
             <span className="text-gray-900 font-semibold">{parkingLot.name}</span>
           </nav>
         </div>
