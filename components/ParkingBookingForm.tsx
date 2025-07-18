@@ -16,19 +16,6 @@ type Spot = {
   pricePerHour: number;
 };
 
-type BookingInfo = {
-  name: string;
-  vehicle: string;
-  zone: string;
-  spot: string;
-  startTime: string;
-  endTime: string;
-  paymentMethod: "pay-at-parking" | "prepaid";
-  estimatedFee: string;
-  parkingSlotId: string;
-  bookingType: "date" | "hours" | "month";
-};
-
 type ParkingBookingFormProps = {
   parkingLotId: string;
   allowedPaymentMethods: string[];
@@ -37,7 +24,7 @@ type ParkingBookingFormProps = {
 export default function ParkingBookingForm({ parkingLotId, allowedPaymentMethods }: ParkingBookingFormProps) {
   const [spots, setSpots] = useState<Spot[]>([]);
   const [selectedZone, setSelectedZone] = useState<string>("");
-  const [selectedSpot, setSelectedSpot] = useState<string | null>(null);
+  const [selectedSpotId, setSelectedSpotId] = useState<string | null>(null);
   const [name, setName] = useState("");
   const [vehicle, setVehicle] = useState("");
   const [startTime, setStartTime] = useState("");
@@ -45,10 +32,9 @@ export default function ParkingBookingForm({ parkingLotId, allowedPaymentMethods
   const [paymentMethod, setPaymentMethod] = useState<"pay-at-parking" | "prepaid">("pay-at-parking");
   const [bookingType, setBookingType] = useState<"date" | "hours" | "month">("hours");
   const [modalOpen, setModalOpen] = useState(false);
-  const [bookingInfo, setBookingInfo] = useState<BookingInfo | null>(null);
+  const [userId, setUserId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [userId, setUserId] = useState<string | null>(null);
 
   useEffect(() => {
     const storedUserId = localStorage.getItem("userId");
@@ -72,59 +58,17 @@ export default function ParkingBookingForm({ parkingLotId, allowedPaymentMethods
 
   const zones = Array.from(new Set(spots.map((spot) => spot.zone)));
   const currentZoneSpots = spots.filter((spot) => spot.zone === selectedZone);
+  const selectedSpot = spots.find((s) => s._id === selectedSpotId) || null;
 
   const calculateFee = () => {
-    if (!startTime || !endTime || !selectedSpot) return "0 VNĐ";
+    if (!startTime || !endTime || !selectedSpotId) return "0 VNĐ";
     const start = new Date(startTime);
     const end = new Date(endTime);
     const diffMs = end.getTime() - start.getTime();
     if (diffMs <= 0) return "0 VNĐ";
     const hours = diffMs / (1000 * 60 * 60);
-    const pricePerHour = spots.find((s) => s._id === selectedSpot)?.pricePerHour || 20000;
+    const pricePerHour = selectedSpot?.pricePerHour || 20000;
     return `${Math.ceil(hours * pricePerHour).toLocaleString("vi-VN")} VNĐ`;
-  };
-
-  const handleConfirm = async () => {
-    if (!userId || !selectedSpot || !startTime || !endTime || !vehicle) {
-      alert("Vui lòng điền đầy đủ thông tin và chọn vị trí đỗ.");
-      return;
-    }
-
-    const start = new Date(startTime);
-    const end = new Date(endTime);
-    const diffMs = end.getTime() - start.getTime();
-    if (diffMs <= 0) {
-      alert("Thời gian kết thúc phải sau thời gian bắt đầu.");
-      return;
-    }
-
-    const hours = diffMs / (1000 * 60 * 60);
-    const pricePerHour = spots.find((s) => s._id === selectedSpot)?.pricePerHour || 20000;
-    const totalPrice = Math.ceil(hours * pricePerHour);
-
-    const payload = {
-      userId,
-      parkingSlotId: selectedSpot as string,
-      vehicleNumber: vehicle,
-      startTime,
-      endTime,
-      paymentMethod,
-      bookingType,
-      totalPrice,
-    };
-
-    console.log("📦 Payload gửi về BE:", payload);
-
-    try {
-      const response = await createBookingOnline(payload);
-      if (response.data.status === "success") {
-        alert("Đặt chỗ thành công!");
-        setModalOpen(false);
-      }
-    } catch (error) {
-      console.error("❌ Lỗi khi tạo đặt chỗ:", error.response?.data || error.message);
-      alert("Đã có lỗi xảy ra khi đặt chỗ.");
-    }
   };
 
   const handleSubmit = () => {
@@ -138,35 +82,64 @@ export default function ParkingBookingForm({ parkingLotId, allowedPaymentMethods
       return;
     }
 
-    const info: BookingInfo = {
-      name,
-      vehicle,
-      zone: selectedZone,
-      spot: currentZoneSpots.find((s) => s._id === selectedSpot)?.slotNumber || "",
-      startTime,
-      endTime,
-      paymentMethod,
-      estimatedFee: calculateFee(),
-      parkingSlotId: selectedSpot as string,
-      bookingType,
+    setModalOpen(true);
+  };
+
+  const handleConfirm = async (bookingInfo: {
+    name: string;
+    vehicle: string;
+    zone: string;
+    spot: string;
+    startTime: string;
+    endTime: string;
+    paymentMethod: "pay-at-parking" | "prepaid";
+    estimatedFee: string;
+    parkingSlotId: string;
+    bookingType: "date" | "hours" | "month";
+  }) => {
+    if (!userId) return;
+
+    const start = new Date(bookingInfo.startTime);
+    const end = new Date(bookingInfo.endTime);
+    const hours = (end.getTime() - start.getTime()) / (1000 * 60 * 60);
+    const pricePerHour = spots.find((s) => s._id === bookingInfo.parkingSlotId)?.pricePerHour || 20000;
+    const totalPrice = Math.ceil(hours * pricePerHour);
+
+    const payload = {
+      userId,
+      parkingSlotId: bookingInfo.parkingSlotId,
+      vehicleNumber: bookingInfo.vehicle,
+      startTime: bookingInfo.startTime,
+      endTime: bookingInfo.endTime,
+      paymentMethod: bookingInfo.paymentMethod,
+      bookingType: bookingInfo.bookingType,
+      totalPrice,
     };
 
-    setBookingInfo(info);
-    setModalOpen(true);
+    try {
+      const response = await createBookingOnline(payload);
+      if (response.data.status === "success") {
+        alert("Đặt chỗ thành công!");
+        setModalOpen(false);
+      }
+    } catch (error) {
+      console.error("❌ Lỗi khi tạo đặt chỗ:", error.response?.data || error.message);
+      alert("Đã có lỗi xảy ra khi đặt chỗ.");
+    }
   };
 
   if (error) {
     return (
-      <div className="border rounded-lg shadow-sm p-6 flex flex-col gap-4 bg-white">
-        <p className="text-red-600">{error}</p>
+      <div className="border rounded-lg shadow-sm p-6 bg-white text-red-600">
+        {error}
       </div>
     );
   }
 
   if (loading) {
     return (
-      <div className="border rounded-lg shadow-sm p-6 flex flex-col gap-4 bg-white">
-        <p className="text-gray-600">Đang tải...</p>
+      <div className="border rounded-lg shadow-sm p-6 bg-white text-gray-600">
+        Đang tải...
       </div>
     );
   }
@@ -177,19 +150,14 @@ export default function ParkingBookingForm({ parkingLotId, allowedPaymentMethods
 
       <div>
         <Label>Tên</Label>
-        <Input placeholder="Nhập tên của bạn" value={name} onChange={(e) => setName(e.target.value)} required />
+        <Input placeholder="Nhập tên của bạn" value={name} onChange={(e) => setName(e.target.value)} />
       </div>
 
       <div>
         <Label className="flex items-center gap-1">
           <Car className="w-4 h-4" /> Phương tiện
         </Label>
-        <Input
-          placeholder="Số phương tiện (ví dụ: 43A-12345)"
-          value={vehicle}
-          onChange={(e) => setVehicle(e.target.value)}
-          required
-        />
+        <Input placeholder="Số phương tiện (VD: 43A-12345)" value={vehicle} onChange={(e) => setVehicle(e.target.value)} />
       </div>
 
       <div>
@@ -197,11 +165,11 @@ export default function ParkingBookingForm({ parkingLotId, allowedPaymentMethods
           <MapPin className="w-4 h-4" /> Khu vực
         </Label>
         <select
-          className="w-full border px-3 py-2 rounded-md cursor-pointer"
+          className="w-full border px-3 py-2 rounded-md"
           value={selectedZone}
           onChange={(e) => {
             setSelectedZone(e.target.value);
-            setSelectedSpot(null);
+            setSelectedSpotId(null);
           }}
         >
           {zones.map((zone) => (
@@ -218,36 +186,26 @@ export default function ParkingBookingForm({ parkingLotId, allowedPaymentMethods
         </Label>
         <div className="grid grid-cols-8 gap-2 mt-2">
           {currentZoneSpots.map((spot) => {
-            let color = "";
-            if (spot.status === "available") color = "bg-green-400";
-            else if (spot.status === "reserved") color = "bg-yellow-400";
-            else if (spot.status === "booked") color = "bg-red-400";
+            const color =
+              spot.status === "available"
+                ? "bg-green-400"
+                : spot.status === "reserved"
+                ? "bg-yellow-400"
+                : "bg-red-400";
 
-            const selected = selectedSpot === spot._id ? "ring-2 ring-black" : "";
+            const selected = selectedSpotId === spot._id ? "ring-2 ring-black" : "";
 
             return (
               <button
                 key={spot._id}
                 disabled={spot.status === "booked"}
-                onClick={() => setSelectedSpot(spot._id)}
-                className={`text-xs text-white flex items-center justify-center h-8 rounded ${color} ${selected} disabled:opacity-50 cursor-pointer`}
+                onClick={() => setSelectedSpotId(spot._id)}
+                className={`text-xs text-white flex items-center justify-center h-8 rounded ${color} ${selected} disabled:opacity-50`}
               >
                 {spot.slotNumber}
               </button>
             );
           })}
-        </div>
-
-        <div className="mt-2 flex gap-4 text-xs text-gray-600">
-          <span className="flex items-center gap-1">
-            <span className="w-4 h-4 bg-green-400 inline-block rounded" /> Trống
-          </span>
-          <span className="flex items-center gap-1">
-            <span className="w-4 h-4 bg-yellow-400 inline-block rounded" /> Đặt trước
-          </span>
-          <span className="flex items-center gap-1">
-            <span className="w-4 h-4 bg-red-400 inline-block rounded" /> Đã đặt
-          </span>
         </div>
       </div>
 
@@ -255,14 +213,14 @@ export default function ParkingBookingForm({ parkingLotId, allowedPaymentMethods
         <Label className="flex items-center gap-1">
           <Clock className="w-4 h-4" /> Thời gian bắt đầu
         </Label>
-        <Input type="datetime-local" className="cursor-pointer" value={startTime} onChange={(e) => setStartTime(e.target.value)} />
+        <Input type="datetime-local" value={startTime} onChange={(e) => setStartTime(e.target.value)} />
       </div>
 
       <div>
         <Label className="flex items-center gap-1">
           <Clock className="w-4 h-4" /> Thời gian kết thúc
         </Label>
-        <Input type="datetime-local" className="cursor-pointer" value={endTime} onChange={(e) => setEndTime(e.target.value)} />
+        <Input type="datetime-local" value={endTime} onChange={(e) => setEndTime(e.target.value)} />
       </div>
 
       <div>
@@ -277,7 +235,7 @@ export default function ParkingBookingForm({ parkingLotId, allowedPaymentMethods
           <CreditCard className="w-4 h-4" /> Phương thức thanh toán
         </Label>
         <select
-          className="w-full border px-3 py-2 rounded-md cursor-pointer"
+          className="w-full border px-3 py-2 rounded-md"
           value={paymentMethod}
           onChange={(e) => setPaymentMethod(e.target.value as "pay-at-parking" | "prepaid")}
         >
@@ -290,11 +248,9 @@ export default function ParkingBookingForm({ parkingLotId, allowedPaymentMethods
       </div>
 
       <div>
-        <Label className="flex items-center gap-1">
-          <Clock className="w-4 h-4" /> Loại đặt chỗ
-        </Label>
+        <Label>Loại đặt chỗ</Label>
         <select
-          className="w-full border px-3 py-2 rounded-md cursor-pointer"
+          className="w-full border px-3 py-2 rounded-md"
           value={bookingType}
           onChange={(e) => setBookingType(e.target.value as "date" | "hours" | "month")}
         >
@@ -308,12 +264,24 @@ export default function ParkingBookingForm({ parkingLotId, allowedPaymentMethods
         Xác nhận đặt chỗ
       </Button>
 
-      <DetailBookingModal
-        open={modalOpen}
-        onClose={() => setModalOpen(false)}
-        bookingInfo={bookingInfo}
-        onConfirm={handleConfirm}
-      />
+      {selectedSpot && (
+        <DetailBookingModal
+          open={modalOpen}
+          onClose={() => setModalOpen(false)}
+          selectedSlot={{ _id: selectedSpot._id, slotNumber: selectedSpot.slotNumber }}
+          bookingMeta={{
+            name,
+            vehicle,
+            zone: selectedZone,
+            startTime,
+            endTime,
+            paymentMethod,
+            estimatedFee: calculateFee(),
+            bookingType,
+          }}
+          onConfirm={handleConfirm}
+        />
+      )}
     </aside>
   );
 }

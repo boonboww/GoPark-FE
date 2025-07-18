@@ -7,6 +7,7 @@ const API = axios.create({
 
 API.interceptors.request.use((config) => {
   const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+  console.log("Token gửi trong yêu cầu:", token); // Debug token
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
@@ -18,9 +19,9 @@ export const getParkingLotById = (id: string) =>
   API.get(`/api/v1/parkinglots/${id}/public`);
 
 export const getParkingSlotsByLotId = (parkingLotId: string) =>
-  API.get(`/api/v1/parkinglots/${parkingLotId}/slots`, { headers: { "Cache-Control": "no-cache" } });
-
-
+  API.get(`/api/v1/parkinglots/${parkingLotId}/slots-public`, {
+    headers: { "Cache-Control": "no-cache" },
+  });
 
 // API endpoints for vehicles
 export const getMyVehicles = () =>
