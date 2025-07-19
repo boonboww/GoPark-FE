@@ -1,3 +1,4 @@
+
 "use client";
 
 import { Input } from "@/components/ui/input";
@@ -5,8 +6,19 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import DetailBookingModal from "./DetailBookingModal";
 import { useState, useEffect } from "react";
-import { getParkingSlotsByLotId, createBookingOnline, getAvailableSlotsByDate } from "@/lib/api";
-import { Car, MapPin, LayoutGrid, Clock, CreditCard, DollarSign } from "lucide-react";
+import {
+  getParkingSlotsByLotId,
+  createBookingOnline,
+  getAvailableSlotsByDate,
+} from "@/lib/api";
+import {
+  Car,
+  MapPin,
+  LayoutGrid,
+  Clock,
+  CreditCard,
+  DollarSign,
+} from "lucide-react";
 
 type Spot = {
   _id: string;
@@ -21,7 +33,10 @@ type ParkingBookingFormProps = {
   allowedPaymentMethods: string[];
 };
 
-export default function ParkingBookingForm({ parkingLotId, allowedPaymentMethods }: ParkingBookingFormProps) {
+export default function ParkingBookingForm({
+  parkingLotId,
+  allowedPaymentMethods,
+}: ParkingBookingFormProps) {
   const [spots, setSpots] = useState<Spot[]>([]);
   const [selectedZone, setSelectedZone] = useState<string>("");
   const [selectedSpotId, setSelectedSpotId] = useState<string | null>(null);
@@ -29,12 +44,17 @@ export default function ParkingBookingForm({ parkingLotId, allowedPaymentMethods
   const [vehicle, setVehicle] = useState("");
   const [startTime, setStartTime] = useState("");
   const [endTime, setEndTime] = useState("");
-  const [paymentMethod, setPaymentMethod] = useState<"pay-at-parking" | "prepaid">("pay-at-parking");
-  const [bookingType, setBookingType] = useState<"date" | "hours" | "month">("hours");
+  const [paymentMethod, setPaymentMethod] = useState<
+    "pay-at-parking" | "prepaid"
+  >("pay-at-parking");
+  const [bookingType, setBookingType] = useState<"date" | "hours" | "month">(
+    "hours"
+  );
   const [modalOpen, setModalOpen] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [timeError, setTimeError] = useState<string | null>(null);
 
   const fetchAvailableSlotsByDate = async (start: string, end: string) => {
     try {
@@ -50,7 +70,10 @@ export default function ParkingBookingForm({ parkingLotId, allowedPaymentMethods
       }
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
-      console.error("Lỗi khi lấy slot trống:", err.response?.data || err.message);
+      console.error(
+        "Lỗi khi lấy slot trống:",
+        err.response?.data || err.message
+      );
       setError("Không thể tải danh sách slot trống. Vui lòng thử lại.");
     } finally {
       setLoading(false);
@@ -71,7 +94,10 @@ export default function ParkingBookingForm({ parkingLotId, allowedPaymentMethods
         setLoading(false);
       })
       .catch((error) => {
-        console.error("Lỗi khi lấy danh sách vị trí đỗ:", error.response?.data || error.message);
+        console.error(
+          "Lỗi khi lấy danh sách vị trí đỗ:",
+          error.response?.data || error.message
+        );
         setError("Không thể tải danh sách vị trí đỗ. Vui lòng thử lại sau.");
         setLoading(false);
       });
@@ -81,7 +107,15 @@ export default function ParkingBookingForm({ parkingLotId, allowedPaymentMethods
     if (startTime && endTime) {
       const formattedStartTime = new Date(startTime).toISOString();
       const formattedEndTime = new Date(endTime).toISOString();
-      fetchAvailableSlotsByDate(formattedStartTime, formattedEndTime);
+      if (new Date(endTime) <= new Date(startTime)) {
+        setTimeError("Thời gian kết thúc phải lớn hơn thời gian bắt đầu.");
+        setSpots([]);
+      } else {
+        setTimeError(null);
+        fetchAvailableSlotsByDate(formattedStartTime, formattedEndTime);
+      }
+    } else {
+      setTimeError(null);
     }
   }, [startTime, endTime, parkingLotId]);
 
@@ -90,7 +124,7 @@ export default function ParkingBookingForm({ parkingLotId, allowedPaymentMethods
   const selectedSpot = spots.find((s) => s._id === selectedSpotId) || null;
 
   const calculateFee = () => {
-    if (!startTime || !endTime || !selectedSpotId) return "0 VNĐ";
+    if (!startTime || !endTime || !selectedSpotId || timeError) return "0 VNĐ";
     const start = new Date(startTime);
     const end = new Date(endTime);
     const diffMs = end.getTime() - start.getTime();
@@ -100,9 +134,28 @@ export default function ParkingBookingForm({ parkingLotId, allowedPaymentMethods
     return `${Math.ceil(hours * pricePerHour).toLocaleString("vi-VN")} VNĐ`;
   };
 
+  const handleEndTimeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newEndTime = e.target.value;
+    setEndTime(newEndTime);
+    if (startTime && new Date(newEndTime) <= new Date(startTime)) {
+      setTimeError("Thời gian kết thúc phải lớn hơn thời gian bắt đầu.");
+    } else {
+      setTimeError(null);
+    }
+  };
+
   const handleSubmit = () => {
-    if (!name || !vehicle || !selectedZone || !selectedSpot || !startTime || !endTime || !paymentMethod) {
-      alert("Vui lòng điền đầy đủ thông tin và chọn vị trí đỗ.");
+    if (
+      !name ||
+      !vehicle ||
+      !selectedZone ||
+      !selectedSpot ||
+      !startTime ||
+      !endTime ||
+      !paymentMethod ||
+      timeError
+    ) {
+      alert("Vui lòng điền đầy đủ thông tin, chọn vị trí đỗ và đảm bảo thời gian hợp lệ.");
       return;
     }
 
@@ -131,7 +184,9 @@ export default function ParkingBookingForm({ parkingLotId, allowedPaymentMethods
     const start = new Date(bookingInfo.startTime);
     const end = new Date(bookingInfo.endTime);
     const hours = (end.getTime() - start.getTime()) / (1000 * 60 * 60);
-    const pricePerHour = spots.find((s) => s._id === bookingInfo.parkingSlotId)?.pricePerHour || 20000;
+    const pricePerHour =
+      spots.find((s) => s._id === bookingInfo.parkingSlotId)?.pricePerHour ||
+      20000;
     const totalPrice = Math.ceil(hours * pricePerHour);
 
     const payload = {
@@ -152,7 +207,10 @@ export default function ParkingBookingForm({ parkingLotId, allowedPaymentMethods
         setModalOpen(false);
       }
     } catch (error) {
-      console.error("❌ Lỗi khi tạo đặt chỗ:", error.response?.data || error.message);
+      console.error(
+        "❌ Lỗi khi tạo đặt chỗ:",
+        error.response?.data || error.message
+      );
       alert("Đã có lỗi xảy ra khi đặt chỗ.");
     }
   };
@@ -179,14 +237,22 @@ export default function ParkingBookingForm({ parkingLotId, allowedPaymentMethods
 
       <div>
         <Label>Tên</Label>
-        <Input placeholder="Nhập tên của bạn" value={name} onChange={(e) => setName(e.target.value)} />
+        <Input
+          placeholder="Nhập tên của bạn"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+        />
       </div>
 
       <div>
         <Label className="flex items-center gap-1">
           <Car className="w-4 h-4" /> Phương tiện
         </Label>
-        <Input placeholder="Số phương tiện (VD: 43A-12345)" value={vehicle} onChange={(e) => setVehicle(e.target.value)} />
+        <Input
+          placeholder="Số phương tiện (VD: 43A-12345)"
+          value={vehicle}
+          onChange={(e) => setVehicle(e.target.value)}
+        />
       </div>
 
       <div>
@@ -215,13 +281,6 @@ export default function ParkingBookingForm({ parkingLotId, allowedPaymentMethods
         </Label>
         <div className="grid grid-cols-8 gap-2 mt-2">
           {currentZoneSpots.map((spot) => {
-            const color =
-              spot.status === "available"
-                ? "bg-green-400"
-                : spot.status === "reserved"
-                ? "bg-yellow-400"
-                : "bg-red-400";
-
             const selected = selectedSpotId === spot._id ? "ring-2 ring-black" : "";
 
             return (
@@ -229,7 +288,7 @@ export default function ParkingBookingForm({ parkingLotId, allowedPaymentMethods
                 key={spot._id}
                 disabled={spot.status === "booked"}
                 onClick={() => setSelectedSpotId(spot._id)}
-                className={`text-xs text-white flex items-center justify-center h-8 rounded ${color} ${selected} disabled:opacity-50`}
+                className={`text-xs text-white flex items-center justify-center h-8 rounded bg-green-400 ${selected}`}
               >
                 {spot.slotNumber}
               </button>
@@ -242,14 +301,28 @@ export default function ParkingBookingForm({ parkingLotId, allowedPaymentMethods
         <Label className="flex items-center gap-1">
           <Clock className="w-4 h-4" /> Thời gian bắt đầu
         </Label>
-        <Input type="datetime-local" value={startTime} onChange={(e) => setStartTime(e.target.value)} />
+        <Input
+          type="datetime-local"
+          value={startTime}
+          onChange={(e) => {
+            setStartTime(e.target.value);
+            setEndTime(""); // Reset endTime khi startTime thay đổi
+            setTimeError(null);
+          }}
+        />
       </div>
 
       <div>
         <Label className="flex items-center gap-1">
           <Clock className="w-4 h-4" /> Thời gian kết thúc
         </Label>
-        <Input type="datetime-local" value={endTime} onChange={(e) => setEndTime(e.target.value)} />
+        <Input
+          type="datetime-local"
+          value={endTime}
+          min={startTime ? new Date(new Date(startTime).getTime() + 60000).toISOString().slice(0, 16) : undefined}
+          onChange={handleEndTimeChange}
+        />
+        {timeError && <p className="text-red-600 text-sm mt-1">{timeError}</p>}
       </div>
 
       <div>
@@ -266,7 +339,9 @@ export default function ParkingBookingForm({ parkingLotId, allowedPaymentMethods
         <select
           className="w-full border px-3 py-2 rounded-md"
           value={paymentMethod}
-          onChange={(e) => setPaymentMethod(e.target.value as "pay-at-parking" | "prepaid")}
+          onChange={(e) =>
+            setPaymentMethod(e.target.value as "pay-at-parking" | "prepaid")
+          }
         >
           {allowedPaymentMethods.map((method) => (
             <option key={method} value={method}>
@@ -281,7 +356,9 @@ export default function ParkingBookingForm({ parkingLotId, allowedPaymentMethods
         <select
           className="w-full border px-3 py-2 rounded-md"
           value={bookingType}
-          onChange={(e) => setBookingType(e.target.value as "date" | "hours" | "month")}
+          onChange={(e) =>
+            setBookingType(e.target.value as "date" | "hours" | "month")
+          }
         >
           <option value="hours">Theo giờ</option>
           <option value="date">Theo ngày</option>
@@ -289,7 +366,11 @@ export default function ParkingBookingForm({ parkingLotId, allowedPaymentMethods
         </select>
       </div>
 
-      <Button className="bg-black text-white hover:bg-gray-900 mt-4" onClick={handleSubmit}>
+      <Button
+        className="bg-black text-white hover:bg-gray-900 mt-4"
+        onClick={handleSubmit}
+        disabled={!!timeError}
+      >
         Xác nhận đặt chỗ
       </Button>
 
@@ -297,7 +378,10 @@ export default function ParkingBookingForm({ parkingLotId, allowedPaymentMethods
         <DetailBookingModal
           open={modalOpen}
           onClose={() => setModalOpen(false)}
-          selectedSlot={{ _id: selectedSpot._id, slotNumber: selectedSpot.slotNumber }}
+          selectedSlot={{
+            _id: selectedSpot._id,
+            slotNumber: selectedSpot.slotNumber,
+          }}
           bookingMeta={{
             name,
             vehicle,
