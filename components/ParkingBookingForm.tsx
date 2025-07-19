@@ -5,7 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import DetailBookingModal from "./DetailBookingModal";
 import { useState, useEffect } from "react";
-import { getParkingSlotsByLotId, createBookingOnline } from "@/lib/api";
+import { getParkingSlotsByLotId, createBookingOnline, getAvailableSlotsByDate } from "@/lib/api";
 import { Car, MapPin, LayoutGrid, Clock, CreditCard, DollarSign } from "lucide-react";
 
 type Spot = {
@@ -36,6 +36,27 @@ export default function ParkingBookingForm({ parkingLotId, allowedPaymentMethods
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const fetchAvailableSlotsByDate = async (start: string, end: string) => {
+    try {
+      setLoading(true);
+      const response = await getAvailableSlotsByDate(parkingLotId, start, end);
+      if (response.data.status === "success") {
+        setSpots(response.data.data || []);
+        if (response.data.data?.length > 0) {
+          setSelectedZone(response.data.data[0].zone);
+        }
+      } else {
+        setError("Không thể tải danh sách slot trống.");
+      }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (err: any) {
+      console.error("Lỗi khi lấy slot trống:", err.response?.data || err.message);
+      setError("Không thể tải danh sách slot trống. Vui lòng thử lại.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
     const storedUserId = localStorage.getItem("userId");
     setUserId(storedUserId);
@@ -55,6 +76,14 @@ export default function ParkingBookingForm({ parkingLotId, allowedPaymentMethods
         setLoading(false);
       });
   }, [parkingLotId]);
+
+  useEffect(() => {
+    if (startTime && endTime) {
+      const formattedStartTime = new Date(startTime).toISOString();
+      const formattedEndTime = new Date(endTime).toISOString();
+      fetchAvailableSlotsByDate(formattedStartTime, formattedEndTime);
+    }
+  }, [startTime, endTime, parkingLotId]);
 
   const zones = Array.from(new Set(spots.map((spot) => spot.zone)));
   const currentZoneSpots = spots.filter((spot) => spot.zone === selectedZone);
