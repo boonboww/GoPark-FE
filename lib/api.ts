@@ -23,6 +23,12 @@ export const getParkingSlotsByLotId = (parkingLotId: string) =>
     headers: { "Cache-Control": "no-cache" },
   });
 
+export const getAvailableSlotsByDate = (parkingLotId: string, startTime: string, endTime: string) =>
+  API.get(`/api/v1/parking-slots/by-date/${parkingLotId}`, {
+    params: { startTime, endTime },
+    headers: { "Cache-Control": "no-cache" },
+  });
+
 // API endpoints for vehicles
 export const getMyVehicles = () =>
   API.get("/api/v1/vehicles/my-vehicles");
