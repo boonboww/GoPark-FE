@@ -1,4 +1,3 @@
-
 "use client";
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
@@ -6,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Loader2, CreditCard, CheckCircle, AlertCircle } from "lucide-react";
 import { useState, useCallback } from "react";
 import { createBookingOnline } from "@/lib/api";
-import { toast } from "sonner"; // Sử dụng sonner thay vì react-hot-toast
+import { toast } from "sonner";
 
 export type BookingInfo = {
   name: string;
@@ -62,11 +61,12 @@ export default function DetailBookingModal({
     parkingSlotId: selectedSlot._id,
   };
 
-  // Hàm format thời gian để hiển thị thân thiện
+  // Hàm format thời gian để hiển thị đúng múi giờ địa phương
   const formatDateTime = (dateTime: string) => {
     try {
-      const date = new Date(dateTime + ":00Z");
+      const date = new Date(dateTime); // Không thêm :00Z
       return date.toLocaleString("vi-VN", {
+        timeZone: "Asia/Ho_Chi_Minh",
         day: "2-digit",
         month: "2-digit",
         year: "numeric",
@@ -79,6 +79,7 @@ export default function DetailBookingModal({
     }
   };
 
+  // eslint-disable-next-line react-hooks/rules-of-hooks
   const handlePayment = useCallback(async () => {
     setErrorMessage("");
     setSuccessMessage("");
@@ -88,7 +89,7 @@ export default function DetailBookingModal({
     if (!bookingInfo.parkingSlotId.match(/^[0-9a-fA-F]{24}$/)) {
       setErrorMessage("ID vị trí đỗ xe không hợp lệ!");
       console.error("❌ parkingSlotId không hợp lệ:", bookingInfo.parkingSlotId);
-      toast.error("ID vị trí đỗ xe không hợp lệ!"); // Sử dụng sonner toast
+      toast.error("ID vị trí đỗ xe không hợp lệ!");
       setIsProcessing(false);
       return;
     }
@@ -96,8 +97,8 @@ export default function DetailBookingModal({
     const bookingData = {
       userId: localStorage.getItem("userId") || "",
       parkingSlotId: bookingInfo.parkingSlotId,
-      startTime: new Date(bookingInfo.startTime + ":00Z").toISOString(),
-      endTime: new Date(bookingInfo.endTime + ":00Z").toISOString(),
+      startTime: new Date(bookingInfo.startTime).toISOString(),
+      endTime: new Date(bookingInfo.endTime).toISOString(),
       vehicleNumber: bookingInfo.vehicle,
       paymentMethod: bookingInfo.paymentMethod,
       bookingType: bookingInfo.bookingType,
@@ -105,30 +106,21 @@ export default function DetailBookingModal({
     };
 
     try {
-      // Validate thời gian
       const now = new Date();
       const start = new Date(bookingData.startTime);
       const end = new Date(bookingData.endTime);
-      const bufferMinutes = 5; // Yêu cầu startTime cách now ít nhất 5 phút
+      const bufferMinutes = 5;
       if (start <= new Date(now.getTime() + bufferMinutes * 60 * 1000)) {
         setErrorMessage(`Thời gian bắt đầu phải sau thời gian hiện tại ít nhất ${bufferMinutes} phút!`);
-        console.error("❌ Thời gian không hợp lệ", {
-          now,
-          start: bookingData.startTime,
-          end: bookingData.endTime,
-        });
-        toast.error(`Thời gian bắt đầu phải sau thời gian hiện tại ít nhất ${bufferMinutes} phút!`); // Sử dụng sonner toast
+        console.error("❌ Thời gian không hợp lệ", { now, start: bookingData.startTime, end: bookingData.endTime });
+        toast.error(`Thời gian bắt đầu phải sau thời gian hiện tại ít nhất ${bufferMinutes} phút!`);
         setIsProcessing(false);
         return;
       }
       if (end <= start) {
         setErrorMessage("Thời gian kết thúc phải sau thời gian bắt đầu!");
-        console.error("❌ Thời gian không hợp lệ", {
-          now,
-          start: bookingData.startTime,
-          end: bookingData.endTime,
-        });
-        toast.error("Thời gian kết thúc phải sau thời gian bắt đầu!"); // Sử dụng sonner toast
+        console.error("❌ Thời gian không hợp lệ", { now, start: bookingData.startTime, end: bookingData.endTime });
+        toast.error("Thời gian kết thúc phải sau thời gian bắt đầu!");
         setIsProcessing(false);
         return;
       }
@@ -136,7 +128,7 @@ export default function DetailBookingModal({
       if (isNaN(bookingData.totalPrice)) {
         setErrorMessage("Phí dự kiến không hợp lệ!");
         console.error("❌ Phí dự kiến không hợp lệ:", bookingInfo.estimatedFee);
-        toast.error("Phí dự kiến không hợp lệ!"); // Sử dụng sonner toast
+        toast.error("Phí dự kiến không hợp lệ!");
         setIsProcessing(false);
         return;
       }
@@ -145,8 +137,9 @@ export default function DetailBookingModal({
       console.log("✅ Booking thành công:", response.data);
       localStorage.setItem("currentBooking", JSON.stringify(bookingInfo));
       setSuccessMessage("Đặt chỗ thành công!");
-      toast.success("Đặt chỗ thành công!"); // Sử dụng sonner toast
+      toast.success("Đặt chỗ thành công!");
       onConfirm(bookingInfo);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       console.error("❌ Lỗi khi tạo booking:", error);
       setErrorMessage(
@@ -154,7 +147,7 @@ export default function DetailBookingModal({
       );
       toast.error(
         error?.response?.data?.message || "Đã xảy ra lỗi khi đặt chỗ. Vui lòng thử lại!"
-      ); // Sử dụng sonner toast
+      );
       console.log("💥 Response error:", error.response?.data || error.message);
     } finally {
       setIsProcessing(false);
