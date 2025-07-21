@@ -78,9 +78,13 @@ export default function ParkingBookingForm({
         const slotsResponse = await getParkingSlotsByLotId(parkingLotId);
         const rawSlots = slotsResponse.data?.data?.data;
         if (Array.isArray(rawSlots)) {
-          setSpots(rawSlots);
-          if (rawSlots.length > 0) {
-            setSelectedZone(rawSlots[0].zone || "");
+          // Sắp xếp các slot theo số của slotNumber (loại bỏ ký tự đầu)
+          const sortedSlots = rawSlots.sort((a, b) => 
+            parseInt(a.slotNumber.replace(/^\D+/g, '')) - parseInt(b.slotNumber.replace(/^\D+/g, ''))
+          );
+          setSpots(sortedSlots);
+          if (sortedSlots.length > 0) {
+            setSelectedZone(sortedSlots[0].zone || "");
           }
         } else {
           setSpots([]);
@@ -111,9 +115,13 @@ export default function ParkingBookingForm({
         const availableSpots = response.data.data.data.filter(
           (spot: Spot) => spot.status === "available"
         );
-        setSpots(availableSpots);
-        if (availableSpots.length > 0) {
-          setSelectedZone(availableSpots[0].zone || "");
+        // Sắp xếp các slot theo số của slotNumber (loại bỏ ký tự đầu)
+        const sortedSpots = availableSpots.sort((a, b) => 
+          parseInt(a.slotNumber.replace(/^\D+/g, '')) - parseInt(b.slotNumber.replace(/^\D+/g, ''))
+        );
+        setSpots(sortedSpots);
+        if (sortedSpots.length > 0) {
+          setSelectedZone(sortedSpots[0].zone || "");
         } else {
           setSelectedZone("");
           setError("Không tìm thấy slot trống cho khoảng thời gian này.");
@@ -254,7 +262,6 @@ export default function ParkingBookingForm({
       return;
     }
 
-    // Kiểm tra slot có còn khả dụng trước khi xác nhận
     try {
       const response = await getAvailableSlotsByDate(parkingLotId, startTime, endTime);
       const availableSpots = response.data.data.data;
@@ -267,7 +274,6 @@ export default function ParkingBookingForm({
         setSelectedSpotId(null);
         return;
       }
-      // Debug: In ra giá trị thời gian để kiểm tra
       console.log("Start Time:", startTime);
       console.log("End Time:", endTime);
       setModalOpen(true);
@@ -401,30 +407,32 @@ export default function ParkingBookingForm({
           </p>
         ) : (
           <div className="grid grid-cols-8 gap-2 mt-2">
-            {currentZoneSpots.map((spot) => {
-              const selected =
-                selectedSpotId === spot._id ? "ring-2 ring-black" : "";
-              return (
-                <button
-                  key={spot._id}
-                  disabled={spot.status !== "available"}
-                  onClick={() => {
-                    if (spot.status !== "available") {
-                      alert(
-                        "Slot này đã được đặt. Vui lòng chọn slot khác."
-                      );
-                      return;
-                    }
-                    setSelectedSpotId(spot._id);
-                  }}
-                  className={`text-xs text-white flex items-center justify-center h-8 rounded ${
-                    spot.status === "available" ? "bg-green-400" : "bg-red-400"
-                  } ${selected}`}
-                >
-                  {spot.slotNumber}
-                </button>
-              );
-            })}
+            {currentZoneSpots
+              .sort((a, b) => parseInt(a.slotNumber.replace(/^\D+/g, '')) - parseInt(b.slotNumber.replace(/^\D+/g, '')))
+              .map((spot) => {
+                const selected =
+                  selectedSpotId === spot._id ? "ring-2 ring-black" : "";
+                return (
+                  <button
+                    key={spot._id}
+                    disabled={spot.status !== "available"}
+                    onClick={() => {
+                      if (spot.status !== "available") {
+                        alert(
+                          "Slot này đã được đặt. Vui lòng chọn slot khác."
+                        );
+                        return;
+                      }
+                      setSelectedSpotId(spot._id);
+                    }}
+                    className={`text-xs text-white flex items-center justify-center h-8 rounded ${
+                      spot.status === "available" ? "bg-green-400" : "bg-red-400"
+                    } ${selected}`}
+                  >
+                    {spot.slotNumber}
+                  </button>
+                );
+              })}
           </div>
         )}
       </div>
@@ -490,8 +498,8 @@ export default function ParkingBookingForm({
             name,
             vehicle,
             zone: selectedZone,
-            startTime: startTime, // Đảm bảo truyền đúng giá trị
-            endTime: endTime,    // Đảm bảo truyền đúng giá trị
+            startTime: startTime,
+            endTime: endTime,
             paymentMethod,
             estimatedFee: calculateFeeValue().toString(),
             bookingType,

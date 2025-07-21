@@ -372,51 +372,52 @@ export default function CombinedParkingManagement({
         )}
 
         <div className="flex flex-col md:flex-row gap-4 md:gap-6 items-center justify-between flex-wrap">
-  {/* Dropdown chọn bãi */}
-  <div className="w-full md:w-[300px]">
-    <SelectParkingLotDropdown
-      parkingLots={parkingLots}
-      selectedLotId={selectedLotId}
-      onSelect={setSelectedLotId}
-    />
-  </div>
+          {/* Dropdown chọn bãi */}
+          <div className="w-full md:w-[300px]">
+            <SelectParkingLotDropdown
+              parkingLots={parkingLots}
+              selectedLotId={selectedLotId}
+              onSelect={setSelectedLotId}
+            />
+          </div>
 
-  {/* Ngày và nút reset */}
-  <div className="flex items-center gap-2 w-full md:w-auto">
-    <label className="text-sm font-medium whitespace-nowrap">Ngày:</label>
-    <Input
-      type="date"
-      value={selectedDate}
-      onChange={(e) => setSelectedDate(e.target.value)}
-      className="h-10 text-sm w-[140px]"
-      placeholder="Chọn ngày"
-    />
-    <Button
-      onClick={() => setSelectedDate("")}
-      className="h-10 px-4 bg-gray-200 text-gray-800 hover:bg-gray-300"
-    >
-      Reset
-    </Button>
-  </div>
+          {/* Ngày và nút reset */}
+          <div className="flex items-center gap-2 w-full md:w-auto">
+            <label className="text-sm font-medium whitespace-nowrap">
+              Ngày:
+            </label>
+            <Input
+              type="date"
+              value={selectedDate}
+              onChange={(e) => setSelectedDate(e.target.value)}
+              className="h-10 text-sm w-[140px]"
+              placeholder="Chọn ngày"
+            />
+            <Button
+              onClick={() => setSelectedDate("")}
+              className="h-10 px-4 bg-gray-200 text-gray-800 hover:bg-gray-300"
+            >
+              Reset
+            </Button>
+          </div>
 
-  {/* Nút Add + Edit */}
-  <div className="flex items-center gap-3 w-full md:w-auto">
-    <AddParkingLotDialog
-      open={newLotDialogOpen}
-      onOpenChange={setNewLotDialogOpen}
-      onCreated={loadParkingLots}
-    />
-    <EditParkingLotDialog
-      open={editLotDialogOpen}
-      onOpenChange={setEditLotDialogOpen}
-      selectedLot={selectedLot}
-      onUpdate={loadParkingLots}
-      onDelete={handleDeleteParkingLot}
-      setParkingLots={setParkingLots}
-    />
-  </div>
-</div>
-
+          {/* Nút Add + Edit */}
+          <div className="flex items-center gap-3 w-full md:w-auto">
+            <AddParkingLotDialog
+              open={newLotDialogOpen}
+              onOpenChange={setNewLotDialogOpen}
+              onCreated={loadParkingLots}
+            />
+            <EditParkingLotDialog
+              open={editLotDialogOpen}
+              onOpenChange={setEditLotDialogOpen}
+              selectedLot={selectedLot}
+              onUpdate={loadParkingLots}
+              onDelete={handleDeleteParkingLot}
+              setParkingLots={setParkingLots}
+            />
+          </div>
+        </div>
 
         {parkingFloors.length > 0 && currentFloor?.slots.length > 0 ? (
           <div className="space-y-4">
@@ -446,22 +447,24 @@ export default function CombinedParkingManagement({
             </div>
 
             <div className="grid grid-cols-8 gap-4">
-              {currentFloor.slots.map((slot) => {
-                const selected =
-                  selectedSlot?._id === slot._id ? "ring-2 ring-black" : "";
-                return (
-                  <button
-                    key={slot._id}
-                    onClick={() => handleSlotClick(slot)}
-                    className={`text-xs text-white flex items-center justify-center h-16 rounded ${getStatusColor(
-                      slot.status
-                    )} ${selected}`}
-                    title={`Slot ${slot.slotNumber} - ${slot.status}`}
-                  >
-                    {slot.slotNumber}
-                  </button>
-                );
-              })}
+              {currentFloor.slots
+                .sort((a, b) => parseInt(a.slotNumber.replace(/^\D+/g, '')) - parseInt(b.slotNumber.replace(/^\D+/g, '')))
+                .map((slot) => {
+                  const selected =
+                    selectedSlot?._id === slot._id ? "ring-2 ring-black" : "";
+                  return (
+                    <button
+                      key={slot._id}
+                      onClick={() => handleSlotClick(slot)}
+                      className={`text-xs text-white flex items-center justify-center h-16 rounded ${getStatusColor(
+                        slot.status
+                      )} ${selected}`}
+                      title={`Slot ${slot.slotNumber} - ${slot.status}`}
+                    >
+                      {slot.slotNumber}
+                    </button>
+                  );
+                })}
             </div>
 
             <div className="flex flex-wrap gap-3 justify-center md:justify-start">
