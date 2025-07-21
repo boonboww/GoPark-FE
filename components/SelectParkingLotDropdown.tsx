@@ -1,7 +1,6 @@
 "use client";
 
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
-import { Label } from "@/components/ui/label";
 import type { ParkingLot } from "@/app/owner/types";
 
 interface Props {
@@ -13,7 +12,6 @@ interface Props {
 export default function SelectParkingLotDropdown({ parkingLots, selectedLotId, onSelect }: Props) {
   return (
     <div className="space-y-1">
-      <Label className="text-sm font-medium">Chọn bãi đậu xe</Label>
       <Select
         value={selectedLotId}
         onValueChange={onSelect}

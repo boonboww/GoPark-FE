@@ -19,6 +19,14 @@ import {
   SelectItem,
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  fetchMyParkingLots,
+  deleteParkingLot,
+  fetchParkingLotDetails,
+  updateSlotStatus,
+  fetchSlotBookings,
+} from "@/lib/parkingLot.api";
 import type {
   ParkingLot,
   Vehicle,
@@ -26,7 +34,6 @@ import type {
   ParkingSlot,
   Customer,
 } from "@/app/owner/types";
-import { fetchMyParkingLots, deleteParkingLot, fetchParkingLotDetails, updateSlotStatus } from "@/lib/parkingLot.api";
 import AddParkingLotDialog from "@/components/AddParkingLotDialog";
 import EditParkingLotDialog from "@/components/EditParkingLotDialog";
 import SelectParkingLotDropdown from "@/components/SelectParkingLotDropdown";
@@ -40,6 +47,15 @@ interface ParkingLotDetailsResponse {
   };
 }
 
+interface Booking {
+  _id: string;
+  userId: { name: string; email: string } | null;
+  vehicleNumber: string;
+  startTime: string;
+  endTime: string;
+  status: string;
+}
+
 interface CombinedParkingManagementProps {
   vehicles: Vehicle[];
   setVehicles: React.Dispatch<React.SetStateAction<Vehicle[]>>;
@@ -51,7 +67,7 @@ interface CombinedParkingManagementProps {
 export default function CombinedParkingManagement({
   vehicles,
   setVehicles,
-  customers: _customers, // Đánh dấu unused prop
+  customers: _customers,
   parkingLots,
   setParkingLots,
 }: CombinedParkingManagementProps) {
@@ -66,6 +82,8 @@ export default function CombinedParkingManagement({
   const [selectedSlot, setSelectedSlot] = useState<ParkingSlot | null>(null);
   const [qrCodeUrl, setQrCodeUrl] = useState<string | null>(null);
   const [showModal, setShowModal] = useState(false);
+  const [selectedDate, setSelectedDate] = useState<string>("");
+  const [slotBookings, setSlotBookings] = useState<Booking[]>([]);
 
   const selectedLot = parkingLots.find((lot) => lot._id === selectedLotId);
   const currentFloor =
@@ -76,7 +94,6 @@ export default function CombinedParkingManagement({
     .filter((slot) => slot.status === "booked" && slot.vehicle)
     .map((slot) => slot.vehicle!);
 
-  // Đồng bộ vehicles với parkedVehicles
   useEffect(() => {
     if (parkedVehicles.length > 0) {
       setVehicles((prev) => {
@@ -107,9 +124,14 @@ export default function CombinedParkingManagement({
       const err = error as AxiosError<{ message?: string }>;
       const errorMessage = err.response?.data?.message || err.message;
       if (err.response?.status === 403) {
-        setError(`Không có quyền truy cập danh sách bãi đỗ: ${errorMessage}. Vui lòng kiểm tra vai trò tài khoản.`);
+        setError(
+          `Không có quyền truy cập danh sách bãi đỗ: ${errorMessage}. Vui lòng kiểm tra vai trò tài khoản.`
+        );
+        "!".toUpperCase();
       } else if (err.response?.status === 401) {
-        setError(`Token không hợp lệ: ${errorMessage}. Vui lòng kiểm tra đăng nhập.`);
+        setError(
+          `Token không hợp lệ: ${errorMessage}. Vui lòng kiểm tra đăng nhập.`
+        );
       } else {
         setError(`Lỗi khi tải danh sách bãi đỗ: ${errorMessage}`);
       }
@@ -120,17 +142,24 @@ export default function CombinedParkingManagement({
     }
   };
 
-  const loadParkingLotDetails = async (lotId: string) => {
+  const loadParkingLotDetails = async (lotId: string, date?: string) => {
     setIsLoading(true);
     try {
-      const slotRes = await fetchParkingLotDetails(lotId) as unknown as ParkingLotDetailsResponse;
+      const startTime = date
+        ? new Date(date).toISOString()
+        : new Date().toISOString();
+      const endTime = date
+        ? new Date(new Date(date).setHours(23, 59, 59, 999)).toISOString()
+        : new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
+      const slotRes = (await fetchParkingLotDetails(
+        lotId,
+        startTime,
+        endTime
+      )) as unknown as ParkingLotDetailsResponse;
       const slots: ParkingSlot[] = slotRes.data?.data?.data ?? [];
-      console.log("Slots:", slots);
 
-      // Sử dụng selectedLot từ state thay vì gọi lại API
       const selectedLot = parkingLots.find((lot) => lot._id === lotId);
       const zones = selectedLot?.zones ?? [];
-      console.log("Zones:", zones);
 
       const zonesMap: { [key: string]: ParkingSlot[] } = {};
       if (Array.isArray(slots)) {
@@ -139,8 +168,6 @@ export default function CombinedParkingManagement({
           if (!zonesMap[zoneName]) zonesMap[zoneName] = [];
           zonesMap[zoneName].push(slot);
         });
-      } else {
-        console.warn("Slots is not an array:", slots);
       }
 
       const floors: Floor[] = zones.map((zone, index) => ({
@@ -149,23 +176,30 @@ export default function CombinedParkingManagement({
         slots: zonesMap[zone.zone] || [],
       }));
 
-      console.log("Floors:", floors);
-      setParkingFloors(floors.length > 0 ? floors : [{
-        number: 1,
-        name: "Default",
-        slots: [],
-      }]);
+      setParkingFloors(
+        floors.length > 0
+          ? floors
+          : [
+              {
+                number: 1,
+                name: "Default",
+                slots: [],
+              },
+            ]
+      );
       setSelectedFloor(floors[0]?.number || 1);
     } catch (error) {
       const err = error as AxiosError<{ message?: string }>;
       const errorMessage = err.response?.data?.message || err.message;
       toast.error(`Lỗi khi tải danh sách chỗ đỗ: ${errorMessage}`);
       console.error("Error fetching parking lot details:", error);
-      setParkingFloors([{
-        number: 1,
-        name: "Default",
-        slots: [],
-      }]);
+      setParkingFloors([
+        {
+          number: 1,
+          name: "Default",
+          slots: [],
+        },
+      ]);
       setSelectedFloor(1);
     } finally {
       setIsLoading(false);
@@ -178,9 +212,9 @@ export default function CombinedParkingManagement({
 
   useEffect(() => {
     if (selectedLotId) {
-      loadParkingLotDetails(selectedLotId);
+      loadParkingLotDetails(selectedLotId, selectedDate);
     }
-  }, [selectedLotId, parkingLots]);
+  }, [selectedLotId, selectedDate, parkingLots]);
 
   const handleDeleteParkingLot = async (id: string) => {
     setIsLoading(true);
@@ -206,36 +240,52 @@ export default function CombinedParkingManagement({
   const getStatusColor = (status: string) => {
     switch (status) {
       case "available":
-        return "bg-green-500 hover:bg-green-600";
+        return "bg-green-400";
       case "booked":
-        return "bg-red-500 hover:bg-red-600";
       case "reserved":
-        return "bg-yellow-500 hover:bg-yellow-600";
+        return "bg-red-400";
       default:
-        return "bg-gray-500 hover:bg-gray-600";
+        return "bg-gray-500";
+    }
+  };
+
+  const fetchSlotBookingsLocal = async (
+    slotId: string,
+    startTime: string,
+    endTime: string
+  ) => {
+    try {
+      const response = await fetchSlotBookings(slotId, startTime, endTime);
+      console.log("Fetched bookings:", response.data);
+      setSlotBookings(response.data.data || []);
+    } catch (error) {
+      const err = error as AxiosError<{ message?: string }>;
+      const errorMessage = err.response?.data?.message || err.message;
+      toast.error(`Lỗi khi tải danh sách booking: ${errorMessage}`);
+      console.error("Error fetching slot bookings:", error);
+      setSlotBookings([]);
     }
   };
 
   const handleSlotClick = (slot: ParkingSlot) => {
-    if (slot.status === "booked" && slot.vehicle) {
-      setSelectedVehicle(slot.vehicle);
-      setSelectedSlot(slot);
-      generateQRCode(slot.vehicle.id);
-      setShowModal(true);
-    } else if (slot.status === "reserved") {
-      const reservedVehicle: Vehicle = {
-        id: `RES-${slot.slotNumber}`,
-        licensePlate: `72A-${1000 + parseInt(slot.slotNumber.split("-")[1])}`,
-        type: "Car",
-        owner: `Nguyễn Văn ${slot.slotNumber}`,
-        status: "Reserved",
-        plateImage: `/bienso.png`,
-      };
-      setSelectedVehicle(reservedVehicle);
-      setSelectedSlot(slot);
-      generateQRCode(reservedVehicle.id);
-      setShowModal(true);
+    setSelectedSlot(slot);
+    setSlotBookings([]);
+    const startTime = selectedDate
+      ? new Date(selectedDate).toISOString()
+      : new Date().toISOString();
+    const endTime = selectedDate
+      ? new Date(new Date(selectedDate).setHours(23, 59, 59, 999)).toISOString()
+      : new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
+    if (slot.status === "booked" || slot.status === "reserved") {
+      setSelectedVehicle(slot.vehicle || null);
+      generateQRCode(slot.vehicle?.id || `RES-${slot.slotNumber}`);
+      fetchSlotBookingsLocal(slot._id, startTime, endTime);
+    } else {
+      setSelectedVehicle(null);
+      setQrCodeUrl(null);
+      fetchSlotBookingsLocal(slot._id, startTime, endTime);
     }
+    setShowModal(true);
   };
 
   const generateQRCode = (id: string) => {
@@ -256,7 +306,7 @@ export default function CombinedParkingManagement({
           },
         });
         toast.success("Xác nhận đỗ xe thành công");
-        await loadParkingLotDetails(selectedLotId);
+        await loadParkingLotDetails(selectedLotId, selectedDate);
         setShowModal(false);
         setVehicles((prev) => {
           const index = prev.findIndex((v) => v.id === selectedVehicle.id);
@@ -273,7 +323,9 @@ export default function CombinedParkingManagement({
         const err = error as AxiosError<{ message?: string }>;
         const errorMessage = err.response?.data?.message || err.message;
         if (err.response?.status === 403) {
-          toast.error(`Không có quyền cập nhật trạng thái chỗ đỗ: ${errorMessage}`);
+          toast.error(
+            `Không có quyền cập nhật trạng thái chỗ đỗ: ${errorMessage}`
+          );
         } else {
           toast.error(`Lỗi khi xác nhận đỗ xe: ${errorMessage}`);
         }
@@ -318,7 +370,9 @@ export default function CombinedParkingManagement({
         {isLoading && (
           <div className="text-center text-gray-500">Đang tải...</div>
         )}
-        <div className="flex flex-col md:flex-row gap-4 justify-between items-start md:items-center">
+
+        <div className="flex flex-col md:flex-row gap-4 md:gap-6 items-center justify-between flex-wrap">
+          {/* Dropdown chọn bãi */}
           <div className="w-full md:w-[300px]">
             <SelectParkingLotDropdown
               parkingLots={parkingLots}
@@ -327,7 +381,28 @@ export default function CombinedParkingManagement({
             />
           </div>
 
-          <div className="flex gap-3 w-full md:w-auto">
+          {/* Ngày và nút reset */}
+          <div className="flex items-center gap-2 w-full md:w-auto">
+            <label className="text-sm font-medium whitespace-nowrap">
+              Ngày:
+            </label>
+            <Input
+              type="date"
+              value={selectedDate}
+              onChange={(e) => setSelectedDate(e.target.value)}
+              className="h-10 text-sm w-[140px]"
+              placeholder="Chọn ngày"
+            />
+            <Button
+              onClick={() => setSelectedDate("")}
+              className="h-10 px-4 bg-gray-200 text-gray-800 hover:bg-gray-300"
+            >
+              Reset
+            </Button>
+          </div>
+
+          {/* Nút Add + Edit */}
+          <div className="flex items-center gap-3 w-full md:w-auto">
             <AddParkingLotDialog
               open={newLotDialogOpen}
               onOpenChange={setNewLotDialogOpen}
@@ -347,7 +422,9 @@ export default function CombinedParkingManagement({
         {parkingFloors.length > 0 && currentFloor?.slots.length > 0 ? (
           <div className="space-y-4">
             <div className="flex justify-between items-center">
-              <h3 className="text-lg font-semibold">Chỗ Đậu Xe - Khu vực {currentFloor.name}</h3>
+              <h3 className="text-lg font-semibold">
+                Chỗ Đậu Xe - Khu vực {currentFloor.name}
+              </h3>
               <Select
                 value={selectedFloor.toString()}
                 onValueChange={(value) => setSelectedFloor(parseInt(value))}
@@ -369,38 +446,35 @@ export default function CombinedParkingManagement({
               </Select>
             </div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
-              {currentFloor.slots.map((slot) => (
-                <div
-                  key={slot._id}
-                  onClick={() => handleSlotClick(slot)}
-                  className={`p-3 rounded-lg text-white text-center ${getStatusColor(
-                    slot.status
-                  )} h-20 flex flex-col justify-center items-center cursor-pointer transition-colors duration-200`}
-                  title={`Slot ${slot.slotNumber} - ${slot.status}`}
-                >
-                  <div className="font-bold text-sm md:text-base">{slot.slotNumber}</div>
-                  {slot.status === "booked" && slot.vehicle && (
-                    <div className="text-xs mt-1 truncate w-full">
-                      {slot.vehicle.licensePlate}
-                    </div>
-                  )}
-                </div>
-              ))}
+            <div className="grid grid-cols-8 gap-4">
+              {currentFloor.slots
+                .sort((a, b) => parseInt(a.slotNumber.replace(/^\D+/g, '')) - parseInt(b.slotNumber.replace(/^\D+/g, '')))
+                .map((slot) => {
+                  const selected =
+                    selectedSlot?._id === slot._id ? "ring-2 ring-black" : "";
+                  return (
+                    <button
+                      key={slot._id}
+                      onClick={() => handleSlotClick(slot)}
+                      className={`text-xs text-white flex items-center justify-center h-16 rounded ${getStatusColor(
+                        slot.status
+                      )} ${selected}`}
+                      title={`Slot ${slot.slotNumber} - ${slot.status}`}
+                    >
+                      {slot.slotNumber}
+                    </button>
+                  );
+                })}
             </div>
 
             <div className="flex flex-wrap gap-3 justify-center md:justify-start">
               <div className="flex items-center gap-2">
-                <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                <div className="w-3 h-3 bg-green-400 rounded-full"></div>
                 <span className="text-sm">Còn trống</span>
               </div>
               <div className="flex items-center gap-2">
-                <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
-                <span className="text-sm">Đã đặt trước</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3 bg-red-500 rounded-full"></div>
-                <span className="text-sm">Đã sử dụng</span>
+                <div className="w-3 h-3 bg-red-400 rounded-full"></div>
+                <span className="text-sm">Đã đặt trước/Đang sử dụng</span>
               </div>
             </div>
           </div>
@@ -450,7 +524,7 @@ export default function CombinedParkingManagement({
           </div>
         )}
 
-        {showModal && selectedVehicle && (
+        {showModal && selectedSlot && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
             <div className="bg-white p-6 rounded-lg w-[90%] max-w-md relative">
               <button
@@ -459,71 +533,99 @@ export default function CombinedParkingManagement({
               >
                 ✕
               </button>
-              <h2 className="text-xl font-bold mb-4">Chi Tiết Xe</h2>
-              
+              <h2 className="text-xl font-bold mb-4">
+                Chi Tiết Slot {selectedSlot.slotNumber}
+              </h2>
+
               <div className="space-y-3">
-                <div>
-                  <p className="text-sm text-gray-500">Mã vé</p>
-                  <p className="font-medium">{selectedVehicle.id}</p>
-                </div>
-                
-                <div>
-                  <p className="text-sm text-gray-500">Chủ xe</p>
-                  <p className="font-medium">{selectedVehicle.owner}</p>
-                </div>
-                
-                <div>
-                  <p className="text-sm text-gray-500">Biển số</p>
-                  <p className="font-medium">{selectedVehicle.licensePlate}</p>
-                </div>
-                
-                <div className="grid grid-cols-2 gap-4 pt-2">
-                  {selectedVehicle.plateImage && (
+                {selectedSlot.status === "available" ? (
+                  <p className="text-sm text-gray-500">
+                    Chỗ đỗ này chưa được đặt trong ngày này.
+                  </p>
+                ) : (
+                  <>
+                    {selectedVehicle && (
+                      <>
+                        <div>
+                          <p className="text-sm text-gray-500">Mã vé</p>
+                          <p className="font-medium">{selectedVehicle.id}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm text-gray-500">Chủ xe</p>
+                          <p className="font-medium">{selectedVehicle.owner}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm text-gray-500">Biển số</p>
+                          <p className="font-medium">
+                            {selectedVehicle.licensePlate}
+                          </p>
+                        </div>
+                        <div className="grid grid-cols-2 gap-4 pt-2">
+                          {selectedVehicle.plateImage && (
+                            <div>
+                              <p className="text-sm text-gray-500">
+                                Hình biển số
+                              </p>
+                              <img
+                                src={selectedVehicle.plateImage}
+                                alt="Biển số"
+                                className="mt-1 w-full rounded border"
+                              />
+                            </div>
+                          )}
+                          <div>
+                            <p className="text-sm text-gray-500">Mã QR</p>
+                            <div className="mt-1 border rounded p-1 flex justify-center">
+                              {qrCodeUrl ? (
+                                <img
+                                  src={qrCodeUrl}
+                                  alt="Mã QR"
+                                  className="w-24 h-24"
+                                />
+                              ) : (
+                                <span>Đang tải...</span>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      </>
+                    )}
                     <div>
-                      <p className="text-sm text-gray-500">Hình biển số</p>
-                      <img
-                        src={selectedVehicle.plateImage}
-                        alt="Biển số"
-                        className="mt-1 w-full rounded border"
-                      />
-                    </div>
-                  )}
-                  
-                  <div>
-                    <p className="text-sm text-gray-500">Mã QR</p>
-                    <div className="mt-1 border rounded p-1 flex justify-center">
-                      {qrCodeUrl ? (
-                        <img
-                          src={qrCodeUrl}
-                          alt="Mã QR"
-                          className="w-24 h-24"
-                        />
+                      <p className="text-sm text-gray-500">Danh sách đặt chỗ</p>
+                      {slotBookings.length > 0 ? (
+                        <div className="mt-2 space-y-2">
+                          {slotBookings.map((booking) => (
+                            <div
+                              key={booking._id}
+                              className="border p-2 rounded"
+                            >
+                              <p>
+                                <strong>Biển số:</strong>{" "}
+                                {booking.vehicleNumber}
+                              </p>
+                              <p>
+                                <strong>Thời gian bắt đầu:</strong>{" "}
+                                {new Date(booking.startTime).toLocaleString()}
+                              </p>
+                              <p>
+                                <strong>Thời gian kết thúc:</strong>{" "}
+                                {new Date(booking.endTime).toLocaleString()}
+                              </p>
+                              <p>
+                                <strong>Trạng thái:</strong> {booking.status}
+                              </p>
+                            </div>
+                          ))}
+                        </div>
                       ) : (
-                        <span>Đang tải...</span>
+                        <p className="text-sm">
+                          Không có đặt chỗ nào trong khoảng thời gian này.
+                        </p>
                       )}
                     </div>
-                  </div>
-                </div>
-                
-                <div>
-                  <p className="text-sm text-gray-500">
-                    {selectedSlot?.status === "reserved"
-                      ? "Thời gian đặt chỗ"
-                      : "Thời gian nhận xe"}
-                  </p>
-                  <p className="font-medium">{new Date().toLocaleString()}</p>
-                </div>
+                  </>
+                )}
               </div>
-
-              {selectedSlot?.status === "reserved" && (
-                <button
-                  onClick={handleConfirm}
-                  className="mt-4 w-full py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
-                  disabled={isLoading}
-                >
-                  Xác Nhận
-                </button>
-              )}
             </div>
           </div>
         )}
