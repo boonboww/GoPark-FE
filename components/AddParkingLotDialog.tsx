@@ -31,14 +31,14 @@ export default function AddParkingLotDialog({ open, onOpenChange, onCreated }: P
     avtImage: "",
   });
   const [zoneCount, setZoneCount] = useState(1);
-  const [zoneValues, setZoneValues] = useState([{ zone: "", count: 0 }]);
+  const [zoneValues, setZoneValues] = useState([{ zone: "A", count: 10 }]);
   const [street, setStreet] = useState("");
   const [district, setDistrict] = useState("");
   const [city, setCity] = useState("");
   const [imageUrl, setImageUrl] = useState("");
-  const [paymentMethods, setPaymentMethods] = useState<string[]>([]);
-  const [latitude, setLatitude] = useState("");
-  const [longitude, setLongitude] = useState("");
+  const [paymentMethods, setPaymentMethods] = useState<string[]>(["prepaid"]);
+  const [latitude, setLatitude] = useState("21.028511");
+  const [longitude, setLongitude] = useState("105.854444");
   const [isLoading, setIsLoading] = useState(false);
 
   const handleAdd = async () => {
@@ -72,14 +72,14 @@ export default function AddParkingLotDialog({ open, onOpenChange, onCreated }: P
         avtImage: "",
       });
       setZoneCount(1);
-      setZoneValues([{ zone: "", count: 0 }]);
+      setZoneValues([{ zone: "A", count: 10 }]);
       setStreet("");
       setDistrict("");
       setCity("");
       setImageUrl("");
-      setPaymentMethods([]);
-      setLatitude("");
-      setLongitude("");
+      setPaymentMethods(["prepaid"]);
+      setLatitude("21.028511");
+      setLongitude("105.854444");
     } catch (error) {
       toast.error("Lỗi khi tạo bãi đỗ");
       console.error("Error creating parking lot:", error);
@@ -88,13 +88,13 @@ export default function AddParkingLotDialog({ open, onOpenChange, onCreated }: P
     }
   };
 
-  // const handlePaymentMethodChange = (method: string) => {
-  //   setPaymentMethods((prev) =>
-  //     prev.includes(method)
-  //       ? prev.filter((m) => m !== method)
-  //       : [...prev, method]
-  //   );
-  // };
+  const handlePaymentMethodChange = (method: string) => {
+    setPaymentMethods((prev) =>
+      prev.includes(method)
+        ? prev.filter((m) => m !== method)
+        : [...prev, method]
+    );
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -148,14 +148,15 @@ export default function AddParkingLotDialog({ open, onOpenChange, onCreated }: P
             />
           </div>
 
-          {/* <div className="space-y-1">
+          <div className="space-y-1">
             <Label className="text-sm font-medium">Kinh độ (Longitude)</Label>
             <Input
               className="rounded-md"
               type="number"
+              step="any"
               value={longitude}
               onChange={(e) => setLongitude(e.target.value)}
-              placeholder="Nhập kinh độ (VD: 106.6297)"
+              placeholder="Nhập kinh độ (VD: 105.854444)"
             />
           </div>
 
@@ -164,27 +165,32 @@ export default function AddParkingLotDialog({ open, onOpenChange, onCreated }: P
             <Input
               className="rounded-md"
               type="number"
+              step="any"
               value={latitude}
               onChange={(e) => setLatitude(e.target.value)}
-              placeholder="Nhập vĩ độ (VD: 10.8231)"
+              placeholder="Nhập vĩ độ (VD: 21.028511)"
             />
-          </div> */}
+          </div>
 
-          {/* <div className="md:col-span-2 space-y-1">
+          <div className="md:col-span-2 space-y-1">
             <Label className="text-sm font-medium">Phương thức thanh toán</Label>
-            <div className="flex gap-4">
-              {["Tiền mặt", "Thẻ ngân hàng", "Ví điện tử"].map((method) => (
-                <label key={method} className="flex items-center gap-2">
+            <div className="flex gap-4 flex-wrap">
+              {[
+                { value: "prepaid", label: "Trả trước" },
+                { value: "pay-at-parking", label: "Trả tại bãi" }
+              ].map((method) => (
+                <label key={method.value} className="flex items-center gap-2 cursor-pointer">
                   <input
                     type="checkbox"
-                    checked={paymentMethods.includes(method)}
-                    onChange={() => handlePaymentMethodChange(method)}
+                    checked={paymentMethods.includes(method.value)}
+                    onChange={() => handlePaymentMethodChange(method.value)}
+                    className="rounded"
                   />
-                  <span>{method}</span>
+                  <span className="text-sm">{method.label}</span>
                 </label>
               ))}
             </div>
-          </div> */}
+          </div>
 
           <div className="md:col-span-2 space-y-1">
             <Label className="text-sm font-medium">Số khu vực</Label>
@@ -194,7 +200,16 @@ export default function AddParkingLotDialog({ open, onOpenChange, onCreated }: P
               onChange={(e) => {
                 const count = Number(e.target.value);
                 setZoneCount(count);
-                setZoneValues(Array(count).fill({ zone: "", count: 0 }));
+                // Tạo zones mới với tên tự động (A, B, C...) để tránh trùng lặp
+                const newZones = [];
+                for (let i = 0; i < count; i++) {
+                  const zoneName = String.fromCharCode(65 + i); // A, B, C...
+                  newZones.push({ 
+                    zone: zoneName, 
+                    count: zoneValues[i]?.count || 10 
+                  });
+                }
+                setZoneValues(newZones);
               }}
             >
               {[...Array(10)].map((_, i) => (
@@ -206,33 +221,54 @@ export default function AddParkingLotDialog({ open, onOpenChange, onCreated }: P
           </div>
 
           {zoneValues.map((z, index) => (
-            <div key={index} className="grid grid-cols-2 gap-3 md:col-span-2">
-              <div className="space-y-1">
-                <Label className="text-sm font-medium">Tên khu vực {index + 1}</Label>
-                <Input
-                  className="rounded-md"
-                  value={z.zone}
-                  onChange={(e) => {
-                    const updated = [...zoneValues];
-                    updated[index].zone = e.target.value;
-                    setZoneValues(updated);
-                  }}
-                  placeholder="Ví dụ: A, B, C..."
-                />
+            <div key={`zone-${index}`} className="md:col-span-2 border rounded-lg p-4 space-y-3">
+              <div className="flex items-center justify-between">
+                <h4 className="font-medium text-gray-900">Khu vực {z.zone}</h4>
+                <span className="text-sm text-gray-500">Tổng: {z.count} chỗ</span>
               </div>
-              <div className="space-y-1">
-                <Label className="text-sm font-medium">Số chỗ đậu</Label>
-                <Input
-                  className="rounded-md"
-                  type="number"
-                  value={z.count}
-                  onChange={(e) => {
-                    const updated = [...zoneValues];
-                    updated[index].count = Number(e.target.value);
-                    setZoneValues(updated);
-                  }}
-                  placeholder="Số lượng"
-                />
+              
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <Label className="text-sm font-medium">Tên khu vực</Label>
+                  <Input
+                    className="rounded-md bg-gray-50"
+                    value={z.zone}
+                    disabled
+                    placeholder="Tên khu tự động"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-sm font-medium">Số chỗ đậu</Label>
+                  <Input
+                    className="rounded-md"
+                    type="number"
+                    min="1"
+                    max="100"
+                    value={z.count}
+                    onChange={(e) => {
+                      const updated = [...zoneValues];
+                      updated[index].count = Math.max(1, Number(e.target.value));
+                      setZoneValues(updated);
+                    }}
+                    placeholder="Số lượng"
+                  />
+                </div>
+              </div>
+              
+              <div className="space-y-2">
+                <Label className="text-sm font-medium text-gray-700">
+                  Các vị trí trong khu {z.zone}:
+                </Label>
+                <div className="grid grid-cols-5 gap-1 max-h-20 overflow-y-auto">
+                  {Array.from({ length: z.count }, (_, slotIndex) => (
+                    <div 
+                      key={`${z.zone}-${slotIndex + 1}`}
+                      className="bg-blue-50 border border-blue-200 rounded px-2 py-1 text-xs text-center text-blue-700 font-medium"
+                    >
+                      {z.zone}{slotIndex + 1}
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
           ))}
@@ -242,27 +278,28 @@ export default function AddParkingLotDialog({ open, onOpenChange, onCreated }: P
             <Input
               className="rounded-md"
               type="number"
+              min="0"
               value={newParkingLot.pricePerHour}
               onChange={(e) =>
                 setNewParkingLot({ ...newParkingLot, pricePerHour: Number(e.target.value) })
               }
-              placeholder="Nhập giá theo VND"
+              placeholder="Nhập giá theo VND (VD: 15000)"
             />
           </div>
 
-          {/* <div className="md:col-span-2 space-y-1">
+          <div className="md:col-span-2 space-y-1">
             <Label className="text-sm font-medium">Mô tả</Label>
-            <Input
-              className="rounded-md"
+            <textarea
+              className="w-full border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-gray-400 min-h-[80px] resize-none"
               value={newParkingLot.description}
               onChange={(e) =>
                 setNewParkingLot({ ...newParkingLot, description: e.target.value })
               }
-              placeholder="Nhập mô tả bãi đỗ (tùy chọn)"
+              placeholder="Nhập mô tả bãi đỗ (tùy chọn): vị trí, tiện ích, quy định..."
             />
-          </div> */}
+          </div>
 
-          {/* <div className="md:col-span-2 space-y-1">
+          <div className="md:col-span-2 space-y-1">
             <Label className="text-sm font-medium">URL hình ảnh đại diện</Label>
             <Input
               className="rounded-md"
@@ -281,7 +318,7 @@ export default function AddParkingLotDialog({ open, onOpenChange, onCreated }: P
                 />
               </div>
             )}
-          </div> */}
+          </div>
 
           <div className="md:col-span-2 space-y-1">
             <Label className="text-sm font-medium">URL hình ảnh</Label>
@@ -302,10 +339,27 @@ export default function AddParkingLotDialog({ open, onOpenChange, onCreated }: P
             )}
           </div>
 
-          <div className="md:col-span-2 pt-2">
-            <Button className="w-full rounded-md" onClick={handleAdd} disabled={isLoading}>
-              Tạo bãi đậu xe
-            </Button>
+          <div className="md:col-span-2 pt-4 border-t">
+            <div className="flex gap-3">
+              <Button 
+                variant="outline" 
+                className="flex-1 rounded-md" 
+                onClick={() => onOpenChange(false)}
+                disabled={isLoading}
+              >
+                Hủy
+              </Button>
+              <Button 
+                className="flex-1 rounded-md bg-blue-600 hover:bg-blue-700" 
+                onClick={handleAdd} 
+                disabled={isLoading || !newParkingLot.name.trim() || !street.trim() || !city.trim() || paymentMethods.length === 0}
+              >
+                {isLoading ? "Đang tạo..." : "Tạo bãi đậu xe"}
+              </Button>
+            </div>
+            {paymentMethods.length === 0 && (
+              <p className="text-red-500 text-xs mt-2">Vui lòng chọn ít nhất một phương thức thanh toán</p>
+            )}
           </div>
         </div>
       </DialogContent>

@@ -15,6 +15,7 @@ import {
   // Map,
   ShieldCheck,
   Bell,
+  Search,
 } from "lucide-react";
 
 interface Notification {
@@ -153,6 +154,16 @@ export default function Header({
   const DesktopMenuLinks = () => (
     <>
       <button
+        onClick={() => router.push("/findParking")}
+        className={`flex items-center cursor-pointer gap-2 ${
+          isHomepage
+            ? "text-white hover:text-white/80"
+            : "text-gray-800 hover:text-blue-600"
+        }`}
+      >
+        <Search size={16} /> Tìm kiếm
+      </button>
+      <button
         onClick={() => router.push("/myBooking")}
         className={`flex items-center cursor-pointer gap-2 ${
           isHomepage
@@ -187,6 +198,12 @@ export default function Header({
 
   const MobileMenuLinks = () => (
     <>
+      <button
+        onClick={() => handleMobileMenuNavigation("/findParking")}
+        className="flex items-center cursor-pointer gap-2 text-gray-800 hover:text-blue-600 w-full text-left py-2"
+      >
+        <Search size={16} /> Tìm kiếm
+      </button>
       <button
         onClick={() => handleMobileMenuNavigation("/addVehicle")}
         className="flex items-center cursor-pointer gap-2 text-gray-800 hover:text-blue-600 w-full text-left py-2"

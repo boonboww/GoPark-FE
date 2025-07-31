@@ -148,15 +148,15 @@ export default function OwnerDashboard() {
           </TabsContent>
 
           <TabsContent value="vehicles">
-            <CombinedParkingManagement
+            <CombinedParkingManagement                                        
               vehicles={vehicleList}
               setVehicles={setVehicleList}
               customers={customerList}
               parkingLots={parkingLots}
               setParkingLots={setParkingLots}
             />
-          </TabsContent>
-
+          </TabsContent>                          
+                                                                                                                                                                                                                                                        
           <TabsContent value="tickets">
             <TicketManagement
               tickets={ticketList}
