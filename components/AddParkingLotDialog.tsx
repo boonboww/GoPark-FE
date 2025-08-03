@@ -5,6 +5,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
+import { Plus, MapPin, Building2, DollarSign, CreditCard } from "lucide-react";
 import { createParkingLot } from "@/lib/parkingLot.api";
 import toast from "react-hot-toast";
 
@@ -99,8 +100,9 @@ export default function AddParkingLotDialog({ open, onOpenChange, onCreated }: P
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogTrigger asChild>
-        <Button className="w-full md:w-auto" variant="outline">
-          <span className="font-medium">+ Thêm bãi đậu xe</span>
+        <Button className="w-full md:w-auto hover:bg-green-50 hover:text-green-700 hover:border-green-300 transition-colors" variant="outline">
+          <Plus className="w-4 h-4 mr-2" />
+          <span className="font-medium">Thêm bãi đậu xe</span>
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[650px] rounded-lg">
@@ -109,7 +111,10 @@ export default function AddParkingLotDialog({ open, onOpenChange, onCreated }: P
         </DialogHeader>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 py-4 max-h-[70vh] overflow-y-auto">
           <div className="md:col-span-2 space-y-1">
-            <Label className="text-sm font-medium">Tên bãi đậu xe</Label>
+            <Label className="text-sm font-medium flex items-center gap-2">
+              <Building2 className="w-4 h-4 text-green-600" />
+              Tên bãi đậu xe
+            </Label>
             <Input
               className="rounded-md"
               value={newParkingLot.name}
@@ -119,7 +124,10 @@ export default function AddParkingLotDialog({ open, onOpenChange, onCreated }: P
           </div>
 
           <div className="space-y-1">
-            <Label className="text-sm font-medium">Đường</Label>
+            <Label className="text-sm font-medium flex items-center gap-2">
+              <MapPin className="w-4 h-4 text-green-600" />
+              Đường
+            </Label>
             <Input
               className="rounded-md"
               value={street}
@@ -129,7 +137,10 @@ export default function AddParkingLotDialog({ open, onOpenChange, onCreated }: P
           </div>
 
           <div className="space-y-1">
-            <Label className="text-sm font-medium">Quận/Huyện</Label>
+            <Label className="text-sm font-medium flex items-center gap-2">
+              <MapPin className="w-4 h-4 text-green-600" />
+              Quận/Huyện
+            </Label>
             <Input
               className="rounded-md"
               value={district}
@@ -139,7 +150,10 @@ export default function AddParkingLotDialog({ open, onOpenChange, onCreated }: P
           </div>
 
           <div className="md:col-span-2 space-y-1">
-            <Label className="text-sm font-medium">Thành phố</Label>
+            <Label className="text-sm font-medium flex items-center gap-2">
+              <MapPin className="w-4 h-4 text-green-600" />
+              Thành phố
+            </Label>
             <Input
               className="rounded-md"
               value={city}
@@ -149,7 +163,10 @@ export default function AddParkingLotDialog({ open, onOpenChange, onCreated }: P
           </div>
 
           <div className="space-y-1">
-            <Label className="text-sm font-medium">Kinh độ (Longitude)</Label>
+            <Label className="text-sm font-medium flex items-center gap-2">
+              <MapPin className="w-4 h-4 text-green-600" />
+              Kinh độ (Longitude)
+            </Label>
             <Input
               className="rounded-md"
               type="number"
@@ -161,7 +178,10 @@ export default function AddParkingLotDialog({ open, onOpenChange, onCreated }: P
           </div>
 
           <div className="space-y-1">
-            <Label className="text-sm font-medium">Vĩ độ (Latitude)</Label>
+            <Label className="text-sm font-medium flex items-center gap-2">
+              <MapPin className="w-4 h-4 text-green-600" />
+              Vĩ độ (Latitude)
+            </Label>
             <Input
               className="rounded-md"
               type="number"
@@ -173,7 +193,10 @@ export default function AddParkingLotDialog({ open, onOpenChange, onCreated }: P
           </div>
 
           <div className="md:col-span-2 space-y-1">
-            <Label className="text-sm font-medium">Phương thức thanh toán</Label>
+            <Label className="text-sm font-medium flex items-center gap-2">
+              <CreditCard className="w-4 h-4 text-green-600" />
+              Phương thức thanh toán
+            </Label>
             <div className="flex gap-4 flex-wrap">
               {[
                 { value: "prepaid", label: "Trả trước" },
@@ -274,7 +297,10 @@ export default function AddParkingLotDialog({ open, onOpenChange, onCreated }: P
           ))}
 
           <div className="md:col-span-2 space-y-1">
-            <Label className="text-sm font-medium">Giá mỗi giờ (VND)</Label>
+            <Label className="text-sm font-medium flex items-center gap-2">
+              <DollarSign className="w-4 h-4 text-green-600" />
+              Giá mỗi giờ (VND)
+            </Label>
             <Input
               className="rounded-md"
               type="number"

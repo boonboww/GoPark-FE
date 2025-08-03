@@ -42,7 +42,7 @@ export function LoginForm({ className, ...props }: React.ComponentProps<"div">) 
       console.log("Logged in role:", role);
 
       if (role === "admin") {
-        router.push("/dashboard");
+        router.push("/admin");
       } else if (role === "owner") {
         router.push("/owner");
       } else {

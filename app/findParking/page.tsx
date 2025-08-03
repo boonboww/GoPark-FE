@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Search, Grid, List, MapPin, Clock, Car, Camera, Shield, Navigation } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import Header from "@/components/Header";
 
 interface ParkingLot {
   _id: string;
@@ -257,6 +258,8 @@ export default function FindParkingPage() {
     <div className="min-h-screen bg-gray-50 pt-20">
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
+        <Header/>
+        {/* Page Title */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
             Tìm kiếm bãi đỗ xe
