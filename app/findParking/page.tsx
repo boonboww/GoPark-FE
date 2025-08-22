@@ -71,7 +71,8 @@ export default function FindParkingPage() {
     const fetchParkingLots = async () => {
       try {
         setLoading(true);
-        const response = await fetch("http://localhost:5000/api/v1/parkinglots/public/all");
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+  const response = await fetch(`${apiUrl}/api/v1/parkinglots/public/all`);
         
         if (!response.ok) {
           throw new Error("Không thể tải dữ liệu bãi đỗ");
