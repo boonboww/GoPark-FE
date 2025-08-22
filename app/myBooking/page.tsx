@@ -1,226 +1,331 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
+import toast from "react-hot-toast";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   ParkingSquare,
   MapPin,
   Clock,
-  CheckCircle,
   Eye,
   Car,
   Trash2,
-  Star,
+  CreditCard,
+  Loader2,
+  RefreshCw,
+  AlertCircle,
+  Calendar
 } from "lucide-react";
 import BookingDetail from "./BookingDetail";
 import { Booking } from "./types";
+import { getUserBookings, cancelBooking, formatBookingForUI } from "@/lib/booking.api";
 
 export default function MyBookingPage() {
   const router = useRouter();
-
-  const [activeBookings, setActiveBookings] = useState<Booking[]>([
-    {
-      id: 1,
-      parkingName: "Bãi đỗ Trung tâm",
-      location: "123 Đường Chính, Trung tâm Thành phố",
-      time: "10/07/2025 - 10:00",
-      status: "active",
-      image: "/b1.jpg",
-      feeEstimate: "100.000 - 200.000 VNĐ",
-      package: "Theo giờ",
-      plateNumber: "43A-12345",
-      spotNumber: "A12",
-      zone: "Khu vực 1",
-      ticketId: "TKT123456",
-      startTime: "2025-07-10T10:00:00",
-      endTime: "2025-07-10T12:00:00",
-      paymentMethod: "prepaid",
-      fee: "150.000 VNĐ"
-    },
-  ]);
-
-  const [historyBookings, setHistoryBookings] = useState<Booking[]>([
-    {
-      id: 2,
-      parkingName: "Bãi đỗ Trung tâm Thương mại",
-      location: "456 Đường Trung tâm, Thượng Thành",
-      time: "01/07/2025 - 14:00",
-      status: "completed",
-      image: "/b1.jpg",
-      feeEstimate: "300.000 VNĐ",
-      package: "Theo ngày",
-      plateNumber: "43B1-67890",
-      spotNumber: "B7",
-      zone: "Khu vực 2",
-      ticketId: "TKT654321",
-      startTime: "2025-07-01T14:00:00",
-      endTime: "2025-07-01T20:00:00",
-      paymentMethod: "onsite",
-      fee: "300.000 VNĐ"
-    },
-    {
-      id: 3,
-      parkingName: "Bãi đỗ Sân bay",
-      location: "Đường Sân bay, Quận 3",
-      time: "15/06/2025 - 09:00",
-      status: "cancelled",
-      image: "/b1.jpg",
-      feeEstimate: "160.000 VNĐ",
-      package: "Theo giờ",
-      plateNumber: "43C-11223",
-      spotNumber: "C3",
-      zone: "Khu vực 1",
-      ticketId: "TKT112233",
-      startTime: "2025-06-15T09:00:00",
-      endTime: "2025-06-15T11:00:00",
-      paymentMethod: "prepaid",
-      fee: "160.000 VNĐ"
-    },
-  ]);
-
+  const [activeBookings, setActiveBookings] = useState<Booking[]>([]);
+  const [historyBookings, setHistoryBookings] = useState<Booking[]>([]);
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
-  const [showNoBookingMsg, setShowNoBookingMsg] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [cancelling, setCancelling] = useState<string | null>(null);
+  const [imageErrors, setImageErrors] = useState<Set<string>>(new Set());
 
-  const handleCancel = (id: number) => {
-    if (confirm("Bạn có chắc chắn muốn hủy đặt chỗ này không?")) {
-      const cancelled = activeBookings.find((b) => b.id === id);
-      if (cancelled) {
-        setActiveBookings(activeBookings.filter((b) => b.id !== id));
-        setHistoryBookings([
-          { ...cancelled, status: "cancelled" }, 
-          ...historyBookings
-        ]);
-        setShowNoBookingMsg(activeBookings.length <= 1);
+  // Load bookings from API
+  const loadBookings = async () => {
+    try {
+      setLoading(true);
+      console.log("🔄 Loading user bookings...");
+      const response = await getUserBookings();
+      console.log("📝 API Response:", response);
+      
+      if (response.status === "success" && response.data) {
+        console.log("✅ Raw booking data:", response.data);
+        const formattedBookings = response.data.map(formatBookingForUI);
+        console.log("🎨 Formatted bookings:", formattedBookings);
+        
+        // Separate active and completed bookings
+        const active = formattedBookings.filter(booking => 
+          booking.status === "pending" || 
+          booking.status === "confirmed" || 
+          booking.status === "active"
+        );
+        
+        const history = formattedBookings.filter(booking => 
+          booking.status === "completed" || 
+          booking.status === "cancelled"
+        );
+        
+        console.log("🟢 Active bookings:", active);
+        console.log("📚 History bookings:", history);
+        
+        setActiveBookings(active);
+        setHistoryBookings(history);
+      } else {
+        console.log("⚠️ No booking data in response");
+        setActiveBookings([]);
+        setHistoryBookings([]);
       }
+    } catch (error) {
+      console.error("❌ Error loading bookings:", error);
+      toast.error("Không thể tải danh sách đặt chỗ. Vui lòng thử lại!");
+      setActiveBookings([]);
+      setHistoryBookings([]);
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleReview = (booking: Booking) => {
-    alert(`✅ Viết đánh giá cho ${booking.parkingName}`);
+  useEffect(() => {
+    loadBookings();
+  }, []);
+
+  const handleCancel = async (bookingId: string) => {
+    try {
+      setCancelling(bookingId);
+      const response = await cancelBooking(bookingId);
+      
+      if (response.status === "success") {
+        toast.success("Đã hủy đặt chỗ thành công");
+        // Move booking from active to history
+        const cancelled = activeBookings.find((b) => b.id === bookingId);
+        if (cancelled) {
+          const updatedBooking = { ...cancelled, status: "cancelled" as const };
+          setActiveBookings(activeBookings.filter((b) => b.id !== bookingId));
+          setHistoryBookings([updatedBooking, ...historyBookings]);
+        }
+      }
+    } catch (error) {
+      console.error("Error cancelling booking:", error);
+      toast.error("Không thể hủy đặt chỗ");
+    } finally {
+      setCancelling(null);
+    }
   };
+
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case "active":
+      case "confirmed":
+        return <Badge className="bg-green-100 text-green-800 border-green-200">Đang hoạt động</Badge>;
+      case "pending":
+        return <Badge className="bg-yellow-100 text-yellow-800 border-yellow-200">Chờ xác nhận</Badge>;
+      case "completed":
+        return <Badge className="bg-blue-100 text-blue-800 border-blue-200">Hoàn thành</Badge>;
+      case "cancelled":
+        return <Badge className="bg-red-100 text-red-800 border-red-200">Đã hủy</Badge>;
+      default:
+        return <Badge className="bg-gray-100 text-gray-800 border-gray-200">{status}</Badge>;
+    }
+  };
+
+  const renderBookingCard = (booking: Booking, showCancelButton = true) => {
+    const hasImageError = imageErrors.has(booking.id);
+    const imageSrc = hasImageError ? "/b1.jpg" : (booking.image || "/b1.jpg");
+    
+    return (
+      <Card key={booking.id} className="mb-4 hover:shadow-md transition-shadow">
+        <CardContent className="p-4">
+          <div className="flex justify-between items-start mb-3">
+            <div className="flex items-center gap-3">
+              <div className="w-16 h-16 bg-gray-200 rounded-lg overflow-hidden relative">
+                <Image
+                  src={imageSrc}
+                  alt={booking.parkingName}
+                  fill
+                  className="object-cover"
+                  onError={() => {
+                    setImageErrors(prev => new Set([...prev, booking.id]));
+                  }}
+                />
+              </div>
+            <div>
+              <h3 className="font-semibold text-lg">{booking.parkingName}</h3>
+              <div className="flex items-center gap-1 text-gray-600 text-sm">
+                <MapPin className="w-4 h-4" />
+                <span>{booking.location}</span>
+              </div>
+            </div>
+          </div>
+          {getStatusBadge(booking.status)}
+        </div>
+
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4 text-sm">
+          <div className="flex items-center gap-2">
+            <Car className="w-4 h-4 text-blue-600" />
+            <div>
+              <p className="text-gray-600">Biển số</p>
+              <p className="font-medium">{booking.plateNumber}</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <ParkingSquare className="w-4 h-4 text-green-600" />
+            <div>
+              <p className="text-gray-600">Vị trí</p>
+              <p className="font-medium">{booking.zone}-{booking.spotNumber}</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <Clock className="w-4 h-4 text-orange-600" />
+            <div>
+              <p className="text-gray-600">Thời gian</p>
+              <p className="font-medium">{new Date(booking.startTime).toLocaleString("vi-VN")}</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <CreditCard className="w-4 h-4 text-purple-600" />
+            <div>
+              <p className="text-gray-600">Phí</p>
+              <p className="font-medium text-green-600">{booking.fee}</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="flex gap-2 pt-3 border-t">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setSelectedBooking(booking)}
+            className="flex items-center gap-2"
+          >
+            <Eye className="w-4 h-4" />
+            Xem chi tiết
+          </Button>
+          
+          {showCancelButton && (booking.status === "pending" || booking.status === "confirmed") && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => handleCancel(booking.id)}
+              disabled={cancelling === booking.id}
+              className="flex items-center gap-2 text-red-600 hover:text-red-700 hover:bg-red-50"
+            >
+              {cancelling === booking.id ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <Trash2 className="w-4 h-4" />
+              )}
+              Hủy đặt chỗ
+            </Button>
+          )}
+        </div>
+      </CardContent>
+    </Card>
+    );
+  };
+
+  if (loading) {
+    return (
+      <>
+        <Header />
+        <main className="min-h-screen mt-20 px-4 py-12 flex flex-col items-center">
+          <div className="flex items-center gap-3 mb-8">
+            <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+            <h1 className="text-2xl md:text-4xl font-bold">Đang tải đặt chỗ...</h1>
+          </div>
+        </main>
+        <Footer />
+      </>
+    );
+  }
 
   return (
     <>
       <Header />
-      <main className="min-h-screen mt-20 px-4 py-12 flex flex-col items-center">
-        <h1 className="text-2xl md:text-4xl font-bold mb-8">Đặt chỗ của tôi</h1>
-
-        {showNoBookingMsg && (
-          <div className="bg-yellow-100 border border-yellow-400 p-4 rounded mb-6 max-w-4xl w-full flex justify-between items-center">
-            <span>🚗 Bạn chưa có chỗ đỗ xe? Tìm ngay một chỗ trong khu vực bạn muốn!</span>
+      <main className="min-h-screen mt-20 px-4 py-12">
+        <div className="max-w-6xl mx-auto">
+          <div className="flex items-center justify-between mb-8">
+            <h1 className="text-2xl md:text-4xl font-bold">Đặt chỗ của tôi</h1>
             <Button
-              onClick={() => router.push("/")}
-              className="ml-4 bg-black cursor-pointer text-white hover:bg-gray-900"
+              onClick={loadBookings}
+              variant="outline"
+              size="sm"
+              className="flex items-center gap-2"
             >
-              Tìm ngay
+              <RefreshCw className="w-4 h-4" />
+              Làm mới
             </Button>
           </div>
-        )}
 
-        <section className="w-full max-w-4xl mb-12">
-          <h2 className="text-xl md:text-2xl font-semibold flex items-center gap-2 mb-4">
-            <ParkingSquare className="w-5 h-5" /> Đặt chỗ hiện tại
-          </h2>
-
-          {activeBookings.length === 0 ? (
-            <p className="text-gray-600">Bạn chưa có đặt chỗ nào đang hoạt động.</p>
+          {activeBookings.length === 0 && historyBookings.length === 0 ? (
+            <Card className="p-8 text-center">
+              <CardContent className="flex flex-col items-center gap-4">
+                <AlertCircle className="w-16 h-16 text-gray-400" />
+                <div>
+                  <h3 className="text-xl font-semibold mb-2">Chưa có đặt chỗ nào</h3>
+                  <p className="text-gray-600 mb-4">
+                    Bạn chưa có chỗ đỗ xe nào. Hãy tìm và đặt một chỗ đỗ ngay bây giờ!
+                  </p>
+                  <Button onClick={() => router.push("/")} className="bg-blue-600 hover:bg-blue-700">
+                    <Car className="w-4 h-4 mr-2" />
+                    Tìm chỗ đỗ xe
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {activeBookings.map((b) => (
-                <div
-                  key={b.id}
-                  className="border rounded-lg shadow-sm p-4 flex flex-col gap-2 bg-white"
-                >
-                  <img
-                    src={b.image}
-                    alt={b.parkingName}
-                    className="w-full h-40 object-cover rounded"
-                  />
-                  <h3 className="font-semibold flex items-center gap-1 text-lg">
-                    <MapPin className="w-4 h-4" /> {b.parkingName}
-                  </h3>
-                  <p className="text-sm flex items-center gap-1">
-                    <Clock className="w-4 h-4" /> {b.time}
-                  </p>
-                  <p className="text-sm flex items-center gap-1">
-                    <Car className="w-4 h-4" /> Biển số: {b.plateNumber}
-                  </p>
-                  <div className="flex gap-2 mt-2">
-                    <Button
-                      variant="outline"
-                      onClick={() => setSelectedBooking(b)}
-                      className="flex gap-1 items-center cursor-pointer"
-                    >
-                      <Eye className="w-4 h-4" /> Xem
-                    </Button>
-                    <Button
-                      variant="destructive"
-                      onClick={() => handleCancel(b.id)}
-                      className="flex gap-1 items-center cursor-pointer"
-                    >
-                      <Trash2 className="w-4 h-4" /> Hủy
-                    </Button>
+            <Tabs defaultValue="active" className="w-full">
+              <TabsList className="grid w-full grid-cols-2 mb-6">
+                <TabsTrigger value="active" className="flex items-center gap-2">
+                  <ParkingSquare className="w-4 h-4" />
+                  Đang hoạt động ({activeBookings.length})
+                </TabsTrigger>
+                <TabsTrigger value="history" className="flex items-center gap-2">
+                  <Calendar className="w-4 h-4" />
+                  Lịch sử ({historyBookings.length})
+                </TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="active" className="space-y-4">
+                {activeBookings.length === 0 ? (
+                  <Card className="p-6 text-center">
+                    <CardContent className="flex flex-col items-center gap-3">
+                      <ParkingSquare className="w-12 h-12 text-gray-400" />
+                      <div>
+                        <h3 className="text-lg font-semibold mb-1">Không có đặt chỗ đang hoạt động</h3>
+                        <p className="text-gray-600">Tất cả đặt chỗ của bạn đã hoàn thành hoặc bị hủy.</p>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ) : (
+                  <div className="space-y-4">
+                    {activeBookings.map((booking) => renderBookingCard(booking, true))}
                   </div>
-                </div>
-              ))}
-            </div>
+                )}
+              </TabsContent>
+
+              <TabsContent value="history" className="space-y-4">
+                {historyBookings.length === 0 ? (
+                  <Card className="p-6 text-center">
+                    <CardContent className="flex flex-col items-center gap-3">
+                      <Calendar className="w-12 h-12 text-gray-400" />
+                      <div>
+                        <h3 className="text-lg font-semibold mb-1">Chưa có lịch sử đặt chỗ</h3>
+                        <p className="text-gray-600">Khi bạn hoàn thành hoặc hủy đặt chỗ, chúng sẽ xuất hiện ở đây.</p>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ) : (
+                  <div className="space-y-4">
+                    {historyBookings.map((booking) => renderBookingCard(booking, false))}
+                  </div>
+                )}
+              </TabsContent>
+            </Tabs>
           )}
-        </section>
 
-        <section className="w-full max-w-4xl">
-          <h2 className="text-xl md:text-2xl font-semibold flex items-center gap-2 mb-4">
-            <CheckCircle className="w-5 h-5" /> Lịch sử đặt chỗ
-          </h2>
-
-          {historyBookings.length === 0 ? (
-            <p className="text-gray-600">Chưa có lịch sử đặt chỗ.</p>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {historyBookings.map((b) => (
-                <div
-                  key={b.id}
-                  className={`border rounded-lg shadow-sm p-4 flex flex-col gap-2 bg-white ${
-                    b.status === "cancelled" ? "opacity-70" : ""
-                  }`}
-                >
-                  <img
-                    src={b.image}
-                    alt={b.parkingName}
-                    className="w-full h-40 object-cover rounded"
-                  />
-                  <h3 className="font-semibold flex items-center gap-1 text-lg">
-                    <MapPin className="w-4 h-4" /> {b.parkingName}
-                  </h3>
-                  <p className="text-sm flex items-center gap-1">
-                    <Clock className="w-4 h-4" /> {b.time}
-                  </p>
-                  <p className="text-sm flex items-center gap-1">
-                    <Car className="w-4 h-4" /> Biển số: {b.plateNumber}
-                  </p>
-                  {b.status === "completed" && (
-                    <Button
-                      variant="outline"
-                      onClick={() => handleReview(b)}
-                      className="flex gap-1 items-center cursor-pointer mt-2"
-                    >
-                      <Star className="w-4 h-4" /> Viết đánh giá
-                    </Button>
-                  )}
-                </div>
-              ))}
-            </div>
+          {selectedBooking && (
+            <BookingDetail
+              booking={selectedBooking}
+              onClose={() => setSelectedBooking(null)}
+            />
           )}
-        </section>
-
-        {selectedBooking && (
-          <BookingDetail
-            booking={selectedBooking}
-            onClose={() => setSelectedBooking(null)}
-          />
-        )}
+        </div>
       </main>
       <Footer />
     </>

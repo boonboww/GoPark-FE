@@ -1,10 +1,10 @@
 // app/myBooking/types.ts
 export interface Booking {
-  id: number;
+  id: string;
   parkingName: string;
   location: string;
   time: string;
-  status: "active" | "completed" | "cancelled";
+  status: "pending" | "confirmed" | "cancelled" | "completed" | "active";
   image: string;
   feeEstimate: string;
   package: string;
@@ -14,6 +14,26 @@ export interface Booking {
   ticketId: string;
   startTime: string;
   endTime: string;
-  paymentMethod: "prepaid" | "onsite";
+  paymentMethod: "prepaid" | "pay-at-parking";
   fee: string;
+  bookingType?: "hours" | "date" | "month";
+  discount?: number;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface Ticket {
+  _id: string;
+  bookingId: string;
+  userId: string;
+  parkingSlotId: string;
+  vehicleNumber: string;
+  ticketType: "hours" | "date" | "guest" | "month";
+  startTime: string;
+  expiryDate: string;
+  status: "active" | "used" | "expired" | "cancelled";
+  paymentStatus: "pending" | "paid" | "failed";
+  qrCode: string;
+  createdAt: string;
+  updatedAt: string;
 }

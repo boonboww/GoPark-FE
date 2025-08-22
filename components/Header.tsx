@@ -15,6 +15,7 @@ import {
   // Map,
   ShieldCheck,
   Bell,
+  Search,
 } from "lucide-react";
 
 interface Notification {
@@ -38,6 +39,7 @@ export default function Header({
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [showHeader, setShowHeader] = useState(true);
+  const [currentDateTime, setCurrentDateTime] = useState<Date | null>(null);
 
   const lastScrollY = useRef(0);
   const avatarRef = useRef<HTMLDivElement>(null);
@@ -61,6 +63,18 @@ export default function Header({
       ]);
     }
   }, [pathname]);
+
+  // Update current date time every second
+  useEffect(() => {
+    // Set initial time on client side only
+    setCurrentDateTime(new Date());
+    
+    const timer = setInterval(() => {
+      setCurrentDateTime(new Date());
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, []);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -153,11 +167,25 @@ export default function Header({
   const DesktopMenuLinks = () => (
     <>
       <button
+        onClick={() => router.push("/findParking")}
+        className={`flex items-center cursor-pointer gap-2 ${
+          pathname === "/findParking"
+            ? (isHomepage ? "text-blue-300 font-semibold" : "text-blue-600 font-semibold")
+            : (isHomepage
+                ? "text-white hover:text-white/80"
+                : "text-gray-800 hover:text-blue-600")
+        }`}
+      >
+        <Search size={16} /> Tìm kiếm
+      </button>
+      <button
         onClick={() => router.push("/myBooking")}
         className={`flex items-center cursor-pointer gap-2 ${
-          isHomepage
-            ? "text-white hover:text-white/80"
-            : "text-gray-800 hover:text-blue-600"
+          pathname === "/myBooking"
+            ? (isHomepage ? "text-blue-300 font-semibold" : "text-blue-600 font-semibold")
+            : (isHomepage
+                ? "text-white hover:text-white/80"
+                : "text-gray-800 hover:text-blue-600")
         }`}
       >
         <CalendarCheck size={16} /> Đặt chỗ
@@ -165,9 +193,11 @@ export default function Header({
       <button
         onClick={() => router.push("/help")}
         className={`flex items-center cursor-pointer gap-2 ${
-          isHomepage
-            ? "text-white hover:text-white/80"
-            : "text-gray-800 hover:text-blue-600"
+          pathname === "/help"
+            ? (isHomepage ? "text-blue-300 font-semibold" : "text-blue-600 font-semibold")
+            : (isHomepage
+                ? "text-white hover:text-white/80"
+                : "text-gray-800 hover:text-blue-600")
         }`}
       >
         <HelpCircle size={16} /> Trợ giúp
@@ -175,9 +205,11 @@ export default function Header({
       <button
         onClick={() => router.push("/policyUser")}
         className={`flex items-center cursor-pointer gap-2 ${
-          isHomepage
-            ? "text-white hover:text-white/80"
-            : "text-gray-800 hover:text-blue-600"
+          pathname === "/policyUser"
+            ? (isHomepage ? "text-blue-300 font-semibold" : "text-blue-600 font-semibold")
+            : (isHomepage
+                ? "text-white hover:text-white/80"
+                : "text-gray-800 hover:text-blue-600")
         }`}
       >
         <ShieldCheck size={16} /> Chính sách
@@ -188,26 +220,52 @@ export default function Header({
   const MobileMenuLinks = () => (
     <>
       <button
+        onClick={() => handleMobileMenuNavigation("/findParking")}
+        className={`flex items-center cursor-pointer gap-2 w-full text-left py-2 ${
+          pathname === "/findParking"
+            ? "text-blue-600 font-semibold"
+            : "text-gray-800 hover:text-blue-600"
+        }`}
+      >
+        <Search size={16} /> Tìm kiếm
+      </button>
+      <button
         onClick={() => handleMobileMenuNavigation("/addVehicle")}
-        className="flex items-center cursor-pointer gap-2 text-gray-800 hover:text-blue-600 w-full text-left py-2"
+        className={`flex items-center cursor-pointer gap-2 w-full text-left py-2 ${
+          pathname === "/addVehicle"
+            ? "text-blue-600 font-semibold"
+            : "text-gray-800 hover:text-blue-600"
+        }`}
       >
         <PlusCircle size={16} /> Thêm phương tiện
       </button>
       <button
         onClick={() => handleMobileMenuNavigation("/myBooking")}
-        className="flex items-center cursor-pointer gap-2 text-gray-800 hover:text-blue-600 w-full text-left py-2"
+        className={`flex items-center cursor-pointer gap-2 w-full text-left py-2 ${
+          pathname === "/myBooking"
+            ? "text-blue-600 font-semibold"
+            : "text-gray-800 hover:text-blue-600"
+        }`}
       >
         <CalendarCheck size={16} /> Đặt chỗ
       </button>
       <button
         onClick={() => handleMobileMenuNavigation("/help")}
-        className="flex items-center cursor-pointer gap-2 text-gray-800 hover:text-blue-600 w-full text-left py-2"
+        className={`flex items-center cursor-pointer gap-2 w-full text-left py-2 ${
+          pathname === "/help"
+            ? "text-blue-600 font-semibold"
+            : "text-gray-800 hover:text-blue-600"
+        }`}
       >
         <HelpCircle size={16} /> Trợ giúp
       </button>
       <button
         onClick={() => handleMobileMenuNavigation("/policyUser")}
-        className="flex items-center cursor-pointer gap-2 text-gray-800 hover:text-blue-600 w-full text-left py-2"
+        className={`flex items-center cursor-pointer gap-2 w-full text-left py-2 ${
+          pathname === "/policyUser"
+            ? "text-blue-600 font-semibold"
+            : "text-gray-800 hover:text-blue-600"
+        }`}
       >
         <ShieldCheck size={16} /> Chính sách
       </button>
@@ -225,17 +283,42 @@ export default function Header({
       }`}
     >
       {/* Logo */}
-      <div
-        className="text-2xl font-bold cursor-pointer"
-        onClick={() => router.push("/")}
-      >
-        <img
-          src="/logo.png"
-          alt="GoPark Logo"
-          className={`h-8 sm:h-10 ${
-            isHomepage ? "filter brightness-0 invert" : ""
-          }`}
-        />
+      <div className="flex items-center gap-4">
+        <div
+          className="text-2xl font-bold cursor-pointer"
+          onClick={() => router.push("/")}
+        >
+          <img
+            src="/logo.png"
+            alt="GoPark Logo"
+            className={`h-8 sm:h-10 ${
+              isHomepage ? "filter brightness-0 invert" : ""
+            }`}
+          />
+        </div>
+        
+        {/* Current Date Time */}
+        {currentDateTime && (
+          <div className={`hidden sm:flex flex-col text-sm ${
+            isHomepage ? "text-white/90" : "text-gray-600"
+          }`}>
+            <div className="font-medium">
+              {currentDateTime.toLocaleDateString("vi-VN", {
+                weekday: "long",
+                day: "2-digit",
+                month: "2-digit",
+                year: "numeric"
+              })}
+            </div>
+            <div className="text-xs">
+              {currentDateTime.toLocaleTimeString("vi-VN", {
+                hour: "2-digit",
+                minute: "2-digit",
+                second: "2-digit"
+              })}
+            </div>
+          </div>
+        )}
       </div>
 
       {!isLoggedIn ? (
