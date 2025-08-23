@@ -101,13 +101,7 @@ export default function ParkingInfo({ parkingLotId }: ParkingInfoProps) {
 
   const zones = Array.from(new Set(spots.map((spot) => spot.zone)));
 
-  // Hàm tính giá trung bình từ danh sách slot
-  const getAveragePrice = () => {
-    if (spots.length === 0) return "20,000";
-    const totalPrice = spots.reduce((sum, spot) => sum + spot.pricePerHour, 0);
-    const averagePrice = totalPrice / spots.length;
-    return averagePrice.toLocaleString("vi-VN");
-  };
+
 
   if (error) {
     return (
@@ -184,7 +178,7 @@ export default function ParkingInfo({ parkingLotId }: ParkingInfoProps) {
       </div>
 
       <div className="text-sm text-gray-600">
-        <strong>Giá:</strong> {getAveragePrice()} VNĐ/giờ
+        <strong>Giá:</strong> {parkingLot && typeof (parkingLot as any).pricePerHour === 'number' ? (parkingLot as any).pricePerHour.toLocaleString('vi-VN') + ' VNĐ/giờ' : 'Chưa có thông tin giá'}
       </div>
 
       <div className="flex items-center gap-2 text-sm text-gray-600">
