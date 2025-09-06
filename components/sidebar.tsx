@@ -106,8 +106,19 @@ export default function AdminSidebar({ className = "" }: AdminSidebarProps) {
     );
   };
 
-  const isActive = (href: string) => {
-    return pathname === href || pathname.startsWith(href + '/');
+
+  // Returns true if the current path matches the item's href exactly
+  const isActive = (href?: string) => {
+    if (!href) return false;
+    return pathname === href;
+  };
+
+  // Returns true if any child of the item is active
+  const isChildActive = (item: SidebarItem): boolean => {
+    if (!item.children) return false;
+    return item.children.some(child =>
+      isActive(child.href) || isChildActive(child)
+    );
   };
 
   const renderSidebarItem = (item: SidebarItem, level = 0) => {
@@ -115,19 +126,31 @@ export default function AdminSidebar({ className = "" }: AdminSidebarProps) {
     const isExpanded = expandedItems.includes(item.title);
     const Icon = item.icon;
 
+    // Determine if this item or any of its children is active
+    const active = isActive(item.href);
+    const childActive = isChildActive(item);
+
     if (hasChildren) {
       return (
         <div key={item.title} className="mb-1">
           <button
             onClick={() => toggleExpanded(item.title)}
-            className={`w-full flex items-center justify-between px-3 py-2.5 text-left rounded-lg transition-all duration-200 group hover:bg-blue-50 hover:text-blue-700 ${
-              level > 0 ? 'ml-4 text-sm' : ''
-            }`}
+            className={`w-full flex items-center justify-between px-3 py-2.5 text-left rounded-lg transition-all duration-200 group
+              ${active || childActive ? (!isCollapsed ? 'bg-blue-100 text-blue-700 border-r-2 border-blue-600' : '') : 'hover:bg-blue-50 hover:text-blue-700'}
+              ${level > 0 ? 'ml-4 text-sm' : ''}`}
           >
             <div className="flex items-center gap-3">
-              <Icon className={`${isCollapsed ? 'w-5 h-5' : 'w-4 h-4'} text-gray-500 group-hover:text-blue-600`} />
+              {isCollapsed && (active || childActive) ? (
+                <span className="flex items-center justify-center w-11 h-11 bg-blue-100 rounded-lg mx-auto">
+                  <Icon className="w-6 h-6 text-blue-600" />
+                </span>
+              ) : (
+                <span className="flex items-center justify-center w-11 h-11 mx-auto">
+                  <Icon className={`${isCollapsed ? 'w-6 h-6' : 'w-4 h-4'} ${active || childActive ? 'text-blue-600' : 'text-gray-500 group-hover:text-blue-600'}`} />
+                </span>
+              )}
               {!isCollapsed && (
-                <span className="font-medium text-gray-700 group-hover:text-blue-700">
+                <span className={`font-medium ${active || childActive ? 'text-blue-700' : 'text-gray-700 group-hover:text-blue-700'}`}>
                   {item.title}
                 </span>
               )}
@@ -147,7 +170,7 @@ export default function AdminSidebar({ className = "" }: AdminSidebarProps) {
               </div>
             )}
           </button>
-          
+
           {isExpanded && !isCollapsed && (
             <div className="mt-1 space-y-1 ml-4">
               {item.children?.map(child => renderSidebarItem(child, level + 1))}
@@ -161,20 +184,22 @@ export default function AdminSidebar({ className = "" }: AdminSidebarProps) {
       <Link
         key={item.title}
         href={item.href || '#'}
-        className={`flex items-center justify-between px-3 py-2.5 rounded-lg transition-all duration-200 group mb-1 ${
-          item.href && isActive(item.href)
-            ? 'bg-blue-100 text-blue-700 border-r-2 border-blue-600'
-            : 'hover:bg-blue-50 hover:text-blue-700'
-        } ${level > 0 ? 'ml-4 text-sm' : ''}`}
+        className={`flex items-center justify-between px-3 py-2.5 rounded-lg transition-all duration-200 group mb-1
+          ${active ? (!isCollapsed ? 'bg-blue-100 text-blue-700 border-r-2 border-blue-600' : '') : 'hover:bg-blue-50 hover:text-blue-700'}
+          ${level > 0 ? 'ml-4 text-sm' : ''}`}
       >
         <div className="flex items-center gap-3">
-          <Icon className={`${isCollapsed ? 'w-5 h-5' : 'w-4 h-4'} ${
-            item.href && isActive(item.href) ? 'text-blue-600' : 'text-gray-500 group-hover:text-blue-600'
-          }`} />
+          {isCollapsed && active ? (
+            <span className="flex items-center justify-center w-11 h-11 bg-blue-100 rounded-lg mx-auto">
+              <Icon className="w-6 h-6 text-blue-600" />
+            </span>
+          ) : (
+            <span className="flex items-center justify-center w-11 h-11 mx-auto">
+              <Icon className={`${isCollapsed ? 'w-6 h-6' : 'w-4 h-4'} ${active ? 'text-blue-600' : 'text-gray-500 group-hover:text-blue-600'}`} />
+            </span>
+          )}
           {!isCollapsed && (
-            <span className={`font-medium ${
-              item.href && isActive(item.href) ? 'text-blue-700' : 'text-gray-700 group-hover:text-blue-700'
-            }`}>
+            <span className={`font-medium ${active ? 'text-blue-700' : 'text-gray-700 group-hover:text-blue-700'}`}>
               {item.title}
             </span>
           )}
@@ -209,11 +234,12 @@ export default function AdminSidebar({ className = "" }: AdminSidebarProps) {
       </Button>
 
       {/* Sidebar */}
-      <div className={`fixed left-0 top-0 z-50 h-full bg-white border-r border-gray-200 shadow-lg transition-all duration-300 lg:relative lg:translate-x-0 ${
-        isCollapsed ? 'w-16' : 'w-72'
-      } ${
-        isMobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
-      } ${className}`}>
+      <div className={`fixed left-0 top-0 z-50 bg-white border-r border-gray-200 shadow-lg transition-all duration-300 lg:relative lg:translate-x-0
+        ${isCollapsed ? 'w-16 min-w-[56px]' : 'w-72'}
+        h-screen flex flex-col
+        ${isMobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
+        ${className}
+      `}>
         
         {/* Header */}
         <div className={`p-4 border-b border-gray-200 ${isCollapsed ? 'px-2' : ''}`}>
@@ -260,8 +286,8 @@ export default function AdminSidebar({ className = "" }: AdminSidebarProps) {
         )}
 
         {/* Navigation */}
-        <nav className="flex-1 p-4 overflow-y-auto">
-          <div className="space-y-2">
+        <nav className={`flex-1 overflow-y-auto ${isCollapsed ? 'flex flex-col items-center justify-center pt-16' : 'p-4'}`}>
+          <div className={`${isCollapsed ? 'flex flex-col gap-2 items-center justify-center' : 'space-y-2'}`}>
             {sidebarItems.map(item => renderSidebarItem(item))}
           </div>
         </nav>

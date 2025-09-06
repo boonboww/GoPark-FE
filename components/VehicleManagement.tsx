@@ -19,6 +19,7 @@ import {
   SelectItem,
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
+import { Car } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import {
   fetchMyParkingLots,
@@ -517,11 +518,10 @@ export default function CombinedParkingManagement({
             <CardTitle className="text-lg font-semibold">Control Panel</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              
+            <div className="flex flex-col gap-4 w-full">
               {/* Parking Lot Selector */}
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-700">
+              <div className="flex flex-col">
+                <label className="text-sm font-medium text-gray-700 mb-1">
                   Select Parking Lot
                 </label>
                 <SelectParkingLotDropdown
@@ -532,8 +532,8 @@ export default function CombinedParkingManagement({
               </div>
 
               {/* Date Picker */}
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-700">
+              <div className="flex flex-col">
+                <label className="text-sm font-medium text-gray-700 mb-1">
                   Select Date
                 </label>
                 <div className="flex gap-2">
@@ -555,7 +555,7 @@ export default function CombinedParkingManagement({
               </div>
 
               {/* Action Buttons */}
-              <div className="flex flex-col sm:flex-row items-stretch sm:items-end gap-2 md:col-span-2 lg:col-span-1">
+              <div className="flex flex-col gap-2">
                 <AddParkingLotDialog
                   open={newLotDialogOpen}
                   onOpenChange={setNewLotDialogOpen}
@@ -630,7 +630,9 @@ export default function CombinedParkingManagement({
                         className={`border rounded-lg h-16 flex flex-col items-center justify-center transition-all duration-200 hover:shadow-md ${bgColor} ${selected}`}
                         title={getSlotTooltip(slot, slot._id)}
                       >
-                        <div className="text-lg mb-1">🚗</div>
+                        <div className="mb-1">
+                          <Car className="w-6 h-6 text-blue-500" />
+                        </div>
                         <div className="text-xs font-semibold">{slot.slotNumber}</div>
                       </button>
                     );
@@ -658,7 +660,7 @@ export default function CombinedParkingManagement({
           <Card className="shadow-sm border">
             <CardContent className="flex flex-col items-center justify-center py-12">
               <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
-                <span className="text-2xl">🚗</span>
+                <Car className="w-10 h-10 text-blue-400" />
               </div>
               <h3 className="text-lg font-semibold text-gray-900 mb-2">No Data Available</h3>
               <p className="text-gray-600 text-center">No parking slot data for this zone.</p>

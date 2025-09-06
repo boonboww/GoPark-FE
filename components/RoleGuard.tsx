@@ -1,5 +1,5 @@
 "use client";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
 interface RoleGuardProps {
@@ -9,18 +9,21 @@ interface RoleGuardProps {
 
 export default function RoleGuard({ allowedRole, children }: RoleGuardProps) {
   const router = useRouter();
+  const [isMounted, setIsMounted] = useState(false);
+  const [role, setRole] = useState<string | null>(null);
 
   useEffect(() => {
-    const role = typeof window !== "undefined" ? localStorage.getItem("role") : null;
-    if (role !== allowedRole) {
-      router.replace("/403");
+    setIsMounted(true);
+    if (typeof window !== "undefined") {
+      const r = localStorage.getItem("role");
+      setRole(r);
+      if (r !== allowedRole) {
+        router.replace("/403");
+      }
     }
   }, [allowedRole, router]);
 
-  const role = typeof window !== "undefined" ? localStorage.getItem("role") : null;
-  if (role !== allowedRole) {
-    // Không render gì cả khi chưa đúng role
-    return null;
-  }
+  if (!isMounted) return null;
+  if (role !== allowedRole) return null;
   return <>{children}</>;
 }
