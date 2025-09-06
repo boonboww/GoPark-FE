@@ -45,13 +45,15 @@ interface SystemStatus {
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api/v1';
 
+
+import RoleGuard from '@/components/RoleGuard';
+
 export default function AdminDashboard() {
   const [stats, setStats] = useState<AdminStats | null>(null);
   const [activities, setActivities] = useState<Activity[]>([]);
   const [systemStatus, setSystemStatus] = useState<SystemStatus | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -81,9 +83,21 @@ export default function AdminDashboard() {
           fetch(`${API_BASE_URL}/admin/dashboard/system-status`, { headers })
         ]);
 
-        if (!statsRes.ok) throw new Error(`Stats: ${statsRes.status}`);
-        if (!activitiesRes.ok) throw new Error(`Activities: ${activitiesRes.status}`);
-        if (!statusRes.ok) throw new Error(`Status: ${statusRes.status}`);
+        // Helper to get error message from response
+        const getErrorMessage = async (res, label) => {
+          let msg = `${label}: ${res.status}`;
+          try {
+            const data = await res.json();
+            if (data && (data.message || data.error)) {
+              msg += ` - ${data.message || data.error}`;
+            }
+          } catch {}
+          return msg;
+        };
+
+        if (!statsRes.ok) throw new Error(await getErrorMessage(statsRes, 'Stats'));
+        if (!activitiesRes.ok) throw new Error(await getErrorMessage(activitiesRes, 'Activities'));
+        if (!statusRes.ok) throw new Error(await getErrorMessage(statusRes, 'Status'));
 
         const [statsData, activitiesData, statusData] = await Promise.all([
           statsRes.json(),
@@ -119,29 +133,34 @@ export default function AdminDashboard() {
     return new Intl.NumberFormat('vi-VN').format(num);
   };
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Đang tải dashboard admin...</p>
-        </div>
-      </div>
-    );
-  }
 
-  if (error) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">Lỗi tải dữ liệu</h3>
-          <p className="text-gray-600 mb-4">{error}</p>
-          <Button onClick={() => window.location.reload()}>Thử lại</Button>
+  return (
+    <RoleGuard allowedRole="admin">
+      {loading ? (
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <p className="text-gray-600">Đang tải dashboard admin...</p>
+          </div>
         </div>
-      </div>
-    );
-  }
+      ) : error ? (
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="text-center">
+            <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">Lỗi tải dữ liệu</h3>
+            <p className="text-gray-600 mb-4">{error}</p>
+            <Button onClick={() => window.location.reload()}>Thử lại</Button>
+          </div>
+        </div>
+      ) : (
+        // ...existing code...
+        <>
+        {/* Nội dung dashboard admin ở đây */}
+        {/* ...existing code... */}
+        </>
+      )}
+    </RoleGuard>
+  );
 
   const statCards = [
     {
