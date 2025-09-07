@@ -4,6 +4,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
+import { Edit3, MapPin, Building2, Trash2 } from "lucide-react";
 import { updateParkingLot } from "@/lib/parkingLot.api";
 import type { ParkingLot } from "@/app/owner/types";
 import { useEffect, useState } from "react";
@@ -63,8 +64,9 @@ export default function EditParkingLotDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogTrigger asChild>
-        <Button className="w-full md:w-auto" variant="outline" disabled={!selectedLot}>
-          <span className="font-medium">📝 Sửa & Xóa </span>
+        <Button className="w-full md:w-auto hover:bg-blue-50 hover:text-blue-700 hover:border-blue-300 transition-colors" variant="outline" disabled={!selectedLot}>
+          <Edit3 className="w-4 h-4 mr-2" />
+          <span className="font-medium">Sửa & Xóa</span>
         </Button>
       </DialogTrigger>
       {selectedLot && (
@@ -74,7 +76,10 @@ export default function EditParkingLotDialog({
           </DialogHeader>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 py-4 max-h-[70vh] overflow-y-auto">
             <div className="md:col-span-2 space-y-1">
-              <Label className="text-sm font-medium">Tên bãi đậu xe</Label>
+              <Label className="text-sm font-medium flex items-center gap-2">
+                <Building2 className="w-4 h-4 text-blue-600" />
+                Tên bãi đậu xe
+              </Label>
               <Input
                 className="rounded-md"
                 value={selectedLot.name}
@@ -89,7 +94,10 @@ export default function EditParkingLotDialog({
             </div>
 
             <div className="space-y-1">
-              <Label className="text-sm font-medium">Đường</Label>
+              <Label className="text-sm font-medium flex items-center gap-2">
+                <MapPin className="w-4 h-4 text-blue-600" />
+                Đường
+              </Label>
               <Input 
                 className="rounded-md"
                 value={street} 
@@ -98,7 +106,10 @@ export default function EditParkingLotDialog({
             </div>
             
             <div className="space-y-1">
-              <Label className="text-sm font-medium">Quận/Huyện</Label>
+              <Label className="text-sm font-medium flex items-center gap-2">
+                <MapPin className="w-4 h-4 text-blue-600" />
+                Quận/Huyện
+              </Label>
               <Input 
                 className="rounded-md"
                 value={district} 
@@ -107,7 +118,10 @@ export default function EditParkingLotDialog({
             </div>
             
             <div className="md:col-span-2 space-y-1">
-              <Label className="text-sm font-medium">Thành phố</Label>
+              <Label className="text-sm font-medium flex items-center gap-2">
+                <MapPin className="w-4 h-4 text-blue-600" />
+                Thành phố
+              </Label>
               <Input 
                 className="rounded-md"
                 value={city} 
@@ -201,15 +215,17 @@ export default function EditParkingLotDialog({
             </div>
 
             <div className="md:col-span-2 pt-2 space-y-2">
-              <Button className="w-full rounded-md" onClick={handleUpdate} disabled={isLoading}>
+              <Button className="w-full rounded-md hover:bg-blue-600 transition-colors" onClick={handleUpdate} disabled={isLoading}>
+                <Edit3 className="w-4 h-4 mr-2" />
                 Lưu thay đổi
               </Button>
               <Button
                 variant="destructive"
-                className="w-full rounded-md"
+                className="w-full rounded-md hover:bg-red-600 transition-colors"
                 onClick={() => onDelete(selectedLot._id)}
                 disabled={isLoading}
               >
+                <Trash2 className="w-4 h-4 mr-2" />
                 Xóa bãi đậu xe
               </Button>
             </div>

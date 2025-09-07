@@ -18,7 +18,7 @@ export const ParkingDetail = ({ parking, arriving, leaving, onBack, onNavigate }
     <div className="max-w-2xl mx-auto p-4">
       <button
         onClick={onBack}
-        className="flex items-center mb-6 text-blue-600 hover:text-blue-800 transition-colors group"
+        className="flex items-center mb-6 text-blue-600 hover:text-blue-800 transition-colors group cursor-pointer"
       >
         <ArrowLeft className="w-5 h-5 mr-2 group-hover:-translate-x-1 transition-transform" />
         Quay lại danh sách
@@ -123,7 +123,7 @@ export const ParkingDetail = ({ parking, arriving, leaving, onBack, onNavigate }
         <div className="mt-8 space-y-3">
           <button
             onClick={onNavigate}
-            className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-3 rounded-lg hover:from-blue-700 hover:to-indigo-700 transition-all flex items-center justify-center"
+            className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-3 rounded-lg hover:from-blue-700 hover:to-indigo-700 transition-all flex items-center justify-center cursor-pointer"
           >
             <Navigation className="w-5 h-5 mr-2" />
             Chỉ đường
@@ -131,7 +131,7 @@ export const ParkingDetail = ({ parking, arriving, leaving, onBack, onNavigate }
 
           <button
             onClick={() => router.push(`/detailParking/${parking._id}`)}
-            className="w-full bg-indigo-100 text-indigo-700 py-2.5 rounded-lg hover:bg-indigo-200 transition-colors flex items-center justify-center"
+            className="w-full bg-indigo-100 text-indigo-700 py-2.5 rounded-lg hover:bg-indigo-200 transition-colors flex items-center justify-center cursor-pointer"
           >
             <Info className="w-5 h-5 mr-2" />
             Xem thêm chi tiết

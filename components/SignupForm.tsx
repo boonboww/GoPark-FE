@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { User, Mail, Phone, Lock, LogIn, UserPlus } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -78,68 +79,108 @@ export default function SignupForm() {
           <form className="space-y-4" onSubmit={handleSubmit}>
             <div>
               <Label htmlFor="userName">Họ và tên</Label>
-              <Input
-                id="userName"
-                type="text"
-                placeholder="Nhập họ tên của bạn"
-                value={formData.userName}
-                onChange={handleChange}
-                required
-              />
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+                  <User className="w-4 h-4" />
+                </span>
+                <Input
+                  id="userName"
+                  type="text"
+                  placeholder="Nhập họ tên của bạn"
+                  value={formData.userName}
+                  onChange={handleChange}
+                  required
+                  className="pl-10 mt-1"
+                />
+              </div>
             </div>
 
             <div>
               <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="email@example.com"
-                value={formData.email}
-                onChange={handleChange}
-                required
-              />
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+                  <Mail className="w-4 h-4" />
+                </span>
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="email@example.com"
+                  value={formData.email}
+                  onChange={handleChange}
+                  required
+                  className="pl-10 mt-1"
+                />
+              </div>
             </div>
 
             <div>
               <Label htmlFor="phoneNumber">Số điện thoại</Label>
-              <Input
-                id="phoneNumber"
-                type="tel"
-                placeholder="0123456789"
-                value={formData.phoneNumber}
-                onChange={handleChange}
-              />
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+                  <Phone className="w-4 h-4" />
+                </span>
+                <Input
+                  id="phoneNumber"
+                  type="tel"
+                  placeholder="0123456789"
+                  value={formData.phoneNumber}
+                  onChange={handleChange}
+                  className="pl-10 mt-1"
+                />
+              </div>
             </div>
 
             <div>
               <Label htmlFor="password">Mật khẩu</Label>
-              <Input
-                id="password"
-                type="password"
-                placeholder="••••••••"
-                value={formData.password}
-                onChange={handleChange}
-                required
-              />
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+                  <Lock className="w-4 h-4" />
+                </span>
+                <Input
+                  id="password"
+                  type="password"
+                  placeholder="••••••••"
+                  value={formData.password}
+                  onChange={handleChange}
+                  required
+                  className="pl-10 mt-1"
+                />
+              </div>
             </div>
 
             <div>
               <Label htmlFor="passwordConfirm">Xác nhận mật khẩu</Label>
-              <Input
-                id="passwordConfirm"
-                type="password"
-                placeholder="••••••••"
-                value={formData.passwordConfirm}
-                onChange={handleChange}
-                required
-              />
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+                  <Lock className="w-4 h-4" />
+                </span>
+                <Input
+                  id="passwordConfirm"
+                  type="password"
+                  placeholder="••••••••"
+                  value={formData.passwordConfirm}
+                  onChange={handleChange}
+                  required
+                  className="pl-10 mt-1"
+                />
+              </div>
             </div>
 
             {error && <p className="text-sm text-red-500">{error}</p>}
 
-            <Button className="w-full" type="submit">
-              Đăng ký
+            <Button className="w-full flex items-center justify-center gap-2 cursor-pointer" type="submit">
+              <UserPlus className="w-4 h-4 cursor-pointer" /> Đăng ký
             </Button>
+            <div className="text-center mt-4">
+              <span className="text-sm text-gray-600">Đã có tài khoản? </span>
+              <button
+                type="button"
+                className="inline-flex items-center gap-1 text-blue-600 hover:underline font-medium cursor-pointer text-sm"
+                onClick={() => router.push("/account/login")}
+              >
+                <LogIn className="w-4 h-4 cursor-pointer" /> Đăng nhập
+              </button>
+            </div>
           </form>
         </CardContent>
       </Card>

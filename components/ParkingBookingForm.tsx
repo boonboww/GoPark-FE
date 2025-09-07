@@ -426,7 +426,7 @@ export default function ParkingBookingForm({
                       setSelectedSpotId(spot._id);
                     }}
                     className={`text-xs text-white flex items-center justify-center h-8 rounded ${
-                      spot.status === "available" ? "bg-green-400" : "bg-red-400"
+                      spot.status === "available" ? "bg-green-400 cursor-pointer" : "bg-red-400 cursor-not-allowed"
                     } ${selected}`}
                   >
                     {spot.slotNumber}
@@ -479,7 +479,7 @@ export default function ParkingBookingForm({
       </div>
 
       <Button
-        className="bg-black text-white hover:bg-gray-900 mt-4"
+        className="bg-black text-white hover:bg-gray-900 mt-4 cursor-pointer"
         onClick={handleSubmit}
         disabled={!!timeError}
       >

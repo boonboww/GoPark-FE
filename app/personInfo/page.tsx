@@ -12,7 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { User as UserIcon, Car, Plus } from "lucide-react";
+import { User as UserIcon, Car, Plus, Camera, Save, Mail, Phone } from "lucide-react";
 import QRCode from "react-qr-code";
 import Link from "next/link";
 import Header from "@/components/Header";
@@ -33,6 +33,7 @@ export default function PersonInfoPage() {
     phone: "",
     avatar: "",
   });
+  const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [registeredVehicles, setRegisteredVehicles] = useState<Vehicle[]>([]);
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [loading, setLoading] = useState(false);
@@ -59,33 +60,48 @@ export default function PersonInfoPage() {
     fetchData();
   }, []);
 
-  const validateForm = (): boolean => {
-    const newErrors: typeof errors = {};
-    if (!formData.name.trim()) newErrors.name = "Tên không được bỏ trống";
-    if (!formData.email.includes("@")) newErrors.email = "Email không hợp lệ";
-    if (!formData.phone.match(/^\d{10,11}$/))
-      newErrors.phone = "Số điện thoại không hợp lệ";
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
-  const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement>
-  ) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { id, value } = e.target;
     setFormData((prev) => ({ ...prev, [id]: value }));
     setErrors((prev) => ({ ...prev, [id]: "" }));
   };
 
+  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setAvatarFile(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setFormData((prev) => ({ ...prev, avatar: reader.result as string }));
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   const handleUpdate = async () => {
-    if (!validateForm()) return;
     setLoading(true);
+    const newErrors: { [key: string]: string } = {};
+    if (!formData.name) newErrors.name = "Vui lòng nhập tên";
+    if (!formData.email) newErrors.email = "Vui lòng nhập email";
+    if (!formData.phone) newErrors.phone = "Vui lòng nhập số điện thoại";
+    setErrors(newErrors);
+    if (Object.keys(newErrors).length > 0) {
+      setLoading(false);
+      return;
+    }
     try {
+      let avatarUrl = formData.avatar;
+      // Nếu có file mới, upload lên server (giả lập, thực tế cần API upload)
+      if (avatarFile) {
+        // TODO: Gửi file lên server, lấy url trả về
+        // Hiện tại chỉ dùng base64 preview
+        avatarUrl = formData.avatar;
+      }
       await API.put("/api/v1/users/me", {
         userName: formData.name,
         email: formData.email,
         phoneNumber: formData.phone,
-        avatar: formData.avatar,
+        avatar: avatarUrl,
       });
       alert("✅ Cập nhật thành công!");
     } catch (err) {
@@ -108,8 +124,9 @@ export default function PersonInfoPage() {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex flex-col md:flex-row gap-6">
-              <div className="flex justify-center w-full md:w-1/3">
-                <Avatar className="w-20 h-20">
+
+              <div className="flex flex-col items-center w-full md:w-1/3 gap-2">
+                <Avatar className="w-28 h-28">
                   <AvatarImage
                     src={formData.avatar}
                     alt="avatar"
@@ -126,49 +143,76 @@ export default function PersonInfoPage() {
                     )}
                   </AvatarFallback>
                 </Avatar>
+                <label htmlFor="avatar-upload" className="flex items-center gap-2 mt-2 cursor-pointer text-sm text-gray-700 hover:text-green-700">
+                  <Camera className="w-5 h-5" />
+                  Chọn ảnh đại diện
+                  <input
+                    id="avatar-upload"
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handleAvatarChange}
+                  />
+                </label>
               </div>
 
               <div className="flex flex-col gap-4 w-full md:w-2/3">
-                <div>
+                <div className="flex flex-col gap-2">
                   <Label htmlFor="name">Tên</Label>
-                  <Input
-                    id="name"
-                    value={formData.name}
-                    onChange={handleInputChange}
-                    className={errors.name ? "border-red-500" : ""}
-                  />
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+                      <UserIcon className="w-5 h-5" />
+                    </span>
+                    <Input
+                      id="name"
+                      value={formData.name}
+                      onChange={handleInputChange}
+                      className={"pl-10 " + (errors.name ? "border-red-500" : "")}
+                    />
+                  </div>
                   {errors.name && (
                     <p className="text-red-500 text-sm">{errors.name}</p>
                   )}
                 </div>
 
-                <div>
+                <div className="flex flex-col gap-2">
                   <Label htmlFor="email">Email</Label>
-                  <Input
-                    id="email"
-                    value={formData.email}
-                    onChange={handleInputChange}
-                    className={errors.email ? "border-red-500" : ""}
-                  />
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+                      <Mail className="w-5 h-5" />
+                    </span>
+                    <Input
+                      id="email"
+                      value={formData.email}
+                      onChange={handleInputChange}
+                      className={"pl-10 " + (errors.email ? "border-red-500" : "")}
+                    />
+                  </div>
                   {errors.email && (
                     <p className="text-red-500 text-sm">{errors.email}</p>
                   )}
                 </div>
 
-                <div>
+                <div className="flex flex-col gap-2">
                   <Label htmlFor="phone">Số điện thoại</Label>
-                  <Input
-                    id="phone"
-                    value={formData.phone}
-                    onChange={handleInputChange}
-                    className={errors.phone ? "border-red-500" : ""}
-                  />
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+                      <Phone className="w-5 h-5" />
+                    </span>
+                    <Input
+                      id="phone"
+                      value={formData.phone}
+                      onChange={handleInputChange}
+                      className={"pl-10 " + (errors.phone ? "border-red-500" : "")}
+                    />
+                  </div>
                   {errors.phone && (
                     <p className="text-red-500 text-sm">{errors.phone}</p>
                   )}
                 </div>
 
-                <Button onClick={handleUpdate} disabled={loading}>
+                <Button onClick={handleUpdate} disabled={loading} className="flex gap-2 items-center">
+                  <Save className="w-4 h-4" />
                   {loading ? "Đang lưu..." : "Lưu thay đổi"}
                 </Button>
               </div>

@@ -89,7 +89,7 @@ export default function DetailParkingPage() {
           <nav className="text-sm text-gray-600 space-x-2">
             <Link href="/" className="hover:underline">Trang chủ</Link>
             <span>/</span>
-            <Link href="/parking" className="hover:underline">Bãi đỗ xe</Link>
+            <Link href="/findParking" className="hover:underline">Tìm kiếm bãi</Link>
             <span>/</span>
             <span className="text-gray-900 font-semibold">{parkingLot.name}</span>
           </nav>
