@@ -123,7 +123,7 @@ export default function PolicyUserPage() {
     {
       id: "privacy-terms",
       title: "Bảo mật & Điều khoản",
-      subtitle: "Chính sách xử lý dữ liệu và điều khoản sử dụng",
+      subtitle: "Chính sách xử lý và điều khoản sử dụng",
       icon: Lock,
       color: "bg-purple-500",
       items: [
@@ -237,16 +237,16 @@ export default function PolicyUserPage() {
                         <div key={itemIndex} className="border rounded-lg">
                           <button
                             onClick={() => togglePolicy(parseInt(`${categoryIndex}${itemIndex}`))}
-                            className="w-full flex justify-between items-start text-left p-4 hover:bg-gray-50 transition-colors"
+                            className="w-full flex justify-between items-start text-left p-4 hover:bg-gray-50 transition-colors cursor-pointer"
                           >
                             <div className="flex-1">
                               <h4 className="font-semibold text-gray-900 mb-1">{item.title}</h4>
                               <p className="text-sm text-gray-600">{item.description}</p>
                             </div>
                             {isOpen ? (
-                              <ChevronUp className="w-5 h-5 text-gray-500 flex-shrink-0 ml-2" />
+                              <ChevronUp className="w-5 h-5 text-gray-500 flex-shrink-0 ml-2 cursor-pointer" />
                             ) : (
-                              <ChevronDown className="w-5 h-5 text-gray-500 flex-shrink-0 ml-2" />
+                              <ChevronDown className="w-5 h-5 text-gray-500 flex-shrink-0 ml-2 cursor-pointer" />
                             )}
                           </button>
                           {isOpen && (
@@ -283,75 +283,69 @@ export default function PolicyUserPage() {
                 </CardTitle>
                 <p className="text-gray-600">Chia sẻ ý kiến để giúp chúng tôi cải thiện dịch vụ</p>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <Textarea
-                  rows={4}
-                  placeholder="Viết phản hồi của bạn tại đây..."
-                  value={feedback}
-                  onChange={(e) => setFeedback(e.target.value)}
-                  className="resize-none"
-                />
-                <Button
-                  onClick={handleSendFeedback}
-                  className="w-full bg-blue-600 hover:bg-blue-700 text-white"
-                  disabled={!feedback.trim()}
-                >
-                  <SendHorizonal className="w-4 h-4 mr-2" />
-                  Gửi phản hồi
-                </Button>
-              </CardContent>
-            </Card>
-
-            {/* Support Card */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Phone className="w-5 h-5 text-green-600" />
-                  Hỗ trợ khách hàng
-                </CardTitle>
-                <p className="text-gray-600">Liên hệ ngay khi cần hỗ trợ</p>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-3">
-                  <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-                    <Phone className="w-5 h-5 text-green-600" />
-                    <div>
-                      <div className="font-medium">Hotline 24/7</div>
-                      <div className="text-sm text-gray-600">+84 800 123 456</div>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-                    <MessageSquarePlus className="w-5 h-5 text-blue-600" />
-                    <div>
-                      <div className="font-medium">Chat support</div>
-                      <div className="text-sm text-gray-600">support@gopark.vn</div>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-                    <Clock className="w-5 h-5 text-orange-600" />
-                    <div>
-                      <div className="font-medium">Thời gian phản hồi</div>
-                      <div className="text-sm text-gray-600">Tối đa 2 giờ</div>
-                    </div>
-                  </div>
+              <CardContent className="space-y-6">
+                <div>
+                  <Textarea
+                    rows={4}
+                    placeholder="Viết phản hồi của bạn tại đây..."
+                    value={feedback}
+                    onChange={(e) => setFeedback(e.target.value)}
+                    className="resize-none"
+                  />
+                  <Button
+                    onClick={handleSendFeedback}
+                    className="w-full mt-2 px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded shadow cursor-pointer"
+                    disabled={!feedback.trim()}
+                  >
+                    <SendHorizonal className="w-4 h-4 mr-2 cursor-pointer" /> Gửi phản hồi
+                  </Button>
                 </div>
-                
-                <div className="flex flex-col gap-2">
-                  <Button
-                    onClick={() => window.location.href = 'tel:+84800123456'}
-                    className="w-full bg-green-600 hover:bg-green-700 text-white"
-                  >
-                    <Phone className="w-4 h-4 mr-2" />
-                    Gọi ngay
-                  </Button>
-                  <Button
-                    variant="outline"
-                    className="w-full"
-                    onClick={() => window.open('/policy.pdf', '_blank')}
-                  >
-                    <Download className="w-4 h-4 mr-2" />
-                    Tải chính sách PDF
-                  </Button>
+                <div>
+                  <CardTitle className="flex items-center gap-2">
+                    <Phone className="w-5 h-5 text-green-600" />
+                    Hỗ trợ khách hàng
+                  </CardTitle>
+                  <p className="text-gray-600 mb-3">Liên hệ ngay khi cần hỗ trợ</p>
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                      <Phone className="w-5 h-5 text-green-600" />
+                      <div>
+                        <div className="font-medium">Hotline 24/7</div>
+                        <div className="text-sm text-gray-600">+84 800 123 456</div>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                      <MessageSquarePlus className="w-5 h-5 text-blue-600" />
+                      <div>
+                        <div className="font-medium">Chat support</div>
+                        <div className="text-sm text-gray-600">support@gopark.vn</div>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                      <Clock className="w-5 h-5 text-orange-600" />
+                      <div>
+                        <div className="font-medium">Thời gian phản hồi</div>
+                        <div className="text-sm text-gray-600">Tối đa 2 giờ</div>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex flex-col gap-2 mt-4">
+                    <Button
+                      onClick={() => window.location.href = 'tel:+84800123456'}
+                      className="w-full bg-green-600 hover:bg-green-700 text-white cursor-pointer"
+                    >
+                      <Phone className="w-4 h-4 mr-2 cursor-pointer" />
+                      Gọi ngay
+                    </Button>
+                    <Button
+                      variant="outline"
+                      className="w-full cursor-pointer"
+                      onClick={() => window.open('/policy.pdf', '_blank')}
+                    >
+                      <Download className="w-4 h-4 mr-2 cursor-pointer" />
+                      Tải chính sách PDF
+                    </Button>
+                  </div>
                 </div>
               </CardContent>
             </Card>

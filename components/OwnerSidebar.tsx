@@ -64,16 +64,12 @@ const sidebarItems: SidebarItem[] = [
 
 interface OwnerSidebarProps {
   className?: string;
-  isCollapsed?: boolean;
-  setIsCollapsed?: (collapsed: boolean) => void;
 }
 
-export default function OwnerSidebar({ className = "", isCollapsed: collapsedProp, setIsCollapsed: setCollapsedProp }: OwnerSidebarProps) {
+export default function OwnerSidebar({ className = "" }: OwnerSidebarProps) {
   const [expandedItems, setExpandedItems] = useState<string[]>([]);
-  const [internalCollapsed, setInternalCollapsed] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(false);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
-  const isCollapsed = collapsedProp !== undefined ? collapsedProp : internalCollapsed;
-  const setIsCollapsed = setCollapsedProp || setInternalCollapsed;
   const pathname = usePathname();
   const router = useRouter();
 
@@ -172,9 +168,6 @@ export default function OwnerSidebar({ className = "", isCollapsed: collapsedPro
         className={`flex items-center justify-between px-3 py-2.5 rounded-lg transition-all duration-200 group mb-1
           ${active ? (!isCollapsed ? 'bg-green-100 text-green-700 border-r-2 border-green-600' : '') : 'hover:bg-green-50 hover:text-green-700'}
           ${level > 0 ? 'ml-4 text-sm' : ''}`}
-        onClick={() => {
-          if (window.innerWidth < 1024) setIsMobileOpen(false);
-        }}
       >
         <div className="flex items-center gap-3">
           {isCollapsed && active ? (
@@ -222,7 +215,7 @@ export default function OwnerSidebar({ className = "", isCollapsed: collapsedPro
       </Button>
 
       {/* Sidebar */}
-      <div className={`fixed left-0 top-0 z-50 bg-white border-r border-gray-200 shadow-lg transition-all duration-300 lg:z-10
+      <div className={`fixed lg:relative left-0 top-0 z-50 bg-white border-r border-gray-200 shadow-lg transition-all duration-300 lg:z-10
         ${isCollapsed ? 'w-16 min-w-[56px]' : 'w-72'}
         h-screen flex flex-col
         ${isMobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}

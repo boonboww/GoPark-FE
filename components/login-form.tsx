@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { Mail, Lock, LogIn, UserPlus, Globe } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { loginUser } from "@/app/account/login/action";
 import { cn } from "@/lib/utils";
@@ -67,13 +68,19 @@ export function LoginForm({ className, ...props }: React.ComponentProps<"div">) 
             <div className="flex flex-col gap-6">
               <div className="grid gap-3">
                 <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="email@example.com"
-                  required
-                  onChange={handleChange}
-                />
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+                    <Mail className="w-4 h-4" />
+                  </span>
+                  <Input
+                    id="email"
+                    type="email"
+                    placeholder="email@example.com"
+                    required
+                    onChange={handleChange}
+                    className="pl-10"
+                  />
+                </div>
               </div>
               <div className="grid gap-3">
                 <div className="flex items-center">
@@ -82,18 +89,26 @@ export function LoginForm({ className, ...props }: React.ComponentProps<"div">) 
                     Quên mật khẩu?
                   </a>
                 </div>
-                <Input
-                  id="password"
-                  type="password"
-                  required
-                  onChange={handleChange}
-                />
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+                    <Lock className="w-4 h-4" />
+                  </span>
+                  <Input
+                    id="password"
+                    type="password"
+                    required
+                    onChange={handleChange}
+                    className="pl-10"
+                  />
+                </div>
               </div>
               <div className="flex flex-col gap-3">
-                <Button type="submit" className="w-full" disabled={loading}>
+                <Button type="submit" className="w-full flex items-center justify-center gap-2 cursor-pointer" disabled={loading}>
+                  <LogIn className="w-4 h-4 cursor-pointer" />
                   {loading ? "Đang đăng nhập..." : "Đăng nhập"}
                 </Button>
-                <Button type="button" variant="outline" className="w-full">
+                <Button type="button" variant="outline" className="w-full flex items-center justify-center gap-2 cursor-pointer">
+                  <Globe className="w-4 h-4 text-red-500 cursor-pointer" />
                   Đăng nhập bằng Google
                 </Button>
               </div>
@@ -105,8 +120,8 @@ export function LoginForm({ className, ...props }: React.ComponentProps<"div">) 
             </div>
             <div className="mt-4 text-center text-sm">
               Chưa có tài khoản?{" "}
-              <a href="/account/signup" className="underline">
-                Đăng ký ngay
+              <a href="/account/signup" className="inline-flex items-center gap-1 underline text-blue-600 font-medium cursor-pointer">
+                <UserPlus className="w-4 h-4 cursor-pointer" /> Đăng ký ngay
               </a>
             </div>
           </form>

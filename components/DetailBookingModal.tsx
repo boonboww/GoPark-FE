@@ -94,8 +94,16 @@ export default function DetailBookingModal({
       return;
     }
 
+    // Lấy userId từ localStorage và kiểm tra hợp lệ
+    const userId = localStorage.getItem("userId") || "";
+    if (!userId.match(/^[0-9a-fA-F]{24}$/)) {
+      setErrorMessage("Không tìm thấy thông tin người dùng hợp lệ. Vui lòng đăng nhập lại!");
+      toast.error("Không tìm thấy thông tin người dùng hợp lệ. Vui lòng đăng nhập lại!");
+      setIsProcessing(false);
+      return;
+    }
     const bookingData = {
-      userId: localStorage.getItem("userId") || "",
+      userId,
       parkingSlotId: bookingInfo.parkingSlotId,
       startTime: new Date(bookingInfo.startTime).toISOString(),
       endTime: new Date(bookingInfo.endTime).toISOString(),

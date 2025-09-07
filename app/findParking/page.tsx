@@ -292,16 +292,16 @@ export default function FindParkingPage() {
                   variant={viewMode === "grid" ? "default" : "ghost"}
                   size="sm"
                   onClick={() => setViewMode("grid")}
-                  className="rounded-r-none flex-1 sm:flex-none h-11 sm:h-auto sm:px-4 font-medium"
+                  className="rounded-r-none flex-1 sm:flex-none cursor-pointer h-11 sm:h-auto sm:px-4 font-medium"
                 >
-                  <Grid size={16} className="mr-2" />
+                  <Grid size={16} className="mr-2 " />
                   <span>Lưới</span>
                 </Button>
                 <Button
                   variant={viewMode === "list" ? "default" : "ghost"}
                   size="sm"
                   onClick={() => setViewMode("list")}
-                  className="rounded-l-none flex-1 sm:flex-none h-11 sm:h-auto sm:px-4 font-medium"
+                  className="rounded-l-none flex-1 sm:flex-none cursor-pointer h-11 sm:h-auto sm:px-4 font-medium"
                 >
                   <List size={16} className="mr-2" />
                   <span>Danh sách</span>
@@ -358,16 +358,16 @@ export default function FindParkingPage() {
                   variant={filters.nearMe ? "default" : "outline"}
                   onClick={getCurrentLocation}
                   disabled={locationLoading}
-                  className="w-full h-11 font-medium"
+                  className="w-full h-11 font-medium cursor-pointer"
                 >
                   {locationLoading ? (
                     <>
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 cursor-pointer border-white mr-2"></div>
                       Đang tìm...
                     </>
                   ) : (
                     <>
-                      <Navigation size={16} className="mr-2" />
+                      <Navigation size={16} className="mr-2 " />
                       Gần tôi
                     </>
                   )}
@@ -379,7 +379,7 @@ export default function FindParkingPage() {
                 <Button
                   variant="outline"
                   onClick={clearFilters}
-                  className="w-full h-11 font-medium"
+                  className="w-full h-11 font-medium cursor-pointer"
                 >
                   Xóa bộ lọc
                 </Button>
@@ -568,7 +568,7 @@ export default function FindParkingPage() {
                       </span>
                       <Button 
                         size="sm" 
-                        className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 min-w-[100px] flex-shrink-0"
+                        className="bg-blue-600 hover:bg-blue-700 cursor-pointer text-white px-4 py-2 min-w-[100px] flex-shrink-0"
                         onClick={(e) => {
                           e.stopPropagation();
                           router.push(`/detailParking/${lot._id}`);
