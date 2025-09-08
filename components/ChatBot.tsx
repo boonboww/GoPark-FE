@@ -48,7 +48,7 @@ const ROLE_SUGGESTIONS = {
     "Doanh thu toàn platform",
     "Bãi xe hoạt động nhiều nhất",
     "Xử lý khiếu nại",
-  ]
+  ],
 };
 
 export default function ChatBot() {
@@ -61,7 +61,7 @@ export default function ChatBot() {
   const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [connectionError, setConnectionError] = useState(false);
-  
+
   // Voice recognition states
   const [isListening, setIsListening] = useState(false);
   const [speechSupported, setSpeechSupported] = useState(false);
@@ -72,14 +72,16 @@ export default function ChatBot() {
 
   // Initialize speech recognition
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-        const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (typeof window !== "undefined") {
+      const SpeechRecognition =
+        (window as any).SpeechRecognition ||
+        (window as any).webkitSpeechRecognition;
       if (SpeechRecognition) {
         setSpeechSupported(true);
         recognitionRef.current = new SpeechRecognition();
         recognitionRef.current.continuous = false;
         recognitionRef.current.interimResults = false;
-        recognitionRef.current.lang = 'vi-VN';
+        recognitionRef.current.lang = "vi-VN";
 
         recognitionRef.current.onstart = () => {
           setIsListening(true);
@@ -87,12 +89,12 @@ export default function ChatBot() {
 
         recognitionRef.current.onresult = (event: any) => {
           const transcript = event.results[0][0].transcript;
-          setInput(prev => prev + transcript);
+          setInput((prev) => prev + transcript);
           setIsListening(false);
         };
 
         recognitionRef.current.onerror = (event: any) => {
-          console.error('Speech recognition error:', event.error);
+          console.error("Speech recognition error:", event.error);
           setIsListening(false);
         };
 
@@ -118,19 +120,19 @@ export default function ChatBot() {
   // Lấy thông tin user từ localStorage/sessionStorage (nếu có)
   useEffect(() => {
     checkUserAuth();
-    
+
     // Listen for storage changes (khi user login/logout)
     const handleStorageChange = () => {
       console.log("🔄 Storage changed, checking auth again...");
       checkUserAuth();
     };
 
-    window.addEventListener('storage', handleStorageChange);
-    window.addEventListener('userAuthChanged', handleStorageChange);
+    window.addEventListener("storage", handleStorageChange);
+    window.addEventListener("userAuthChanged", handleStorageChange);
 
     return () => {
-      window.removeEventListener('storage', handleStorageChange);
-      window.removeEventListener('userAuthChanged', handleStorageChange);
+      window.removeEventListener("storage", handleStorageChange);
+      window.removeEventListener("userAuthChanged", handleStorageChange);
     };
   }, []);
 
@@ -144,68 +146,78 @@ export default function ChatBot() {
   const checkUserAuth = async () => {
     try {
       console.log("🔍 Checking user auth...");
-      
-      const token = localStorage.getItem('token') || sessionStorage.getItem('token');
-      
+
+      const token =
+        localStorage.getItem("token") || sessionStorage.getItem("token");
+
       if (token) {
         // Nếu có token, gọi API để lấy thông tin user từ server
         console.log("🔑 Token found, fetching user info from server...");
-        
+
         try {
-          const response = await fetch("http://localhost:5000/api/chatbot/user-info", {
-            method: "GET",
-            headers: {
-              'Authorization': `Bearer ${token}`,
-              'Content-Type': 'application/json'
+          const response = await fetch(
+            `${process.env.NEXT_PUBLIC_API_URL}/api/v1/chatbot/user-info`,
+            {
+              method: "GET",
+              headers: {
+                Authorization: `Bearer ${token}`,
+                "Content-Type": "application/json",
+              },
             }
-          });
+          );
 
           if (response.ok) {
             const data = await response.json();
             console.log("📡 Server response:", data);
-            
-            if (data.status === 'success' && data.data?.user) {
+
+            if (data.status === "success" && data.data?.user) {
               const user = data.data.user;
               const userId = user._id || user.id;
-              
+
               setCurrentUserId(userId.toString());
               setUserInfo({
-                role: user.role || 'user',
-                name: user.userName || user.name || 'User'
+                role: user.role || "user",
+                name: user.userName || user.name || "User",
               });
-              
+
               console.log("✅ User authenticated from server:", {
                 id: userId,
                 role: user.role,
-                name: user.userName || user.name
+                name: user.userName || user.name,
               });
               return; // Thành công, không cần fallback
             }
           }
-          
+
           console.log("⚠️ Server auth failed, trying localStorage fallback...");
         } catch (serverError) {
           console.error("❌ Server auth error:", serverError);
           console.log("⚠️ Falling back to localStorage...");
         }
       }
-      
+
       // Fallback: check localStorage (nếu server auth thất bại)
-      const userData = localStorage.getItem('user') || sessionStorage.getItem('user');
-      
+      const userData =
+        localStorage.getItem("user") || sessionStorage.getItem("user");
+
       // ✅ NEW: Nếu không có user object, tạo từ các field riêng lẻ
-      if (!userData || userData === 'undefined' || userData === 'null') {
-        const role = localStorage.getItem('role') || sessionStorage.getItem('role');
-        const userId = localStorage.getItem('userId') || sessionStorage.getItem('userId');
-        
+      if (!userData || userData === "undefined" || userData === "null") {
+        const role =
+          localStorage.getItem("role") || sessionStorage.getItem("role");
+        const userId =
+          localStorage.getItem("userId") || sessionStorage.getItem("userId");
+
         if (role && userId) {
           console.log("📝 Creating user object from separate fields");
           setCurrentUserId(userId.toString());
           setUserInfo({
             role: role,
-            name: 'User' // Default name vì không có userName trong storage
+            name: "User", // Default name vì không có userName trong storage
           });
-          console.log("✅ User from separate storage fields:", { id: userId, role });
+          console.log("✅ User from separate storage fields:", {
+            id: userId,
+            role,
+          });
           return;
         }
       } else {
@@ -213,11 +225,11 @@ export default function ChatBot() {
         console.log("📄 Raw userData from storage:", userData);
         const user = JSON.parse(userData);
         console.log("👤 Parsed user object:", user);
-        
+
         // Handle MongoDB format với $oid
         let userId = null;
         if (user._id) {
-          if (typeof user._id === 'string') {
+          if (typeof user._id === "string") {
             userId = user._id;
           } else if (user._id.$oid) {
             userId = user._id.$oid;
@@ -225,42 +237,41 @@ export default function ChatBot() {
         } else if (user.id) {
           userId = user.id;
         }
-        
+
         if (userId) {
           setCurrentUserId(userId.toString());
           setUserInfo({
-            role: user.role || 'user',
-            name: user.userName || user.name || 'User'
+            role: user.role || "user",
+            name: user.userName || user.name || "User",
           });
           console.log("✅ User from localStorage:", {
             id: userId,
             role: user.role,
-            name: user.userName || user.name
+            name: user.userName || user.name,
           });
           return;
         }
       }
-      
+
       // Nếu không có gì cả, set guest
       setCurrentUserId(null);
-      setUserInfo({ role: 'guest', name: 'Khách vãng lai' });
+      setUserInfo({ role: "guest", name: "Khách vãng lai" });
       console.log("👤 Guest user detected");
-      
     } catch (error) {
       console.error("❌ Lỗi kiểm tra auth:", error);
       setCurrentUserId(null);
-      setUserInfo({ role: 'guest', name: 'Khách vãng lai' });
+      setUserInfo({ role: "guest", name: "Khách vãng lai" });
     }
   };
 
   // Voice recognition functions
   const startListening = () => {
     if (!recognitionRef.current || !speechSupported || isListening) return;
-    
+
     try {
       recognitionRef.current.start();
     } catch (error) {
-      console.error('Error starting speech recognition:', error);
+      console.error("Error starting speech recognition:", error);
       setIsListening(false);
     }
   };
@@ -270,7 +281,7 @@ export default function ChatBot() {
       try {
         recognitionRef.current.stop();
       } catch (error) {
-        console.error('Error stopping speech recognition:', error);
+        console.error("Error stopping speech recognition:", error);
       }
       setIsListening(false);
     }
@@ -280,10 +291,10 @@ export default function ChatBot() {
   const sendMessage = async (content: string) => {
     if (!content.trim()) return;
 
-    const newUserMessage: Message = { 
-      role: "user", 
+    const newUserMessage: Message = {
+      role: "user",
       content: content.trim(),
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     };
 
     const newMessages = [...messages, newUserMessage];
@@ -294,28 +305,31 @@ export default function ChatBot() {
     setConnectionError(false);
 
     try {
-      const response = await fetch("http://localhost:5000/api/chatbot/ai-chat", {
-        method: "POST",
-        headers: { 
-          "Content-Type": "application/json" 
-        },
-        body: JSON.stringify({ 
-          message: content.trim(),
-          userId: currentUserId
-        }),
-      });
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/V1/chatbot/ai-chat`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            message: content.trim(),
+            userId: currentUserId,
+          }),
+        }
+      );
 
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
 
       const data = await response.json();
-      
-      if (data.status === 'success' && data.data?.reply) {
+
+      if (data.status === "success" && data.data?.reply) {
         const aiReply: Message = {
           role: "assistant",
           content: data.data.reply.content,
-          timestamp: data.timestamp
+          timestamp: data.timestamp,
         };
 
         if (data.data.userInfo && !userInfo) {
@@ -326,15 +340,16 @@ export default function ChatBot() {
       } else {
         throw new Error(data.message || "Không nhận được phản hồi từ AI");
       }
-
     } catch (error) {
       console.error("❌ Lỗi gửi tin nhắn:", error);
       setConnectionError(true);
 
       const errorMsg: Message = {
         role: "assistant",
-        content: `❌ ${error instanceof Error ? error.message : 'Lỗi kết nối'}.\n\nVui lòng kiểm tra:\n• Server có chạy trên port 5000?\n• Kết nối mạng ổn định?`,
-        timestamp: new Date().toISOString()
+        content: `❌ ${
+          error instanceof Error ? error.message : "Lỗi kết nối"
+        }.\n\nVui lòng kiểm tra:\n• Server có chạy trên port 5000?\n• Kết nối mạng ổn định?`,
+        timestamp: new Date().toISOString(),
       };
       setMessages([...newMessages, errorMsg]);
     } finally {
@@ -344,8 +359,11 @@ export default function ChatBot() {
 
   // Lấy gợi ý phù hợp với role
   const getCurrentSuggestions = () => {
-    const role = userInfo?.role || 'guest';
-    return ROLE_SUGGESTIONS[role as keyof typeof ROLE_SUGGESTIONS] || ROLE_SUGGESTIONS.guest;
+    const role = userInfo?.role || "guest";
+    return (
+      ROLE_SUGGESTIONS[role as keyof typeof ROLE_SUGGESTIONS] ||
+      ROLE_SUGGESTIONS.guest
+    );
   };
 
   // Xóa lịch sử chat
@@ -357,9 +375,12 @@ export default function ChatBot() {
     }
 
     try {
-      const response = await fetch(`http://localhost:5000/api/chatbot/chat-history/${currentUserId}`, {
-        method: "DELETE"
-      });
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/v1/chatbot/chat-history/${currentUserId}`,
+        {
+          method: "DELETE",
+        }
+      );
 
       if (response.ok) {
         setMessages([]);
@@ -372,7 +393,7 @@ export default function ChatBot() {
     }
   };
 
-  const toggleChat = () => setVisible(prev => !prev);
+  const toggleChat = () => setVisible((prev) => !prev);
 
   return (
     <>
@@ -400,22 +421,27 @@ export default function ChatBot() {
                 >
                   GoPark AI
                 </button>
-                
+
                 {/* Badge hiển thị role user */}
                 {userInfo && (
-                  <Badge 
-                    variant={userInfo.role === 'guest' ? "outline" : "secondary"} 
+                  <Badge
+                    variant={
+                      userInfo.role === "guest" ? "outline" : "secondary"
+                    }
                     className={`text-xs px-2 py-1 ${
-                      isDarkMode 
-                        ? "bg-gray-700 text-[#00A859] border-[#00A859]" 
+                      isDarkMode
+                        ? "bg-gray-700 text-[#00A859] border-[#00A859]"
                         : "bg-white/90 text-gray-700 border-gray-300"
                     }`}
                   >
-                    {userInfo.role === 'guest' && '👤'}
-                    {userInfo.role === 'user' && '🧑‍💼'}
-                    {userInfo.role === 'parking_owner' && '🏢'}
-                    {userInfo.role === 'admin' && '👨‍💼'}
-                    {' ' + (userInfo.name.length > 10 ? userInfo.name.substring(0, 10) + '...' : userInfo.name)}
+                    {userInfo.role === "guest" && "👤"}
+                    {userInfo.role === "user" && "🧑‍💼"}
+                    {userInfo.role === "parking_owner" && "🏢"}
+                    {userInfo.role === "admin" && "👨‍💼"}
+                    {" " +
+                      (userInfo.name.length > 10
+                        ? userInfo.name.substring(0, 10) + "..."
+                        : userInfo.name)}
                   </Badge>
                 )}
               </div>
@@ -440,7 +466,7 @@ export default function ChatBot() {
                 <Button
                   size="icon"
                   variant="ghost"
-                  onClick={() => setIsDarkMode(prev => !prev)}
+                  onClick={() => setIsDarkMode((prev) => !prev)}
                   className={`h-8 w-8 hover:bg-white/20 ${
                     isDarkMode ? "text-[#00A859]" : "text-white"
                   }`}
@@ -462,7 +488,11 @@ export default function ChatBot() {
               </div>
             </CardHeader>
 
-            <CardContent className={`p-3 ${isDarkMode ? "bg-gray-900/90" : "bg-gray-50/90"}`}>
+            <CardContent
+              className={`p-3 ${
+                isDarkMode ? "bg-gray-900/90" : "bg-gray-50/90"
+              }`}
+            >
               {/* Hiển thị lỗi kết nối */}
               {connectionError && (
                 <div className="mb-2 p-2 bg-red-100 border border-red-300 rounded-md text-red-700 text-xs">
@@ -495,7 +525,7 @@ export default function ChatBot() {
                         : "text-[#00A859] hover:text-gray-700"
                     }`}
                   >
-                    + Hiện gợi ý ({userInfo?.role || 'guest'})
+                    + Hiện gợi ý ({userInfo?.role || "guest"})
                   </button>
                 )}
               </div>
@@ -505,15 +535,19 @@ export default function ChatBot() {
                 <div className="flex flex-col gap-1.5">
                   {/* Welcome message */}
                   {messages.length === 0 && !isLoading && (
-                    <div className={`text-center text-xs p-4 rounded-lg ${
-                      isDarkMode ? "text-gray-300 bg-gray-800/50" : "text-gray-600 bg-gray-100/80"
-                    }`}>
-                      👋 Xin chào{userInfo?.name ? ` ${userInfo.name}` : ''}!<br />
-                      Tôi là trợ lý AI của GoPark.{' '}
-                      {userInfo?.role === 'guest' 
-                        ? 'Hãy hỏi tôi về bãi đậu xe nhé!'
-                        : 'Tôi có thể giúp gì cho bạn?'
-                      }
+                    <div
+                      className={`text-center text-xs p-4 rounded-lg ${
+                        isDarkMode
+                          ? "text-gray-300 bg-gray-800/50"
+                          : "text-gray-600 bg-gray-100/80"
+                      }`}
+                    >
+                      👋 Xin chào{userInfo?.name ? ` ${userInfo.name}` : ""}!
+                      <br />
+                      Tôi là trợ lý AI của GoPark.{" "}
+                      {userInfo?.role === "guest"
+                        ? "Hãy hỏi tôi về bãi đậu xe nhé!"
+                        : "Tôi có thể giúp gì cho bạn?"}
                     </div>
                   )}
 
@@ -557,12 +591,14 @@ export default function ChatBot() {
                     rows={1}
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
-                    placeholder={`Nhập câu hỏi hoặc nhấn mic... (${userInfo?.role || 'guest'})`}
+                    placeholder={`Nhập câu hỏi hoặc nhấn mic... (${
+                      userInfo?.role || "guest"
+                    })`}
                     className={`resize-none max-h-20 text-xs border rounded-xl px-3 py-2 pr-12 min-h-[40px] transition-all focus:ring-2 focus:ring-[#00A859] ${
                       isDarkMode
                         ? "bg-gray-800/80 text-white border-gray-600 placeholder:text-gray-400"
                         : "bg-white text-gray-900 border-gray-300 placeholder:text-gray-500"
-                    } ${isListening ? 'ring-2 ring-red-400' : ''}`}
+                    } ${isListening ? "ring-2 ring-red-400" : ""}`}
                     onKeyDown={(e) => {
                       if (e.key === "Enter" && !e.shiftKey) {
                         e.preventDefault();
@@ -570,7 +606,7 @@ export default function ChatBot() {
                       }
                     }}
                   />
-                  
+
                   {/* Mic button inside input */}
                   {speechSupported && (
                     <Button
@@ -580,13 +616,17 @@ export default function ChatBot() {
                       onClick={isListening ? stopListening : startListening}
                       disabled={isLoading}
                       className={`absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full transition-all ${
-                        isListening 
-                          ? 'bg-red-500 text-white hover:bg-red-600' 
+                        isListening
+                          ? "bg-red-500 text-white hover:bg-red-600"
                           : isDarkMode
-                            ? 'text-gray-400 hover:text-[#00A859] hover:bg-gray-700'
-                            : 'text-gray-500 hover:text-[#00A859] hover:bg-gray-100'
+                          ? "text-gray-400 hover:text-[#00A859] hover:bg-gray-700"
+                          : "text-gray-500 hover:text-[#00A859] hover:bg-gray-100"
                       }`}
-                      title={isListening ? "Đang nghe... (nhấn để dừng)" : "Nhấn để nói"}
+                      title={
+                        isListening
+                          ? "Đang nghe... (nhấn để dừng)"
+                          : "Nhấn để nói"
+                      }
                     >
                       {isListening ? <MicOff size={16} /> : <Mic size={16} />}
                     </Button>
@@ -635,10 +675,13 @@ export default function ChatBot() {
           <Bot className="w-6 h-6 sm:w-7 sm:h-7" />
 
           {/* Role indicator */}
-          {userInfo && userInfo.role !== 'guest' && (
+          {userInfo && userInfo.role !== "guest" && (
             <div className="absolute -top-1 -right-1 w-5 h-5 bg-[#00A859] rounded-full flex items-center justify-center text-[8px] shadow-lg border-2 border-white">
-              {userInfo.role === 'user' ? '👤' :
-               userInfo.role === 'parking_owner' ? '🏢' : '👨‍💼'}
+              {userInfo.role === "user"
+                ? "👤"
+                : userInfo.role === "parking_owner"
+                ? "🏢"
+                : "👨‍💼"}
             </div>
           )}
 
@@ -659,8 +702,13 @@ export default function ChatBot() {
       {/* CSS Animations */}
       <style jsx>{`
         @keyframes pulse {
-          0%, 100% { opacity: 1; }
-          50% { opacity: 0.5; }
+          0%,
+          100% {
+            opacity: 1;
+          }
+          50% {
+            opacity: 0.5;
+          }
         }
       `}</style>
     </>
