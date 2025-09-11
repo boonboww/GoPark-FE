@@ -15,7 +15,7 @@ export default function LicensePlateScanner() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
   const API_BASE_URL =
-    process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000";
+    process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
   // 🚀 Start camera
   const startCamera = async () => {
@@ -78,7 +78,7 @@ export default function LicensePlateScanner() {
       const formData = new FormData();
       formData.append("image", file);
 
-      const res = await fetch(`${API_BASE_URL}/ocr`, {
+      const res = await fetch(`${API_BASE_URL}/api/v1/ocr`, {
         method: "POST",
         body: formData,
       });
