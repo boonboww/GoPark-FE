@@ -15,7 +15,8 @@ export default function LicensePlateScanner() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
   const API_BASE_URL =
-    process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+    process.env.NEXT_PUBLIC_API_URL ;
+   // || "http://localhost:5000"
 
   // 🚀 Start camera
   const startCamera = async () => {
