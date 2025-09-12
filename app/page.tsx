@@ -9,6 +9,8 @@ import HowItWorksSection from "@/components/HowItWorksSection";
 import TestimonialsSection from "@/components/TestimonialsSection";
 import WavyDivider from "@/components/WavyDivider";
 import PublicOnlyGuard from "@/components/PublicOnlyGuard";
+import HowItWorkUserSection from "@/components/HowItWorkUserSection";
+import HowItWorkOwnerSection from "@/components/HowItWorkOwnerSection";
 
 export default function Home() {
   return (
@@ -25,6 +27,16 @@ export default function Home() {
           <WavyDivider targetId="how" />
           <section id="how" className="scroll-mt-20">
             <HowItWorksSection />
+          </section>
+
+          <WavyDivider targetId="how-user" />
+          <section id="how-user" className="scroll-mt-20">
+            <HowItWorkUserSection />
+          </section>
+
+          <WavyDivider targetId="how-owner" />
+          <section id="how-owner" className="scroll-mt-20">
+            <HowItWorkOwnerSection />
           </section>
 
           <WavyDivider targetId="map" />
