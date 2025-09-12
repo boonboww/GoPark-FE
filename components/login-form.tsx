@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Mail, Lock, LogIn, UserPlus, Globe } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { loginUser } from "@/app/account/login/action";
@@ -18,12 +18,29 @@ import { Label } from "@/components/ui/label";
 
 export function LoginForm({ className, ...props }: React.ComponentProps<"div">) {
   const [formData, setFormData] = useState({ email: "", password: "" });
+  const [remember, setRemember] = useState(false);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
   const router = useRouter();
 
+  // Khi component mount, kiểm tra localStorage
+  useEffect(() => {
+    const saved = localStorage.getItem("rememberedAccount");
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        setFormData({ email: parsed.email || "", password: parsed.password || "" });
+        setRemember(true);
+      } catch {}
+    }
+  }, []);
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.id]: e.target.value });
+  };
+
+  const handleRememberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setRemember(e.target.checked);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -39,9 +56,14 @@ export function LoginForm({ className, ...props }: React.ComponentProps<"div">) 
     } else {
       setMessage("✅ Đăng nhập thành công!");
 
-      const role = res.data?.role;
-      console.log("Logged in role:", role);
+      // Lưu thông tin nếu nhớ mật khẩu
+      if (remember) {
+        localStorage.setItem("rememberedAccount", JSON.stringify({ email, password }));
+      } else {
+        localStorage.removeItem("rememberedAccount");
+      }
 
+      const role = res.data?.role;
       if (role === "admin") {
         router.push("/admin");
       } else if (role === "owner") {
@@ -79,6 +101,7 @@ export function LoginForm({ className, ...props }: React.ComponentProps<"div">) 
                     required
                     onChange={handleChange}
                     className="pl-10"
+                    value={formData.email}
                   />
                 </div>
               </div>
@@ -99,8 +122,19 @@ export function LoginForm({ className, ...props }: React.ComponentProps<"div">) 
                     required
                     onChange={handleChange}
                     className="pl-10"
+                    value={formData.password}
                   />
                 </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  id="remember"
+                  checked={remember}
+                  onChange={handleRememberChange}
+                  className="mr-2 cursor-pointer"
+                />
+                <Label htmlFor="remember" className="cursor-pointer select-none">Ghi nhớ đăng nhập</Label>
               </div>
               <div className="flex flex-col gap-3">
                 <Button type="submit" className="w-full flex items-center justify-center gap-2 cursor-pointer" disabled={loading}>

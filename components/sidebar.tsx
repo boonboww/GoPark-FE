@@ -302,10 +302,12 @@ export default function AdminSidebar({ className = "" }: AdminSidebarProps) {
               </div>
               <Button 
                 variant="ghost" 
-                className="w-full justify-start text-red-600 hover:text-red-700 hover:bg-red-50"
+                className="w-full justify-start text-red-600 hover:text-red-700 cursor-pointer hover:bg-red-50"
               >
                 <LogOut className="w-4 h-4 mr-2" />
-                Đăng xuất
+                <Link href="/account/login">
+                  Đăng xuất
+                </Link>
               </Button>
             </div>
           ) : (

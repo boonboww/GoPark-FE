@@ -74,14 +74,13 @@ export default function OwnerSidebar({ className = "" }: OwnerSidebarProps) {
   const router = useRouter();
 
   const toggleExpanded = (title: string) => {
-    setExpandedItems(prev => 
-      prev.includes(title) 
+
+    setExpandedItems(prev =>
+      prev.includes(title)
         ? prev.filter(item => item !== title)
         : [...prev, title]
     );
-  };
-
-
+  }
   // Returns true if the current path matches the item's href exactly
   const isActive = (href?: string) => {
     if (!href) return false;
@@ -93,8 +92,8 @@ export default function OwnerSidebar({ className = "" }: OwnerSidebarProps) {
     if (!item.children) return false;
     return item.children.some(child =>
       isActive(child.href) || isChildActive(child)
-    );
-  };
+    )
+  }
 
   const handleLogout = () => {
     localStorage.removeItem("token");
@@ -151,47 +150,47 @@ export default function OwnerSidebar({ className = "" }: OwnerSidebarProps) {
               </div>
             )}
           </button>
-
-          {isExpanded && !isCollapsed && (
-            <div className="mt-1 space-y-1 ml-4">
-              {item.children?.map(child => renderSidebarItem(child, level + 1))}
+          {/* Render children if expanded */}
+          {isExpanded && item.children && (
+            <div className="pl-4">
+              {item.children.map(child => renderSidebarItem(child, level + 1))}
             </div>
           )}
         </div>
       );
+    } else {
+      return (
+        <Link
+          key={item.title}
+          href={item.href || '#'}
+          className={`flex items-center justify-between px-3 py-2.5 rounded-lg transition-all duration-200 group mb-1
+            ${active ? (!isCollapsed ? 'bg-green-100 text-green-700 border-r-2 border-green-600' : '') : 'hover:bg-green-50 hover:text-green-700'}
+            ${level > 0 ? 'ml-4 text-sm' : ''}`}
+        >
+          <div className="flex items-center gap-3">
+            {isCollapsed && active ? (
+              <span className="flex items-center justify-center w-11 h-11 bg-green-100 rounded-lg mx-auto">
+                <Icon className="w-6 h-6 text-green-600" />
+              </span>
+            ) : (
+              <span className="flex items-center justify-center w-11 h-11 mx-auto">
+                <Icon className={`${isCollapsed ? 'w-6 h-6' : 'w-4 h-4'} ${active ? 'text-green-600' : 'text-gray-500 group-hover:text-green-600'}`} />
+              </span>
+            )}
+            {!isCollapsed && (
+              <span className={`font-medium ${active ? 'text-green-700' : 'text-gray-700 group-hover:text-green-700'}`}>
+                {item.title}
+              </span>
+            )}
+          </div>
+          {!isCollapsed && item.badge && (
+            <Badge variant="secondary" className="bg-red-100 text-red-700 text-xs">
+              {item.badge}
+            </Badge>
+          )}
+        </Link>
+      );
     }
-
-    return (
-      <Link
-        key={item.title}
-        href={item.href || '#'}
-        className={`flex items-center justify-between px-3 py-2.5 rounded-lg transition-all duration-200 group mb-1
-          ${active ? (!isCollapsed ? 'bg-green-100 text-green-700 border-r-2 border-green-600' : '') : 'hover:bg-green-50 hover:text-green-700'}
-          ${level > 0 ? 'ml-4 text-sm' : ''}`}
-      >
-        <div className="flex items-center gap-3">
-          {isCollapsed && active ? (
-            <span className="flex items-center justify-center w-11 h-11 bg-green-100 rounded-lg mx-auto">
-              <Icon className="w-6 h-6 text-green-600" />
-            </span>
-          ) : (
-            <span className="flex items-center justify-center w-11 h-11 mx-auto">
-              <Icon className={`${isCollapsed ? 'w-6 h-6' : 'w-4 h-4'} ${active ? 'text-green-600' : 'text-gray-500 group-hover:text-green-600'}`} />
-            </span>
-          )}
-          {!isCollapsed && (
-            <span className={`font-medium ${active ? 'text-green-700' : 'text-gray-700 group-hover:text-green-700'}`}>
-              {item.title}
-            </span>
-          )}
-        </div>
-        {!isCollapsed && item.badge && (
-          <Badge variant="secondary" className="bg-red-100 text-red-700 text-xs">
-            {item.badge}
-          </Badge>
-        )}
-      </Link>
-    );
   };
 
   return (

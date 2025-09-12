@@ -19,6 +19,8 @@ import {
   SelectItem,
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
+import { useRouter } from "next/navigation";
+import { AiOutlineScan } from "react-icons/ai";
 import { Car } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import {
@@ -87,6 +89,7 @@ export default function CombinedParkingManagement({
   const [slotBookings, setSlotBookings] = useState<Booking[]>([]);
   const [allSlotBookings, setAllSlotBookings] = useState<{[slotId: string]: Booking[]}>({});
   const [currentTime, setCurrentTime] = useState<Date>(new Date());
+  const router = useRouter();
 
   const selectedLot = parkingLots.find((lot) => lot._id === selectedLotId);
   const currentFloor =
@@ -547,7 +550,7 @@ export default function CombinedParkingManagement({
                     variant="outline"
                     size="sm"
                     onClick={() => setSelectedDate("")}
-                    className="shrink-0"
+                    className="shrink-0 cursor-pointer"
                   >
                     Clear
                   </Button>
@@ -555,20 +558,31 @@ export default function CombinedParkingManagement({
               </div>
 
               {/* Action Buttons */}
-              <div className="flex flex-col gap-2">
-                <AddParkingLotDialog
-                  open={newLotDialogOpen}
-                  onOpenChange={setNewLotDialogOpen}
-                  onCreated={loadParkingLots}
-                />
-                <EditParkingLotDialog
-                  open={editLotDialogOpen}
-                  onOpenChange={setEditLotDialogOpen}
-                  selectedLot={selectedLot}
-                  onUpdate={loadParkingLots}
-                  onDelete={handleDeleteParkingLot}
-                  setParkingLots={setParkingLots}
-                />
+              <div className="flex flex-row gap-2 justify-end items-center flex-wrap mt-2">
+                <Button
+                  variant="default"
+                  className="flex items-center gap-2 px-4 py-2 min-w-[170px] cursor-pointer"
+                  onClick={() => router.push("/scan")}
+                  style={{ whiteSpace: 'nowrap' }}
+                >
+                  <AiOutlineScan className="text-lg" />
+                  Checkin/Checkout
+                </Button>
+                <div className="flex gap-2">
+                  <AddParkingLotDialog
+                    open={newLotDialogOpen}
+                    onOpenChange={setNewLotDialogOpen}
+                    onCreated={loadParkingLots}
+                  />
+                  <EditParkingLotDialog
+                    open={editLotDialogOpen}
+                    onOpenChange={setEditLotDialogOpen}
+                    selectedLot={selectedLot}
+                    onUpdate={loadParkingLots}
+                    onDelete={handleDeleteParkingLot}
+                    setParkingLots={setParkingLots}
+                  />
+                </div>
               </div>
             </div>
           </CardContent>
@@ -618,16 +632,16 @@ export default function CombinedParkingManagement({
                     const statusColor = getStatusColor(slot.status, slot._id);
                     
                     let bgColor = "";
-                    if (statusColor.includes("green")) bgColor = "bg-green-100 border-green-300 text-green-700";
-                    else if (statusColor.includes("yellow")) bgColor = "bg-yellow-100 border-yellow-300 text-yellow-700";
-                    else if (statusColor.includes("red")) bgColor = "bg-red-100 border-red-300 text-red-700";
-                    else bgColor = "bg-gray-100 border-gray-300 text-gray-700";
+                    if (statusColor.includes("green")) bgColor = "bg-green-100 cursor-pointer border-green-300 text-green-700";
+                    else if (statusColor.includes("yellow")) bgColor = "bg-yellow-100 cursor-pointer border-yellow-300 text-yellow-700";
+                    else if (statusColor.includes("red")) bgColor = "bg-red-100 cursor-pointer border-red-300 text-red-700";
+                    else bgColor = "bg-gray-100 cursor-pointer border-gray-300 text-gray-700";
 
                     return (
                       <button
                         key={slot._id}
                         onClick={() => handleSlotClick(slot)}
-                        className={`border rounded-lg h-16 flex flex-col items-center justify-center transition-all duration-200 hover:shadow-md ${bgColor} ${selected}`}
+                        className={`border rounded-lg h-16 flex flex-col items-center cursor-pointer justify-center transition-all duration-200 hover:shadow-md ${bgColor} ${selected}`}
                         title={getSlotTooltip(slot, slot._id)}
                       >
                         <div className="mb-1">

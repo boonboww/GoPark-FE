@@ -64,7 +64,7 @@ export default function EditParkingLotDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogTrigger asChild>
-        <Button className="w-full md:w-auto hover:bg-blue-50 hover:text-blue-700 hover:border-blue-300 transition-colors" variant="outline" disabled={!selectedLot}>
+        <Button className="w-full md:w-auto cursor-pointer hover:bg-blue-50 hover:text-blue-700 hover:border-blue-300 transition-colors" variant="outline" disabled={!selectedLot}>
           <Edit3 className="w-4 h-4 mr-2" />
           <span className="font-medium">Sửa & Xóa</span>
         </Button>

@@ -100,7 +100,7 @@ export default function AddParkingLotDialog({ open, onOpenChange, onCreated }: P
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogTrigger asChild>
-        <Button className="w-full md:w-auto hover:bg-green-50 hover:text-green-700 hover:border-green-300 transition-colors" variant="outline">
+        <Button className="w-full md:w-auto hover:bg-green-50 cursor-pointer hover:text-green-700 hover:border-green-300 transition-colors" variant="outline">
           <Plus className="w-4 h-4 mr-2" />
           <span className="font-medium">Thêm bãi đậu xe</span>
         </Button>

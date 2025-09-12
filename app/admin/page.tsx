@@ -46,7 +46,7 @@ interface SystemStatus {
   notification: { status: string; message: string };
 }
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api/v1';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
 
 
 import RoleGuard from '@/components/RoleGuard';
@@ -67,7 +67,7 @@ export default function AdminDashboard() {
         console.log('Token found:', !!token);
 
         // Test connection first
-        const testResponse = await fetch(`${API_BASE_URL}/admin/test`);
+  const testResponse = await fetch(`${API_BASE_URL}/api/v1/admin/test`);
         if (!testResponse.ok) {
           throw new Error('Cannot connect to admin API');
         }
@@ -81,9 +81,9 @@ export default function AdminDashboard() {
 
         // Fetch all data
         const [statsRes, activitiesRes, statusRes] = await Promise.all([
-          fetch(`${API_BASE_URL}/admin/dashboard/stats`, { headers }),
-          fetch(`${API_BASE_URL}/admin/dashboard/activities?limit=8`, { headers }),
-          fetch(`${API_BASE_URL}/admin/dashboard/system-status`, { headers })
+          fetch(`${API_BASE_URL}/api/v1/admin/dashboard/stats`, { headers }),
+          fetch(`${API_BASE_URL}/api/v1/admin/dashboard/activities?limit=8`, { headers }),
+          fetch(`${API_BASE_URL}/api/v1/admin/dashboard/system-status`, { headers })
         ]);
 
         // Helper to get error message from response
