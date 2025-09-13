@@ -11,6 +11,7 @@ import WavyDivider from "@/components/WavyDivider";
 import PublicOnlyGuard from "@/components/PublicOnlyGuard";
 import HowItWorkUserSection from "@/components/HowItWorkUserSection";
 import HowItWorkOwnerSection from "@/components/HowItWorkOwnerSection";
+import VideoSection from "@/components/VideoSection";
 
 export default function Home() {
   return (
@@ -24,6 +25,12 @@ export default function Home() {
 
         {/* Các section nội dung khác */}
         <div className="space-y-12 md:space-y-24 bg-white">
+          
+          <WavyDivider targetId="video" />
+          <section id="video" className="scroll-mt-20">
+            <VideoSection />
+          </section>
+          
           <WavyDivider targetId="how" />
           <section id="how" className="scroll-mt-20">
             <HowItWorksSection />
