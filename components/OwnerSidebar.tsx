@@ -13,13 +13,13 @@ import {
   X,
   LogOut,
   Bell,
-  Search,
   Building2,
   Ticket,
   User
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import QuickSearch from '@/components/QuickSearch';
 
 interface SidebarItem {
   title: string;
@@ -276,10 +276,7 @@ export default function OwnerSidebar({ className = "" }: OwnerSidebarProps) {
         <div className="p-4 border-t border-gray-200">
           {!isCollapsed ? (
             <div className="space-y-2">
-              <div className="flex items-center gap-2 px-3 py-2 text-sm text-gray-500">
-                <Search className="w-4 h-4" />
-                <span>Tìm kiếm nhanh</span>
-              </div>
+              <QuickSearch isCollapsed={false} />
               <Button 
                 variant="ghost" 
                 className="w-full justify-start text-red-600 hover:text-red-700 hover:bg-red-50"
@@ -290,14 +287,17 @@ export default function OwnerSidebar({ className = "" }: OwnerSidebarProps) {
               </Button>
             </div>
           ) : (
-            <Button 
-              variant="ghost" 
-              size="sm"
-              className="w-full p-2 text-red-600 hover:text-red-700 hover:bg-red-50"
-              onClick={handleLogout}
-            >
-              <LogOut className="w-4 h-4" />
-            </Button>
+            <div className="space-y-2">
+              <QuickSearch isCollapsed={true} />
+              <Button 
+                variant="ghost" 
+                size="sm"
+                className="w-full p-2 text-red-600 hover:text-red-700 hover:bg-red-50"
+                onClick={handleLogout}
+              >
+                <LogOut className="w-4 h-4" />
+              </Button>
+            </div>
           )}
         </div>
       </div>

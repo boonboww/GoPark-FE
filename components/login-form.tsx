@@ -5,6 +5,7 @@ import { Mail, Lock, LogIn, UserPlus, Globe } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { loginUser } from "@/app/account/login/action";
 import { cn } from "@/lib/utils";
+import { useRememberLogin } from "@/components/RememberLoginProvider";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -18,29 +19,41 @@ import { Label } from "@/components/ui/label";
 
 export function LoginForm({ className, ...props }: React.ComponentProps<"div">) {
   const [formData, setFormData] = useState({ email: "", password: "" });
-  const [remember, setRemember] = useState(false);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
   const router = useRouter();
 
-  // Khi component mount, kiểm tra localStorage
+  const { 
+    rememberedData, 
+    isRememberEnabled, 
+    saveLogin, 
+    clearLogin, 
+    toggleRemember,
+    hasRemembered 
+  } = useRememberLogin();
+
+  // Load remembered data when component mounts
   useEffect(() => {
-    const saved = localStorage.getItem("rememberedAccount");
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved);
-        setFormData({ email: parsed.email || "", password: parsed.password || "" });
-        setRemember(true);
-      } catch {}
+    if (rememberedData) {
+      setFormData({
+        email: rememberedData.email,
+        password: rememberedData.password
+      });
     }
-  }, []);
+  }, [rememberedData]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.id]: e.target.value });
   };
 
   const handleRememberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setRemember(e.target.checked);
+    const isChecked = e.target.checked;
+    toggleRemember(isChecked);
+    
+    // Nếu bỏ chọn remember, xóa dữ liệu form nếu nó đang là dữ liệu được ghi nhớ
+    if (!isChecked && hasRemembered) {
+      setFormData({ email: "", password: "" });
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -49,28 +62,49 @@ export function LoginForm({ className, ...props }: React.ComponentProps<"div">) 
     setMessage("");
 
     const { email, password } = formData;
-    const res = await loginUser(email, password);
+    
+    // Validate input
+    if (!email.trim() || !password.trim()) {
+      setMessage("❌ Vui lòng nhập đầy đủ email và mật khẩu");
+      setLoading(false);
+      return;
+    }
 
-    if (res.error) {
-      setMessage(`❌ ${res.error}`);
-    } else {
-      setMessage("✅ Đăng nhập thành công!");
+    try {
+      const res = await loginUser(email, password);
 
-      // Lưu thông tin nếu nhớ mật khẩu
-      if (remember) {
-        localStorage.setItem("rememberedAccount", JSON.stringify({ email, password }));
+      if (res.error) {
+        setMessage(`❌ ${res.error}`);
+        // Nếu đăng nhập thất bại và có dữ liệu ghi nhớ, có thể cần xóa nó
+        if (hasRemembered && rememberedData?.email === email) {
+          clearLogin();
+          setFormData({ email: "", password: "" });
+        }
       } else {
-        localStorage.removeItem("rememberedAccount");
-      }
+        setMessage("✅ Đăng nhập thành công!");
 
-      const role = res.data?.role;
-      if (role === "admin") {
-        router.push("/admin");
-      } else if (role === "owner") {
-        router.push("/owner");
-      } else {
-        router.push("/");
+        // Xử lý ghi nhớ đăng nhập
+        if (isRememberEnabled) {
+          saveLogin(email, password);
+        } else {
+          clearLogin();
+        }
+
+        // Redirect based on role
+        const role = res.data?.role;
+        setTimeout(() => {
+          if (role === "admin") {
+            router.push("/admin");
+          } else if (role === "owner") {
+            router.push("/owner");
+          } else {
+            router.push("/");
+          }
+        }, 1000);
       }
+    } catch (error) {
+      setMessage("❌ Có lỗi xảy ra khi đăng nhập");
+      console.error("Login error:", error);
     }
 
     setLoading(false);
@@ -130,11 +164,16 @@ export function LoginForm({ className, ...props }: React.ComponentProps<"div">) 
                 <input
                   type="checkbox"
                   id="remember"
-                  checked={remember}
+                  checked={isRememberEnabled}
                   onChange={handleRememberChange}
-                  className="mr-2 cursor-pointer"
+                  className="mr-2 cursor-pointer w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
                 />
-                <Label htmlFor="remember" className="cursor-pointer select-none">Ghi nhớ đăng nhập</Label>
+                <Label htmlFor="remember" className="cursor-pointer select-none text-sm font-medium">
+                  Ghi nhớ đăng nhập
+                  {hasRemembered && (
+                    <span className="ml-1 text-xs text-green-600">(đã lưu)</span>
+                  )}
+                </Label>
               </div>
               <div className="flex flex-col gap-3">
                 <Button type="submit" className="w-full flex items-center justify-center gap-2 cursor-pointer" disabled={loading}>
