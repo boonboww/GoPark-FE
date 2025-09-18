@@ -28,6 +28,7 @@ export default function AddVehiclePage() {
     capacity: 4,
     imageVehicle: "",
   });
+  const [file, setFile] = useState<File | null>(null);
   const [message, setMessage] = useState<string>("");
   const [editing, setEditing] = useState<Vehicle | null>(null);
   const [imageError, setImageError] = useState<string>("");
@@ -40,9 +41,7 @@ export default function AddVehiclePage() {
 
   const fetchMyVehicles = async () => {
     try {
-      const res = await API.get<{ data: Vehicle[] }>(
-        "/api/v1/vehicles/my-vehicles"
-      );
+      const res = await API.get<{ data: Vehicle[] }>("/api/v1/vehicles/my-vehicles");
       setVehicles(res.data.data || []);
     } catch (error) {
       console.error(error);
@@ -55,22 +54,29 @@ export default function AddVehiclePage() {
       setMessage("Lỗi: Bạn chỉ được đăng ký tối đa 3 phương tiện.");
       return;
     }
-
     if (!newVehicle.licensePlate || !newVehicle.capacity) {
       setMessage("Lỗi: Vui lòng điền biển số và sức chứa.");
       return;
     }
 
-    if (newVehicle.imageVehicle && !isValidUrl(newVehicle.imageVehicle)) {
-      setMessage("Lỗi: URL hình ảnh không hợp lệ.");
-      return;
-    }
-
     try {
-      await API.post("/api/v1/vehicles", newVehicle);
+      let imageUrl = "";
+      if (file) {
+        const formData = new FormData();
+        formData.append("file", file);
+
+        const uploadRes = await API.post("/api/v1/upload?folder=vehicles", formData, {
+          headers: { "Content-Type": "multipart/form-data" },
+        });
+
+        imageUrl = uploadRes.data.url;
+      }
+
+      await API.post("/api/v1/vehicles", { ...newVehicle, imageVehicle: imageUrl });
+
       setMessage("✅ Thêm phương tiện thành công!");
       setNewVehicle({ licensePlate: "", capacity: 4, imageVehicle: "" });
-      setImageError("");
+      setFile(null);
       fetchMyVehicles();
     } catch (error) {
       const apiError = error as ApiError;
@@ -84,8 +90,7 @@ export default function AddVehiclePage() {
   };
 
   const handleDelete = async (id?: string) => {
-    if (!id || !confirm("Bạn có chắc chắn muốn xóa phương tiện này?"))
-      return;
+    if (!id || !confirm("Bạn có chắc chắn muốn xóa phương tiện này?")) return;
     try {
       await API.delete(`/api/v1/vehicles/${id}`);
       fetchMyVehicles();
@@ -107,37 +112,21 @@ export default function AddVehiclePage() {
     }
   };
 
-  const isValidUrl = (url: string) => {
-    try {
-      const u = new URL(url);
-      return /\.(jpeg|jpg|png|gif|webp)$/i.test(u.pathname);
-    } catch {
-      return false;
-    }
-  };
-
-  const handleImageError = () => {
-    setImageError("Không thể tải hình ảnh.");
-  };
+  const handleImageError = () => setImageError("Không thể tải hình ảnh.");
 
   return (
     <>
       <Header />
-
       <main className="max-w-4xl mx-auto px-4 pt-24 pb-16 space-y-10">
-        <h1 className="text-3xl font-bold text-center text-primary">
-          Phương Tiện Của Tôi
-        </h1>
+        <h1 className="text-3xl font-bold text-center text-primary">Phương Tiện Của Tôi</h1>
 
-        {/* Add Form */}
+        {/* Form Thêm Vehicle */}
         <section className="bg-white p-6 rounded-xl shadow-md space-y-4 border">
           {vehicles.length >= MAX_VEHICLES && (
             <div className="text-red-600 flex gap-2 items-center">
-              <Lock className="w-4 h-4" />
-              <span>Bạn chỉ được đăng ký tối đa 3 phương tiện.</span>
+              <Lock className="w-4 h-4" /> Bạn chỉ được đăng ký tối đa 3 phương tiện.
             </div>
           )}
-
           <div>
             <Label>Biển số xe</Label>
             <Input
@@ -154,22 +143,17 @@ export default function AddVehiclePage() {
               type="number"
               value={newVehicle.capacity}
               onChange={(e) =>
-                setNewVehicle({
-                  ...newVehicle,
-                  capacity: Number(e.target.value),
-                })
+                setNewVehicle({ ...newVehicle, capacity: Number(e.target.value) })
               }
               placeholder="VD: 4"
             />
           </div>
           <div>
-            <Label>Đường dẫn hình ảnh (tùy chọn)</Label>
+            <Label>Ảnh phương tiện (tùy chọn)</Label>
             <Input
-              value={newVehicle.imageVehicle}
-              onChange={(e) =>
-                setNewVehicle({ ...newVehicle, imageVehicle: e.target.value })
-              }
-              placeholder="https://example.com/car.jpg"
+              type="file"
+              accept="image/*"
+              onChange={(e) => e.target.files && setFile(e.target.files[0])}
             />
             {imageError && <p className="text-sm text-red-600">{imageError}</p>}
           </div>
@@ -185,13 +169,10 @@ export default function AddVehiclePage() {
             {message && (
               <div
                 className={`flex gap-2 items-center text-sm ${
-                  message.startsWith("Lỗi")
-                    ? "text-red-600"
-                    : "text-green-600"
+                  message.startsWith("Lỗi") ? "text-red-600" : "text-green-600"
                 }`}
               >
-                <AlertTriangle className="w-4 h-4" />
-                <span>{message}</span>
+                <AlertTriangle className="w-4 h-4" /> <span>{message}</span>
               </div>
             )}
           </div>
@@ -221,27 +202,17 @@ export default function AddVehiclePage() {
                   )}
                   <div className="flex-1">
                     <p className="font-semibold text-lg">{v.licensePlate}</p>
-                    <p className="text-sm text-gray-500">
-                      Sức chứa: {v.capacity} chỗ
-                    </p>
+                    <p className="text-sm text-gray-500">Sức chứa: {v.capacity} chỗ</p>
                     <div className="mt-2">
                       <QRCode value={vehicleUrl} size={80} />
                     </div>
                   </div>
                 </div>
                 <div className="flex gap-2 justify-end mt-4">
-                  <Button
-                    variant="outline"
-                    onClick={() => setEditing(v)}
-                    className="flex gap-1 items-center"
-                  >
+                  <Button variant="outline" onClick={() => setEditing(v)} className="flex gap-1 items-center">
                     <Pencil className="w-4 h-4" /> Sửa
                   </Button>
-                  <Button
-                    variant="destructive"
-                    onClick={() => handleDelete(v._id)}
-                    className="flex gap-1 items-center"
-                  >
+                  <Button variant="destructive" onClick={() => handleDelete(v._id)} className="flex gap-1 items-center">
                     <Trash2 className="w-4 h-4" /> Xóa
                   </Button>
                 </div>
@@ -255,15 +226,8 @@ export default function AddVehiclePage() {
           )}
         </section>
 
-        {editing && (
-          <EditVehicleForm
-            vehicle={editing}
-            onClose={() => setEditing(null)}
-            onSave={handleUpdate}
-          />
-        )}
+        {editing && <EditVehicleForm vehicle={editing} onClose={() => setEditing(null)} onSave={handleUpdate} />}
       </main>
-
       <Footer />
     </>
   );
