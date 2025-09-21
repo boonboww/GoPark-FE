@@ -206,11 +206,11 @@ export default function OwnerSidebar({ className = "" }: OwnerSidebarProps) {
       {/* Mobile Menu Button */}
       <Button
         variant="outline"
-        size="sm"
-        className="fixed top-4 left-4 z-50 lg:hidden"
+        size="icon"
+        className="fixed top-6 left-4 z-50 lg:hidden w-12 h-12 flex items-center justify-center"
         onClick={() => setIsMobileOpen(!isMobileOpen)}
       >
-        {isMobileOpen ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
+        {isMobileOpen ? <X className="w-7 h-7" /> : <Menu className="w-7 h-7" />}
       </Button>
 
       {/* Sidebar */}
@@ -237,11 +237,11 @@ export default function OwnerSidebar({ className = "" }: OwnerSidebarProps) {
             )}
             <Button
               variant="ghost"
-              size="sm"
+              size="icon"
               onClick={() => setIsCollapsed(!isCollapsed)}
-              className="hidden lg:flex w-8 h-8 p-0"
+              className="hidden lg:flex w-12 h-12 items-center justify-center"
             >
-              <Menu className="w-4 h-4" />
+              <Menu className="w-7 h-7" />
             </Button>
           </div>
         </div>

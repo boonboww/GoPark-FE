@@ -558,17 +558,17 @@ export default function CombinedParkingManagement({
               </div>
 
               {/* Action Buttons */}
-              <div className="flex flex-row gap-2 justify-end items-center flex-wrap mt-2">
+              <div className="flex flex-col sm:flex-row gap-2 justify-end items-center flex-wrap mt-2 w-full">
                 <Button
                   variant="default"
-                  className="flex items-center gap-2 px-4 py-2 min-w-[170px] cursor-pointer"
+                  className="flex items-center gap-2 px-4 py-2 min-w-[170px] cursor-pointer w-full sm:w-auto"
                   onClick={() => router.push("/scan")}
                   style={{ whiteSpace: 'nowrap' }}
                 >
                   <AiOutlineScan className="text-lg" />
                   Checkin/Checkout
                 </Button>
-                <div className="flex gap-2">
+                <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
                   <AddParkingLotDialog
                     open={newLotDialogOpen}
                     onOpenChange={setNewLotDialogOpen}

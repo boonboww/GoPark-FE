@@ -301,16 +301,21 @@ export default function AddParkingLotDialog({ open, onOpenChange, onCreated }: P
               <DollarSign className="w-4 h-4 text-green-600" />
               Giá mỗi giờ (VND)
             </Label>
-            <Input
-              className="rounded-md"
-              type="number"
-              min="0"
-              value={newParkingLot.pricePerHour}
-              onChange={(e) =>
-                setNewParkingLot({ ...newParkingLot, pricePerHour: Number(e.target.value) })
-              }
-              placeholder="Nhập giá theo VND (VD: 15000)"
-            />
+              <Input
+                className="rounded-md"
+                type="number"
+                min="0"
+                value={newParkingLot.pricePerHour === 0 ? "" : newParkingLot.pricePerHour}
+                onChange={(e) => {
+                  let val = e.target.value;
+                  // Loại bỏ số 0 ở đầu nếu có
+                  if (val.length > 1 && val.startsWith("0")) {
+                    val = val.replace(/^0+/, "");
+                  }
+                  setNewParkingLot({ ...newParkingLot, pricePerHour: Number(val) });
+                }}
+                placeholder="Nhập giá theo VND (VD: 15000)"
+              />
           </div>
 
           <div className="md:col-span-2 space-y-1">
