@@ -303,11 +303,14 @@ export default function AdminSidebar({ className = "" }: AdminSidebarProps) {
               <Button 
                 variant="ghost" 
                 className="w-full justify-start text-red-600 hover:text-red-700 cursor-pointer hover:bg-red-50"
+                onClick={() => {
+                  localStorage.removeItem("token");
+                  localStorage.removeItem("role");
+                  window.location.href = "/account/login";
+                }}
               >
                 <LogOut className="w-4 h-4 mr-2" />
-                <Link href="/account/login">
-                  Đăng xuất
-                </Link>
+                Đăng xuất
               </Button>
             </div>
           ) : (

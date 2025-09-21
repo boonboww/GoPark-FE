@@ -166,6 +166,9 @@ export default function OwnerSidebar({ className = "" }: OwnerSidebarProps) {
           className={`flex items-center justify-between px-3 py-2.5 rounded-lg transition-all duration-200 group mb-1
             ${active ? (!isCollapsed ? 'bg-green-100 text-green-700 border-r-2 border-green-600' : '') : 'hover:bg-green-50 hover:text-green-700'}
             ${level > 0 ? 'ml-4 text-sm' : ''}`}
+          onClick={() => {
+            if (window.innerWidth < 1024) setIsMobileOpen(false);
+          }}
         >
           <div className="flex items-center gap-3">
             {isCollapsed && active ? (
@@ -197,8 +200,9 @@ export default function OwnerSidebar({ className = "" }: OwnerSidebarProps) {
     <>
       {/* Mobile Overlay */}
       {isMobileOpen && (
-        <div 
-          className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
+        <div
+          className="fixed inset-0 z-40 lg:hidden backdrop-blur-sm bg-black/20 transition-all duration-300"
+          style={{ WebkitBackdropFilter: 'blur(6px)', backdropFilter: 'blur(6px)' }}
           onClick={() => setIsMobileOpen(false)}
         />
       )}
@@ -206,11 +210,11 @@ export default function OwnerSidebar({ className = "" }: OwnerSidebarProps) {
       {/* Mobile Menu Button */}
       <Button
         variant="outline"
-        size="sm"
-        className="fixed top-4 left-4 z-50 lg:hidden"
+        size="icon"
+        className="fixed top-6 left-4 z-50 lg:hidden w-12 h-12 flex items-center justify-center"
         onClick={() => setIsMobileOpen(!isMobileOpen)}
       >
-        {isMobileOpen ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
+        {isMobileOpen ? <X className="w-7 h-7" /> : <Menu className="w-7 h-7" />}
       </Button>
 
       {/* Sidebar */}
@@ -237,11 +241,11 @@ export default function OwnerSidebar({ className = "" }: OwnerSidebarProps) {
             )}
             <Button
               variant="ghost"
-              size="sm"
+              size="icon"
               onClick={() => setIsCollapsed(!isCollapsed)}
-              className="hidden lg:flex w-8 h-8 p-0"
+              className="hidden lg:flex w-12 h-12 items-center justify-center"
             >
-              <Menu className="w-4 h-4" />
+              <Menu className="w-7 h-7" />
             </Button>
           </div>
         </div>

@@ -93,42 +93,24 @@ export default function TicketForm({
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
         <Label htmlFor="licensePlate">Biển Số</Label>
-        <Select
+        <Input  
+          id="licensePlate"
           value={ticket.licensePlate}
-          onValueChange={(value) => handleSelectChange("licensePlate", value)}
+          onChange={handleInputChange}
+          placeholder="Nhập biển số xe"
           required
-        >
-          <SelectTrigger>
-            <SelectValue placeholder="Chọn biển số" />
-          </SelectTrigger>
-          <SelectContent>
-            {vehicles.map((vehicle) => (
-              <SelectItem key={vehicle.id} value={vehicle.licensePlate}>
-                {vehicle.licensePlate}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        />
       </div>
 
       <div>
         <Label htmlFor="customer">Khách Hàng</Label>
-        <Select
+        <Input
+          id="customer"
           value={ticket.customer}
-          onValueChange={(value) => handleSelectChange("customer", value)}
+          onChange={handleInputChange}
+          placeholder="Nhập tên khách vãng lai"
           required
-        >
-          <SelectTrigger>
-            <SelectValue placeholder="Chọn khách hàng" />
-          </SelectTrigger>
-          <SelectContent>
-            {customers.map((customer) => (
-              <SelectItem key={customer.id} value={customer.name}>
-                {customer.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        />
       </div>
 
       <div>
