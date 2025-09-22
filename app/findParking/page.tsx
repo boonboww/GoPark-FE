@@ -287,7 +287,7 @@ export default function FindParkingPage() {
               </div>
               
               {/* View Mode Toggle */}
-              <div className="flex border rounded-md sm:w-auto w-full overflow-hidden">
+              <div className="hidden sm:flex border rounded-md sm:w-auto w-full overflow-hidden">
                 <Button
                   variant={viewMode === "grid" ? "default" : "ghost"}
                   size="sm"
@@ -424,7 +424,7 @@ export default function FindParkingPage() {
               >
                 {/* Image */}
                 <div className={`relative ${
-                  viewMode === "list" ? "sm:w-64 h-48 sm:h-auto flex-shrink-0" : "h-48 w-full"
+                  viewMode === "list" ? "sm:w-1/2 h-56 sm:h-auto flex-shrink-0" : "h-56 w-full"
                 }`}>
                   {lot.avtImage ? (
                     <img

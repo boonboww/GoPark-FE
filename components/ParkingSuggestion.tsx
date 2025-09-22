@@ -173,13 +173,20 @@ export default function ParkingSuggestion() {
                           style={{objectFit: 'cover'}}
                         />
                       </div>
-                      <div className="p-4 flex flex-col gap-2 flex-1">
-                        <h3 className="font-medium text-base">{s.name}</h3>
-                        <div className="flex items-center gap-1 text-sm text-gray-600">
-                          <MapPin className="w-4 h-4" /> {s.address}
+                      <div className="p-4 flex flex-col flex-1">
+                        {/* Tên bãi đỗ */}
+                        <div className="min-h-[28px] flex items-center">
+                          <h3 className="font-medium text-base truncate w-full text-ellipsis">{s.name}</h3>
                         </div>
-                        <div className="flex items-center gap-1 text-sm text-gray-600">
-                          <DollarSign className="w-4 h-4" /> {s.price || "Liên hệ"}
+                        {/* Địa chỉ */}
+                        <div className="min-h-[36px] flex items-center">
+                          <MapPin className="w-4 h-4 flex-shrink-0 mr-1" />
+                          <span className="text-sm text-gray-600 w-full break-words whitespace-pre-line">{s.address}</span>
+                        </div>
+                        {/* Giá */}
+                        <div className="min-h-[28px] flex items-center">
+                          <DollarSign className="w-4 h-4 flex-shrink-0 mr-1" />
+                          <span className="text-sm text-gray-600">{s.price || "Liên hệ"}</span>
                         </div>
                       </div>
                     </div>

@@ -228,7 +228,7 @@ export function LoginForm({ className, ...props }: React.ComponentProps<"div">) 
               <div className="grid gap-3">
                 <div className="flex items-center">
                   <Label htmlFor="password">Mật khẩu</Label>
-                  <a href="/account/reset" className="ml-auto text-sm underline">
+                  <a href="/account/reset" tabIndex={-1} className="ml-auto text-sm underline">
                     Quên mật khẩu?
                   </a>
                 </div>

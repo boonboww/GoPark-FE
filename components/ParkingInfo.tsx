@@ -1,6 +1,8 @@
 "use client";
 
 import Image from "next/image";
+import dynamic from "next/dynamic";
+const MapFrame = dynamic(() => import("./MapFrame"), { ssr: false });
 import { useKeenSlider } from "keen-slider/react";
 import "keen-slider/keen-slider.min.css";
 import {
@@ -35,6 +37,10 @@ type ParkingLot = {
   avtImage: string;
   allowedPaymentMethods: string[];
   zones: { zone: string; count: number }[];
+  location: {
+    type: string;
+    coordinates: [number, number];
+  };
 };
 
 type User = {
@@ -205,9 +211,12 @@ export default function ParkingInfo({ parkingLotId }: ParkingInfoProps) {
         )}
       </div>
 
-      <div className="w-full h-64 bg-gray-200 mt-6 rounded-lg flex items-center justify-center">
-        <p>Bản đồ sẽ được hiển thị tại đây</p>
-      </div>
+      {/* Map hiển thị vị trí bãi đỗ */}
+      {parkingLot && parkingLot.location && (
+        <div className="w-full h-64 mt-6 rounded-lg overflow-hidden shadow">
+          <MapFrame lat={parkingLot.location.coordinates[1]} lon={parkingLot.location.coordinates[0]} name={parkingLot.name} />
+        </div>
+      )}
     </section>
   );
 }

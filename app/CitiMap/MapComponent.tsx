@@ -46,10 +46,29 @@ const MapComponent = ({
   );
 
   useEffect(() => {
+    if (typeof window !== "undefined" && window.L && window.L.Routing && window.L.Routing.Control) {
+      if ("defaultErrorHandler" in window.L.Routing.Control.prototype.options) {
+        (window.L.Routing.Control.prototype.options as any).defaultErrorHandler = function() {};
+      }
+    }
     if (typeof window === "undefined") return;
 
-    const center = userCoords || CITY_CENTERS[city] || [10.762622, 106.660172];
-    const mapInstance = L.map("map").setView(center, 13);
+    // Kiểm tra tồn tại phần tử map trước khi khởi tạo
+    const mapElement = document.getElementById("map");
+    if (!mapElement) return;
+
+    // Nếu chỉ có một bãi đỗ, tập trung vào vị trí bãi đó
+    let center = userCoords || CITY_CENTERS[city] || [10.762622, 106.660172];
+    if (parkings.length === 1 && parkings[0]?.location?.coordinates) {
+      const [lon, lat] = parkings[0].location.coordinates;
+      center = [lat, lon];
+    }
+    let mapInstance: L.Map | null = null;
+    try {
+      mapInstance = L.map(mapElement).setView(center, parkings.length === 1 ? 17 : 13);
+    } catch (e) {
+      return;
+    }
 
     L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
       attribution:
@@ -104,8 +123,8 @@ const MapComponent = ({
     if (userCoords && nearestParkingCoords) {
       routingControl = L.Routing.control({
         waypoints: [
-          L.latLng(userCoords[0], userCoords[1]),
-          L.latLng(nearestParkingCoords[0], nearestParkingCoords[1]),
+          L.latLng(userCoords[0], userCoords[1]), // lat, lon
+          L.latLng(nearestParkingCoords[0], nearestParkingCoords[1]), // lat, lon
         ],
         routeWhileDragging: false,
         addWaypoints: false,
@@ -126,15 +145,19 @@ const MapComponent = ({
       });
 
       routingControl.on("routingerror", (err) => {
-        console.error("Lỗi định tuyến:", err);
+        // Thông báo rõ ràng cho người dùng
+        if (typeof window !== "undefined" && window['toast']) {
+          window['toast'].error("Không tìm được đường đi giữa vị trí của bạn và bãi đỗ!");
+        }
+        // Không log lỗi ra console nữa
       });
     }
 
     return () => {
-      if (routingControl) routingControl.remove();
-      if (userMarker) userMarker.remove();
-      parkingMarkers.forEach((m) => m.remove());
-      mapInstance.remove();
+      if (routingControl) try { routingControl.remove(); } catch(e) {}
+      if (userMarker) try { userMarker.remove(); } catch(e) {}
+      parkingMarkers.forEach((m) => { try { m.remove(); } catch(e) {} });
+      if (mapInstance) try { mapInstance.remove(); } catch(e) {};
     };
   }, [parkings, city, userCoords, nearestParkingCoords, parkingIcon, userIcon, onMapInit, onMarkerClick]);
 
