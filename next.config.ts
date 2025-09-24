@@ -65,6 +65,11 @@ const nextConfig = {
         port: '5000',
         pathname: '/**',
       },
+      {
+        protocol: "https",
+        hostname: "yyhdpskewodhrkkwismx.supabase.co", 
+        pathname: "/**",
+      },
     ],
   },
   // Bạn có thể thêm config khác ở đây (nếu có)

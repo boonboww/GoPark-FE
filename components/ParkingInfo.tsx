@@ -33,8 +33,8 @@ type ParkingLot = {
   name: string;
   address: string;
   description: string;
-  image: string[];
-  avtImage: string;
+  image: string[]; // danh sách ảnh (url supabase)
+  avtImage?: string;
   allowedPaymentMethods: string[];
   zones: { zone: string; count: number }[];
   location: {
@@ -54,9 +54,7 @@ type ParkingInfoProps = {
 };
 
 export default function ParkingInfo({ parkingLotId }: ParkingInfoProps) {
-  const [sliderRef, slider] = useKeenSlider({
-    loop: true,
-  });
+  const [sliderRef, slider] = useKeenSlider({ loop: true });
 
   const [spots, setSpots] = useState<Spot[]>([]);
   const [parkingLot, setParkingLot] = useState<ParkingLot | null>(null);
@@ -69,19 +67,16 @@ export default function ParkingInfo({ parkingLotId }: ParkingInfoProps) {
       try {
         setLoading(true);
 
-        // Gọi API để lấy thông tin bãi đỗ xe
+        // 📌 Lấy thông tin bãi đỗ
         const parkingLotResponse = await getParkingLotById(parkingLotId);
-        console.log("Phản hồi thông tin bãi đỗ:", parkingLotResponse.data);
         setParkingLot(parkingLotResponse.data.data || null);
 
-        // Gọi API để lấy danh sách slot
+        // 📌 Lấy danh sách slot
         const slotsResponse = await getParkingSlotsByLotId(parkingLotId);
-        console.log("Phản hồi danh sách vị trí đỗ:", slotsResponse.data);
         setSpots(slotsResponse.data.data?.data || []);
 
-        // Gọi API để lấy thông tin người dùng
+        // 📌 Lấy thông tin user hiện tại
         const userResponse = await API.get("/api/v1/users/me");
-        console.log("Phản hồi thông tin người dùng:", userResponse.data);
         setUser({
           userName: userResponse.data.userName,
           email: userResponse.data.email,
@@ -89,15 +84,9 @@ export default function ParkingInfo({ parkingLotId }: ParkingInfoProps) {
         });
 
         setLoading(false);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } catch (error: any) {
-        console.error(
-          "Lỗi khi lấy dữ liệu:",
-          error.response?.data || error.message
-        );
-        setError(
-          "Không thể tải thông tin bãi đỗ, vị trí đỗ hoặc thông tin người dùng. Vui lòng thử lại sau."
-        );
+        console.error("Lỗi khi lấy dữ liệu:", error.response?.data || error.message);
+        setError("Không thể tải thông tin bãi đỗ, vị trí đỗ hoặc thông tin người dùng. Vui lòng thử lại sau.");
         setLoading(false);
       }
     };
@@ -106,8 +95,6 @@ export default function ParkingInfo({ parkingLotId }: ParkingInfoProps) {
   }, [parkingLotId]);
 
   const zones = Array.from(new Set(spots.map((spot) => spot.zone)));
-
-
 
   if (error) {
     return (
@@ -135,21 +122,35 @@ export default function ParkingInfo({ parkingLotId }: ParkingInfoProps) {
 
   return (
     <section className="flex flex-col gap-8">
+      {/* Slider ảnh */}
       <div className="relative w-full rounded-xl overflow-hidden">
         <div ref={sliderRef} className="keen-slider rounded-xl">
-          {[...Array(5)].map((_, i) => (
-            <div className="keen-slider__slide" key={i}>
+          {parkingLot.image && parkingLot.image.length > 0 ? (
+            parkingLot.image.map((url, i) => (
+              <div className="keen-slider__slide" key={i}>
+                <Image
+                  src={url}
+                  alt={`Hình ảnh bãi đỗ ${i + 1}`}
+                  width={1200}
+                  height={600}
+                  className="w-full h-64 md:h-96 object-cover"
+                />
+              </div>
+            ))
+          ) : (
+            <div className="keen-slider__slide">
               <Image
-                src={`/b1.jpg`}
-                alt={`Hình ảnh bãi đỗ ${i + 1}`}
+                src="/b1.jpg"
+                alt="Ảnh mặc định bãi đỗ"
                 width={1200}
                 height={600}
                 className="w-full h-64 md:h-96 object-cover"
               />
             </div>
-          ))}
+          )}
         </div>
 
+        {/* Nút điều hướng slider */}
         <button
           onClick={() => slider.current?.prev()}
           className="absolute top-1/2 left-2 transform -translate-y-1/2 bg-black/50 text-white p-2 rounded-full"
@@ -179,12 +180,14 @@ export default function ParkingInfo({ parkingLotId }: ParkingInfoProps) {
       </div>
 
       <div className="text-sm text-gray-600">
-        <strong>Khu vực:</strong> {zones.join(", ")} — Tổng: {spots.length} vị
-        trí
+        <strong>Khu vực:</strong> {zones.join(", ")} — Tổng: {spots.length} vị trí
       </div>
 
       <div className="text-sm text-gray-600">
-        <strong>Giá:</strong> {parkingLot && typeof (parkingLot as any).pricePerHour === 'number' ? (parkingLot as any).pricePerHour.toLocaleString('vi-VN') + ' VNĐ/giờ' : 'Chưa có thông tin giá'}
+        <strong>Giá:</strong>{" "}
+        {parkingLot && typeof (parkingLot as any).pricePerHour === "number"
+          ? (parkingLot as any).pricePerHour.toLocaleString("vi-VN") + " VNĐ/giờ"
+          : "Chưa có thông tin giá"}
       </div>
 
       <div className="flex items-center gap-2 text-sm text-gray-600">
@@ -192,6 +195,7 @@ export default function ParkingInfo({ parkingLotId }: ParkingInfoProps) {
         {parkingLot.description || "Không có mô tả"}
       </div>
 
+      {/* Thông tin user */}
       <div className="flex flex-col gap-2 mt-4 text-sm text-gray-600">
         <h2 className="text-base font-semibold">Thông tin người dùng</h2>
         {user ? (
@@ -214,7 +218,11 @@ export default function ParkingInfo({ parkingLotId }: ParkingInfoProps) {
       {/* Map hiển thị vị trí bãi đỗ */}
       {parkingLot && parkingLot.location && (
         <div className="w-full h-64 mt-6 rounded-lg overflow-hidden shadow">
-          <MapFrame lat={parkingLot.location.coordinates[1]} lon={parkingLot.location.coordinates[0]} name={parkingLot.name} />
+          <MapFrame
+            lat={parkingLot.location.coordinates[1]}
+            lon={parkingLot.location.coordinates[0]}
+            name={parkingLot.name}
+          />
         </div>
       )}
     </section>
