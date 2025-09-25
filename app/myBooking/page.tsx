@@ -7,7 +7,7 @@ import toast from "react-hot-toast";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+
 
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -218,33 +218,41 @@ export default function MyBookingPage() {
               Hủy đặt chỗ
             </Button>
           )}
-  {/* Dialog xác nhận hủy */}
-  <Dialog open={!!confirmCancelId} onOpenChange={() => setConfirmCancelId(null)}>
-    <DialogContent className="max-w-xs">
-      <DialogHeader>
-        <DialogTitle>Xác nhận hủy đặt chỗ</DialogTitle>
-      </DialogHeader>
-      <div>Bạn có chắc chắn muốn hủy đặt chỗ này không?</div>
-      <DialogFooter className="gap-2">
-        <Button variant="outline" onClick={() => setConfirmCancelId(null)}>
-          Không
-        </Button>
-        <Button
-          variant="destructive"
-          onClick={() => {
-            if (confirmCancelId) handleCancel(confirmCancelId);
-            setConfirmCancelId(null);
-          }}
-        >
-          Có, hủy đặt chỗ
-        </Button>
-      </DialogFooter>
-    </DialogContent>
-  </Dialog>
+  {/* Dialog xác nhận hủy với overlay trong suốt */}
+  {!!confirmCancelId && (
+    <>
+      {/* Custom transparent overlay */}
+      <div 
+        className="fixed inset-0 z-50 bg-white/20 backdrop-blur-sm" 
+        onClick={() => setConfirmCancelId(null)}
+      />
+      {/* Dialog content */}
+      <div className="fixed top-[50%] left-[50%] z-50 w-full max-w-xs translate-x-[-50%] translate-y-[-50%] bg-white rounded-lg border shadow-lg p-6 animate-in zoom-in-95 fade-in-0 duration-200">
+        <div className="flex flex-col gap-2 text-center sm:text-left mb-4">
+          <h2 className="text-lg font-semibold">Xác nhận hủy đặt chỗ</h2>
+        </div>
+        <div className="mb-6">Bạn có chắc chắn muốn hủy đặt chỗ này không?</div>
+        <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+          <Button variant="outline" onClick={() => setConfirmCancelId(null)}>
+            Không
+          </Button>
+          <Button
+            variant="destructive"
+            onClick={() => {
+              if (confirmCancelId) handleCancel(confirmCancelId);
+              setConfirmCancelId(null);
+            }}
+          >
+            Có, hủy đặt chỗ
+          </Button>
+        </div>
+      </div>
+    </>
+  )}
         </div>
       </CardContent>
     </Card>
-    );
+  );
   };
 
   if (loading) {

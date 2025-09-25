@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { Moon, Sun, X, Bot, Trash2, Mic, MicOff, Send } from "lucide-react";
+import { useChatContext } from "@/contexts/ChatContext";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -52,6 +53,7 @@ const ROLE_SUGGESTIONS = {
 };
 
 export default function ChatBot() {
+  const { isChatOpen, setIsChatOpen } = useChatContext();
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [visible, setVisible] = useState(false);
@@ -104,6 +106,11 @@ export default function ChatBot() {
       }
     }
   }, []);
+
+  // Đồng bộ visible state với context
+  useEffect(() => {
+    setIsChatOpen(visible);
+  }, [visible, setIsChatOpen]);
 
   // Focus input khi mở chat
   useEffect(() => {
@@ -306,7 +313,7 @@ export default function ChatBot() {
 
     try {
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/V1/chatbot/ai-chat`,
+        `${process.env.NEXT_PUBLIC_API_URL}/api/v1/chatbot/ai-chat`,
         {
           method: "POST",
           headers: {

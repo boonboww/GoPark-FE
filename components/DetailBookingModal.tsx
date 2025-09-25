@@ -52,6 +52,9 @@ export default function DetailBookingModal({
   const [isProcessing, setIsProcessing] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [loadingMessage, setLoadingMessage] = useState("");
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
 
   if (!selectedSlot || !bookingMeta) return null;
 
@@ -84,6 +87,8 @@ export default function DetailBookingModal({
     setErrorMessage("");
     setSuccessMessage("");
     setIsProcessing(true);
+    setIsLoading(true);
+    setLoadingMessage("Đang xác thực thông tin...");
     console.log("📦 bookingInfo chuẩn bị lưu:", bookingInfo);
 
     if (!bookingInfo.parkingSlotId.match(/^[0-9a-fA-F]{24}$/)) {
@@ -91,6 +96,7 @@ export default function DetailBookingModal({
       console.error("❌ parkingSlotId không hợp lệ:", bookingInfo.parkingSlotId);
       toast.error("ID vị trí đỗ xe không hợp lệ!");
       setIsProcessing(false);
+      setIsLoading(false);
       return;
     }
 
@@ -100,23 +106,73 @@ export default function DetailBookingModal({
       setErrorMessage("Không tìm thấy thông tin người dùng hợp lệ. Vui lòng đăng nhập lại!");
       toast.error("Không tìm thấy thông tin người dùng hợp lệ. Vui lòng đăng nhập lại!");
       setIsProcessing(false);
+      setIsLoading(false);
       return;
     }
+
+    // Validate các trường bắt buộc
+    if (!bookingInfo.vehicle || !bookingInfo.vehicle.trim()) {
+      setErrorMessage("Vui lòng chọn phương tiện!");
+      toast.error("Vui lòng chọn phương tiện!");
+      setIsProcessing(false);
+      setIsLoading(false);
+      return;
+    }
+
+    if (!bookingInfo.startTime || !bookingInfo.endTime) {
+      setErrorMessage("Vui lòng chọn thời gian bắt đầu và kết thúc!");
+      toast.error("Vui lòng chọn thời gian bắt đầu và kết thúc!");
+      setIsProcessing(false);
+      setIsLoading(false);
+      return;
+    }
+    // Parse estimatedFee - có thể là số thuần túy hoặc format "123,456 VNĐ"
+    const cleanFee = bookingInfo.estimatedFee.replace(/[,\sVNĐ]/g, '');
+    const totalPrice = parseFloat(cleanFee);
+
+    // Validate và convert thời gian
+    const startDate = new Date(bookingInfo.startTime);
+    const endDate = new Date(bookingInfo.endTime);
+    
+    if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+      setErrorMessage("Thời gian không hợp lệ!");
+      toast.error("Thời gian không hợp lệ!");
+      setIsProcessing(false);
+      setIsLoading(false);
+      return;
+    }
+    
     const bookingData = {
       userId,
       parkingSlotId: bookingInfo.parkingSlotId,
-      startTime: new Date(bookingInfo.startTime).toISOString(),
-      endTime: new Date(bookingInfo.endTime).toISOString(),
-      vehicleNumber: bookingInfo.vehicle,
+      startTime: startDate.toISOString(),
+      endTime: endDate.toISOString(),
+      vehicleNumber: bookingInfo.vehicle.trim(),
       paymentMethod: bookingInfo.paymentMethod,
       bookingType: bookingInfo.bookingType,
-      totalPrice: parseFloat(bookingInfo.estimatedFee),
+      totalPrice: totalPrice,
     };
 
     try {
       const now = new Date();
       const start = new Date(bookingData.startTime);
       const end = new Date(bookingData.endTime);
+      
+      console.log("🕐 Time validation debug:", {
+        originalStartTime: bookingInfo.startTime,
+        originalEndTime: bookingInfo.endTime,
+        isoStartTime: bookingData.startTime,
+        isoEndTime: bookingData.endTime,
+        parsedStart: start,
+        parsedEnd: end,
+        now: now,
+        startValid: !isNaN(start.getTime()),
+        endValid: !isNaN(end.getTime()),
+        startFuture: start > now,
+        endFuture: end > now,
+        startBeforeEnd: start < end
+      });
+      
       const bufferMinutes = 5;
       if (start <= new Date(now.getTime() + bufferMinutes * 60 * 1000)) {
         setErrorMessage(`Thời gian bắt đầu phải sau thời gian hiện tại ít nhất ${bufferMinutes} phút!`);
@@ -133,23 +189,85 @@ export default function DetailBookingModal({
         return;
       }
 
-      if (isNaN(bookingData.totalPrice)) {
+      if (isNaN(totalPrice) || totalPrice <= 0) {
         setErrorMessage("Phí dự kiến không hợp lệ!");
-        console.error("❌ Phí dự kiến không hợp lệ:", bookingInfo.estimatedFee);
+        console.error("❌ Phí dự kiến không hợp lệ:", { 
+          originalFee: bookingInfo.estimatedFee, 
+          cleanFee: cleanFee, 
+          parsedPrice: totalPrice 
+        });
         toast.error("Phí dự kiến không hợp lệ!");
         setIsProcessing(false);
+        setIsLoading(false);
         return;
       }
 
+      // Validate basic requirements
+      if (!bookingData.vehicleNumber || bookingData.vehicleNumber.length < 3) {
+        setErrorMessage("Biển số xe không hợp lệ!");
+        toast.error("Biển số xe phải có ít nhất 3 ký tự!");
+        setIsProcessing(false);
+        setIsLoading(false);
+        return;
+      }
+
+      if (!bookingData.totalPrice || bookingData.totalPrice <= 0) {
+        setErrorMessage("Giá tiền không hợp lệ!");
+        toast.error("Giá tiền phải lớn hơn 0!");
+        setIsProcessing(false);
+        setIsLoading(false);
+        return;
+      }
+
+      setLoadingMessage("Đang tạo vé đỗ xe...");
+      
+      console.log("📤 Sending booking data:", bookingData);
+      console.log("📊 BookingData details:", {
+        userId: bookingData.userId,
+        userIdValid: bookingData.userId.match(/^[0-9a-fA-F]{24}$/),
+        parkingSlotId: bookingData.parkingSlotId,
+        slotIdValid: bookingData.parkingSlotId.match(/^[0-9a-fA-F]{24}$/),
+        startTime: bookingData.startTime,
+        endTime: bookingData.endTime,
+        vehicleNumber: bookingData.vehicleNumber,
+        vehicleNumberLength: bookingData.vehicleNumber.length,
+        paymentMethod: bookingData.paymentMethod,
+        bookingType: bookingData.bookingType,
+        totalPrice: bookingData.totalPrice,
+        totalPriceType: typeof bookingData.totalPrice
+      });
+
       const response = await createBookingOnline(bookingData);
       console.log("✅ Booking thành công:", response.data);
+      
+      setLoadingMessage("Đang lưu thông tin vé...");
       localStorage.setItem("currentBooking", JSON.stringify(bookingInfo));
-      setSuccessMessage("Đặt chỗ thành công!");
-      toast.success("Đặt chỗ thành công!");
+      
+      setLoadingMessage("Hoàn thành!");
+      
+      // Delay ngắn để user thấy message hoàn thành
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      setIsLoading(false);
+      setSuccessMessage("Đặt chỗ và tạo vé thành công!");
+      setShowSuccessModal(true);
+      toast.success("Đặt chỗ và tạo vé thành công!");
       onConfirm(bookingInfo);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       console.error("❌ Lỗi khi tạo booking:", error);
+      console.error("❌ Error details:", {
+        status: error.response?.status,
+        statusText: error.response?.statusText,
+        data: error.response?.data,
+        message: error.message,
+        config: {
+          url: error.config?.url,
+          method: error.config?.method,
+          data: error.config?.data
+        }
+      });
+      setIsLoading(false);
       setErrorMessage(
         error?.response?.data?.message || "Đã xảy ra lỗi khi đặt chỗ. Vui lòng thử lại!"
       );
@@ -161,6 +279,17 @@ export default function DetailBookingModal({
       setIsProcessing(false);
     }
   }, [bookingInfo, onConfirm]);
+
+  // Handle success modal close
+  const handleSuccessModalClose = () => {
+    setShowSuccessModal(false);
+    onClose();
+    
+    // Reset tất cả states
+    setSuccessMessage("");
+    setErrorMessage("");
+    setLoadingMessage("");
+  };
 
   return (
     <Dialog open={open} onOpenChange={() => {}}>
@@ -226,6 +355,64 @@ export default function DetailBookingModal({
           </>
         )}
       </DialogContent>
+      
+      {/* Loading Modal */}
+      <Dialog open={isLoading} onOpenChange={() => {}}>
+        <DialogContent className="sm:max-w-md rounded-lg" showCloseButton={false}>
+          <DialogHeader>
+            <DialogTitle className="sr-only">Đang xử lý</DialogTitle>
+          </DialogHeader>
+          <div className="flex flex-col items-center justify-center py-8 px-4 text-center">
+            {/* Loading Spinner */}
+            <div className="relative w-16 h-16 mb-6">
+              <div className="absolute inset-0 border-4 border-gray-200 rounded-full"></div>
+              <div className="absolute inset-0 border-4 border-green-600 border-t-transparent rounded-full animate-spin"></div>
+            </div>
+            
+            {/* Loading Message */}
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">
+              Đang xử lý...
+            </h3>
+            
+            <p className="text-gray-600 text-sm">
+              {loadingMessage}
+            </p>
+          </div>
+        </DialogContent>
+      </Dialog>
+      
+      {/* Success Modal */}
+      <Dialog open={showSuccessModal} onOpenChange={handleSuccessModalClose}>
+        <DialogContent className="sm:max-w-md rounded-lg">
+          <DialogHeader>
+            <DialogTitle className="sr-only">Thông báo thành công</DialogTitle>
+          </DialogHeader>
+          <div className="flex flex-col items-center justify-center py-6 px-4 text-center">
+            {/* Icon thành công */}
+            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4">
+              <CheckCircle className="w-10 h-10 text-green-600" />
+            </div>
+            
+            {/* Tiêu đề */}
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">
+              Thành công!
+            </h3>
+            
+            {/* Thông báo */}
+            <p className="text-gray-600 mb-6">
+              {successMessage}
+            </p>
+            
+            {/* Nút đóng */}
+            <Button 
+              onClick={handleSuccessModalClose}
+              className="w-full bg-green-600 hover:bg-green-700 text-white rounded-md"
+            >
+              Hoàn thành
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </Dialog>
   );
 }
