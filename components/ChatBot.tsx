@@ -765,10 +765,6 @@ useEffect(() => {
         {connectionError && (
           <div className="absolute -top-1 -left-1 w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
         )}
-
-        <div className="absolute -top-12 right-0 bg-gray-900 text-white text-xs px-3 py-1 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
-          GoPark AI Assistant
-        </div>
       </button>
     </>
   );
