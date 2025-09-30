@@ -1,17 +1,24 @@
 "use client";
-
-import { useEffect, useRef, useState } from "react";
-import { Moon, Sun, X, Bot, Trash2, Mic, MicOff, Send } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Textarea } from "@/components/ui/textarea";
-import { Badge } from "@/components/ui/badge";
+import { useEffect, useRef, useState, useCallback } from "react";
+import {
+  Moon,
+  Sun,
+  X,
+  Bot,
+  Trash2,
+  Mic,
+  MicOff,
+  Send,
+  ChevronDown,
+} from "lucide-react";
 
 interface Message {
   role: "user" | "assistant";
   content: string;
   timestamp?: string;
+  type?: string;
+  bookingData?: any;
+  action?: string;
 }
 
 interface UserInfo {
@@ -19,63 +26,137 @@ interface UserInfo {
   name: string;
 }
 
-// Gợi ý theo role khác nhau
-const ROLE_SUGGESTIONS = {
-  guest: [
-    "Có bãi đậu xe gần đây không?",
-    "Làm sao để đặt chỗ trước?",
-    "Tôi có thể thanh toán bằng momo không?",
-    "Bãi đậu xe mở cửa lúc mấy giờ?",
-    "Phí gửi xe ban đêm là bao nhiêu?",
+// Smart suggestions dựa trên context
+const CONTEXTUAL_SUGGESTIONS = {
+  initial_guest: [
+    "🔍 Tìm bãi xe gần đây",
+    "💰 Giá đỗ xe như thế nào?",
+    "📱 Làm sao để đặt chỗ?",
+    "🕒 Bãi xe mở cửa lúc mấy giờ?",
+    "💳 Có thể thanh toán bằng MoMo không?",
   ],
-  user: [
-    "Xem lịch sử booking của tôi",
-    "Tìm bãi xe gần nhất",
-    "Thông tin xe đã đăng ký",
-    "Hóa đơn chưa thanh toán",
-    "Cách sử dụng vé đậu xe",
+  initial_user: [
+    "📋 Xem lịch sử booking của tôi",
+    "🚗 Xe đã đăng ký của tôi",
+    "🔍 Tìm bãi xe gần nhất",
+    "🧾 Hóa đơn chưa thanh toán",
+    "🎫 Cách sử dụng vé đậu xe",
   ],
-  owner: [
-    "Thống kê doanh thu tháng này",
-    "Có bao nhiêu booking hôm nay?",
-    "Cách tăng lượt đặt chỗ",
-    "Cập nhật giá bãi xe",
-    "Quản lý slot trống",
+  initial_owner: [
+    "📊 Doanh thu tháng này",
+    "📈 Thống kê booking",
+    "🏢 Quản lý bãi xe",
+    "💰 Cập nhật giá bãi xe",
+    "🅿️ Quản lý slot trống",
   ],
-  admin: [
-    "Thống kê tổng quan hệ thống",
-    "Số lượng user mới hôm nay",
-    "Doanh thu toàn platform",
-    "Bãi xe hoạt động nhiều nhất",
-    "Xử lý khiếu nại",
+  initial_admin: [
+    "📊 Thống kê tổng quan hệ thống",
+    "👥 Quản lý người dùng",
+    "🏢 Quản lý bãi xe",
+    "💸 Doanh thu toàn platform",
+    "⚠️ Xử lý khiếu nại",
+  ],
+  after_search: [
+    "📅 Đặt chỗ tại bãi này",
+    "🔄 Xem bãi xe khác",
+    "ℹ️ Thông tin chi tiết",
+    "📍 Chỉ đường tới bãi xe",
+    "💰 So sánh giá",
+  ],
+  after_booking: [
+    "📋 Xem booking vừa tạo",
+    "🔍 Tìm bãi khác",
+    "🏠 Về trang chủ",
+    "✏️ Chỉnh sửa booking",
+    "❌ Hủy booking",
+  ],
+  after_error: [
+    "🔄 Thử lại",
+    "💬 Hỏi cách khác",
+    "🆘 Liên hệ hỗ trợ",
+    "📞 Gọi hotline",
+    "🤔 Tìm giải pháp khác",
+  ],
+  need_auth: [
+    "🔑 Hướng dẫn đăng nhập",
+    "📝 Đăng ký tài khoản",
+    "❓ Quên mật khẩu",
+    "📱 Đăng nhập bằng Google",
+    "🆓 Lợi ích khi đăng ký",
   ],
 };
-
-export default function ChatBot() {
+export default function ImprovedChatBot() {
+  // State quản lý tin nhắn và input
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
-  const [visible, setVisible] = useState(false);
-  const [showSuggestions, setShowSuggestions] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
+  const [visible, setVisible] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
-  const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
-  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [currentContext, setCurrentContext] = useState<string>("initial");
   const [connectionError, setConnectionError] = useState(false);
 
-  // Voice recognition states
+  // State quản lý chiều cao chat container
+  const [chatContainerHeight, setChatContainerHeight] = useState("400px");
+
+  // State quản lý thông tin người dùng
+  const [userInfo, setUserInfo] = useState<UserInfo>({
+    role: "guest",
+    name: "",
+  });
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+
+  // State cho speech recognition và scroll
   const [isListening, setIsListening] = useState(false);
   const [speechSupported, setSpeechSupported] = useState(false);
+  const [showScrollButton, setShowScrollButton] = useState(false);
 
-  const scrollRef = useRef<HTMLDivElement | null>(null);
-  const inputRef = useRef<HTMLTextAreaElement | null>(null);
+  // Refs cho các phần tử DOM
+  const inputRef = useRef<HTMLTextAreaElement>(null);
+  const scrollAreaRef = useRef<HTMLDivElement>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
   const recognitionRef = useRef<any>(null);
 
-  // Initialize speech recognition
+  // Phát hiện context từ response của AI
+  const detectContext = useCallback((message: string) => {
+    const lower = message.toLowerCase();
+
+    if (lower.includes("đăng nhập") || lower.includes("auth required")) {
+      return "need_auth";
+    }
+    if (lower.includes("tìm thấy") && lower.includes("bãi xe")) {
+      return "after_search";
+    }
+    if (lower.includes("đặt chỗ thành công") || lower.includes("booking")) {
+      return "after_booking";
+    }
+    if (lower.includes("lỗi") || lower.includes("không thể")) {
+      return "after_error";
+    }
+
+    return "initial";
+  }, []);
+
+  // Lấy suggestions dựa trên context hiện tại
+  const getCurrentSuggestions = useCallback((): string[] => {
+    if (currentContext === "initial") {
+      const key =
+        `initial_${userInfo.role}` as keyof typeof CONTEXTUAL_SUGGESTIONS;
+      return (
+        CONTEXTUAL_SUGGESTIONS[key] || CONTEXTUAL_SUGGESTIONS.initial_guest
+      );
+    }
+
+    const key = currentContext as keyof typeof CONTEXTUAL_SUGGESTIONS;
+    return CONTEXTUAL_SUGGESTIONS[key] || CONTEXTUAL_SUGGESTIONS.initial_guest;
+  }, [currentContext, userInfo.role]);
+
+  // Khởi tạo speech recognition
   useEffect(() => {
     if (typeof window !== "undefined") {
       const SpeechRecognition =
         (window as any).SpeechRecognition ||
         (window as any).webkitSpeechRecognition;
+
       if (SpeechRecognition) {
         setSpeechSupported(true);
         recognitionRef.current = new SpeechRecognition();
@@ -83,26 +164,39 @@ export default function ChatBot() {
         recognitionRef.current.interimResults = false;
         recognitionRef.current.lang = "vi-VN";
 
-        recognitionRef.current.onstart = () => {
-          setIsListening(true);
-        };
-
         recognitionRef.current.onresult = (event: any) => {
           const transcript = event.results[0][0].transcript;
           setInput((prev) => prev + transcript);
-          setIsListening(false);
         };
 
-        recognitionRef.current.onerror = (event: any) => {
-          console.error("Speech recognition error:", event.error);
-          setIsListening(false);
-        };
-
-        recognitionRef.current.onend = () => {
-          setIsListening(false);
-        };
+        recognitionRef.current.onend = () => setIsListening(false);
+        recognitionRef.current.onerror = () => setIsListening(false);
       }
     }
+  }, []);
+
+  // Auto scroll với smooth behavior
+  useEffect(() => {
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({
+        behavior: "smooth",
+        block: "end",
+      });
+    }
+  }, [messages, isLoading]);
+
+  // Check scroll position để hiển thị nút scroll to bottom
+  useEffect(() => {
+    const scrollArea = scrollAreaRef.current;
+    if (!scrollArea) return;
+
+    const handleScroll = () => {
+      const { scrollTop, scrollHeight, clientHeight } = scrollArea;
+      setShowScrollButton(scrollHeight - scrollTop - clientHeight > 100);
+    };
+
+    scrollArea.addEventListener("scroll", handleScroll);
+    return () => scrollArea.removeEventListener("scroll", handleScroll);
   }, []);
 
   // Focus input khi mở chat
@@ -112,121 +206,61 @@ export default function ChatBot() {
     }
   }, [visible]);
 
-  // Auto scroll khi có tin nhắn mới
-  useEffect(() => {
-    scrollRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages, isLoading]);
-
-  // Lấy thông tin user từ localStorage/sessionStorage (nếu có)
-  useEffect(() => {
-    checkUserAuth();
-
-    // Listen for storage changes (khi user login/logout)
-    const handleStorageChange = () => {
-      console.log("🔄 Storage changed, checking auth again...");
-      checkUserAuth();
-    };
-
-    window.addEventListener("storage", handleStorageChange);
-    window.addEventListener("userAuthChanged", handleStorageChange);
-
-    return () => {
-      window.removeEventListener("storage", handleStorageChange);
-      window.removeEventListener("userAuthChanged", handleStorageChange);
-    };
-  }, []);
-
-  // Refresh user auth khi mở chat
-  useEffect(() => {
-    if (visible) {
-      checkUserAuth();
-    }
-  }, [visible]);
-
+  // Hàm check user authentication - ĐÃ ĐƯỢC SỬA ĐỂ LẤY ĐÚNG ROLE
+ // THÊM event listener để detect auth changes
+useEffect(() => {
   const checkUserAuth = async () => {
     try {
       console.log("🔍 Checking user auth...");
-
-      const token =
-        localStorage.getItem("token") || sessionStorage.getItem("token");
+      const token = localStorage.getItem("token") || sessionStorage.getItem("token");
 
       if (token) {
-        // Nếu có token, gọi API để lấy thông tin user từ server
-        console.log("🔑 Token found, fetching user info from server...");
-
         try {
-          const response = await fetch(
-            "http://localhost:5000/api/chatbot/user-info",
-            {
-              method: "GET",
-              headers: {
-                Authorization: `Bearer ${token}`,
-                "Content-Type": "application/json",
-              },
-            }
-          );
+          const response = await fetch("http://localhost:5000/api/v1/users/me", {
+            method: "GET",
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+          });
 
           if (response.ok) {
-            const data = await response.json();
-            console.log("📡 Server response:", data);
+            const user = await response.json();
+            console.log("📡 Server response:", user);
 
-            if (data.status === "success" && data.data?.user) {
-              const user = data.data.user;
-              const userId = user._id || user.id;
-
+            if (user._id || user.id) {
+              const userId = user._id?.$oid || user._id || user.id;
+              
               setCurrentUserId(userId.toString());
               setUserInfo({
                 role: user.role || "user",
                 name: user.userName || user.name || "User",
               });
-
-              console.log("✅ User authenticated from server:", {
-                id: userId,
-                role: user.role,
-                name: user.userName || user.name,
-              });
-              return; // Thành công, không cần fallback
+              return;
             }
           }
-
-          console.log("⚠️ Server auth failed, trying localStorage fallback...");
         } catch (serverError) {
           console.error("❌ Server auth error:", serverError);
-          console.log("⚠️ Falling back to localStorage...");
         }
       }
 
-      // Fallback: check localStorage (nếu server auth thất bại)
-      const userData =
-        localStorage.getItem("user") || sessionStorage.getItem("user");
+      // Fallback logic...
+      const userData = localStorage.getItem("user") || sessionStorage.getItem("user");
 
-      // ✅ NEW: Nếu không có user object, tạo từ các field riêng lẻ
       if (!userData || userData === "undefined" || userData === "null") {
-        const role =
-          localStorage.getItem("role") || sessionStorage.getItem("role");
-        const userId =
-          localStorage.getItem("userId") || sessionStorage.getItem("userId");
+        const role = localStorage.getItem("role") || sessionStorage.getItem("role");
+        const userId = localStorage.getItem("userId") || sessionStorage.getItem("userId");
 
         if (role && userId) {
-          console.log("📝 Creating user object from separate fields");
           setCurrentUserId(userId.toString());
           setUserInfo({
             role: role,
-            name: "User", // Default name vì không có userName trong storage
-          });
-          console.log("✅ User from separate storage fields:", {
-            id: userId,
-            role,
+            name: "User",
           });
           return;
         }
       } else {
-        // Parse user object như cũ
-        console.log("📄 Raw userData from storage:", userData);
         const user = JSON.parse(userData);
-        console.log("👤 Parsed user object:", user);
-
-        // Handle MongoDB format với $oid
         let userId = null;
         if (user._id) {
           if (typeof user._id === "string") {
@@ -244,19 +278,12 @@ export default function ChatBot() {
             role: user.role || "user",
             name: user.userName || user.name || "User",
           });
-          console.log("✅ User from localStorage:", {
-            id: userId,
-            role: user.role,
-            name: user.userName || user.name,
-          });
           return;
         }
       }
 
-      // Nếu không có gì cả, set guest
       setCurrentUserId(null);
       setUserInfo({ role: "guest", name: "Khách vãng lai" });
-      console.log("👤 Guest user detected");
     } catch (error) {
       console.error("❌ Lỗi kiểm tra auth:", error);
       setCurrentUserId(null);
@@ -264,32 +291,74 @@ export default function ChatBot() {
     }
   };
 
-  // Voice recognition functions
-  const startListening = () => {
-    if (!recognitionRef.current || !speechSupported || isListening) return;
+  // Gọi ngay khi component mount
+  checkUserAuth();
 
-    try {
-      recognitionRef.current.start();
-    } catch (error) {
-      console.error("Error starting speech recognition:", error);
-      setIsListening(false);
-    }
+  // Listen for storage changes (khi user login/logout) - QUAN TRỌNG
+  const handleStorageChange = () => {
+    console.log("🔄 Storage changed, checking auth again...");
+    checkUserAuth();
   };
 
-  const stopListening = () => {
-    if (recognitionRef.current && isListening) {
+  // Listen for custom event (khi app gửi event auth changed)
+  const handleAuthChange = () => {
+    console.log("🔄 Auth changed event received, checking auth again...");
+    checkUserAuth();
+  };
+
+  window.addEventListener("storage", handleStorageChange);
+  window.addEventListener("userAuthChanged", handleAuthChange); // Custom event
+
+  return () => {
+    window.removeEventListener("storage", handleStorageChange);
+    window.removeEventListener("userAuthChanged", handleAuthChange);
+  };
+}, []); // Chỉ chạy 1 lần khi mount
+
+// VẪN check khi mở chat (để đảm bảo data mới nhất)
+useEffect(() => {
+  if (visible) {
+    // Trigger re-check khi mở chat
+    const token = localStorage.getItem("token") || sessionStorage.getItem("token");
+    const userData = localStorage.getItem("user") || sessionStorage.getItem("user");
+    
+    if (token && userData) {
+      // Chỉ log, không gọi API lại trừ khi cần
+      console.log("👀 Chat opened, current auth:", { 
+        hasToken: !!token, 
+        hasUserData: !!userData 
+      });
+    }
+  }
+}, [visible]);
+
+ 
+
+  // Debug userInfo khi thay đổi
+  useEffect(() => {
+    console.log("🔄 [USERINFO] Updated:", userInfo);
+    console.log("🆔 [USERINFO] Current userId:", currentUserId);
+  }, [userInfo, currentUserId]);
+
+  // Voice recognition controls
+  const toggleListening = () => {
+    if (!recognitionRef.current || !speechSupported) return;
+
+    if (isListening) {
+      recognitionRef.current.stop();
+    } else {
       try {
-        recognitionRef.current.stop();
+        recognitionRef.current.start();
+        setIsListening(true);
       } catch (error) {
-        console.error("Error stopping speech recognition:", error);
+        console.error("Error starting speech recognition:", error);
       }
-      setIsListening(false);
     }
   };
 
-  // Gửi tin nhắn tới backend
+  // Send message đến AI backend
   const sendMessage = async (content: string) => {
-    if (!content.trim()) return;
+    if (!content.trim() || isLoading) return;
 
     const newUserMessage: Message = {
       role: "user",
@@ -297,21 +366,17 @@ export default function ChatBot() {
       timestamp: new Date().toISOString(),
     };
 
-    const newMessages = [...messages, newUserMessage];
-    setMessages(newMessages);
+    setMessages((prev) => [...prev, newUserMessage]);
     setInput("");
-    setShowSuggestions(false);
     setIsLoading(true);
     setConnectionError(false);
 
     try {
       const response = await fetch(
-        "http://localhost:5000/api/chatbot/ai-chat",
+        "http://localhost:5000/api/v1/chatbot/ai-chat",
         {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             message: content.trim(),
             userId: currentUserId,
@@ -319,419 +384,392 @@ export default function ChatBot() {
         }
       );
 
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-      }
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
 
       const data = await response.json();
 
       if (data.status === "success" && data.data?.reply) {
-        const aiReply: Message = {
+        const replyContent =
+          typeof data.data.reply === "string"
+            ? data.data.reply
+            : data.data.reply.content;
+
+        const aiMessage: Message = {
           role: "assistant",
-          content: data.data.reply.content,
-          timestamp: data.timestamp,
+          content: replyContent,
+          timestamp: data.timestamp || new Date().toISOString(),
         };
 
-        if (data.data.userInfo && !userInfo) {
-          setUserInfo(data.data.userInfo);
-        }
+        setMessages((prev) => [...prev, aiMessage]);
 
-        setMessages([...newMessages, aiReply]);
+        // Cập nhật context dựa trên response
+        const newContext = detectContext(replyContent);
+        setCurrentContext(newContext);
       } else {
         throw new Error(data.message || "Không nhận được phản hồi từ AI");
       }
     } catch (error) {
-      console.error("❌ Lỗi gửi tin nhắn:", error);
+      console.error("Error sending message:", error);
       setConnectionError(true);
+      setCurrentContext("after_error");
 
       const errorMsg: Message = {
         role: "assistant",
-        content: `❌ ${
-          error instanceof Error ? error.message : "Lỗi kết nối"
-        }.\n\nVui lòng kiểm tra:\n• Server có chạy trên port 5000?\n• Kết nối mạng ổn định?`,
+        content:
+          "❌ **Lỗi kết nối**\n\nVui lòng kiểm tra:\n• Kết nối mạng\n• Server backend\n• Thử lại sau",
         timestamp: new Date().toISOString(),
       };
-      setMessages([...newMessages, errorMsg]);
+      setMessages((prev) => [...prev, errorMsg]);
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Lấy gợi ý phù hợp với role
-  const getCurrentSuggestions = () => {
-    const role = userInfo?.role || "guest";
-    return (
-      ROLE_SUGGESTIONS[role as keyof typeof ROLE_SUGGESTIONS] ||
-      ROLE_SUGGESTIONS.guest
-    );
-  };
-
-  // Xóa lịch sử chat
+  // Clear chat history
   const clearChatHistory = async () => {
     if (!currentUserId) {
       setMessages([]);
-      console.log("🗑️ Đã xóa lịch sử chat local");
+      setCurrentContext("initial");
       return;
     }
 
     try {
-      const response = await fetch(
-        `http://localhost:5000/api/chatbot/chat-history/${currentUserId}`,
+      await fetch(
+        `http://localhost:5000/api/v1/chatbot/chat-history/${currentUserId}`,
         {
           method: "DELETE",
         }
       );
-
-      if (response.ok) {
-        setMessages([]);
-        console.log("🗑️ Đã xóa lịch sử chat từ server");
-      } else {
-        setMessages([]);
-      }
+      setMessages([]);
+      setCurrentContext("initial");
     } catch (error) {
       setMessages([]);
+      setCurrentContext("initial");
     }
   };
 
-  const toggleChat = () => setVisible((prev) => !prev);
+  // Scroll to bottom
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({
+      behavior: "smooth",
+      block: "end",
+    });
+  };
+  // Tính toán chiều cao an toàn cho chat container dựa trên viewport
+  useEffect(() => {
+    const calculateSafeHeight = () => {
+      const windowHeight = window.innerHeight;
+      // Để lại khoảng trống cho toggle button và margin
+      const maxHeight = windowHeight - 200; // 200px cho button + margin
+
+      if (maxHeight < 300) {
+        return "250px"; // Minimum height cho mobile rất nhỏ
+      } else if (maxHeight < 400) {
+        return "300px"; // Mobile nhỏ
+      } else if (maxHeight < 500) {
+        return "350px"; // Mobile trung bình
+      } else {
+        return "400px"; // Desktop/Tablet
+      }
+    };
+
+    const updateHeight = () => {
+      setChatContainerHeight(calculateSafeHeight());
+    };
+
+    updateHeight(); // Set initial
+    window.addEventListener("resize", updateHeight);
+
+    return () => {
+      window.removeEventListener("resize", updateHeight);
+    };
+  }, []);
 
   return (
     <>
-      {/* Khung chat */}
+      {/* Chat Window - CHIỀU CAO CỐ ĐỊNH */}
       {visible && (
         <div
-          className={`fixed bottom-20 right-2 sm:right-4 w-[96%] max-w-sm z-50 shadow-2xl rounded-xl border backdrop-blur-sm ${
+          className={`fixed bottom-20 right-2 sm:right-4 w-[96%] max-w-md z-50 shadow-2xl rounded-2xl border backdrop-blur-md transition-all duration-300 flex flex-col ${
             isDarkMode
               ? "bg-gray-900/95 text-white border-gray-700"
               : "bg-white/95 text-black border-gray-200"
           }`}
+          style={{
+            // TỰ ĐỘNG CO GIÃN theo content, không fix cứng
+            maxHeight: "calc(100vh - 120px)", // Đảm bảo không vượt quá viewport
+          }}
         >
-          <Card className="rounded-xl overflow-hidden bg-transparent border-none shadow-none">
-            <CardHeader
-              className={`p-3 flex justify-between items-center rounded-t-xl ${
-                isDarkMode
-                  ? "bg-gray-800/90 text-[#00A859]"
-                  : "bg-[#00A859] text-white"
-              }`}
-            >
-              <div className="flex items-center gap-2">
+          {/* Header */}
+          <div
+            className={`p-3 flex justify-between items-center rounded-t-2xl border-b ${
+              isDarkMode
+                ? "bg-gray-800/90 border-gray-700"
+                : "bg-gradient-to-r from-[#00A859] to-[#007d42] text-white"
+            }`}
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
+                <Bot className="w-6 h-6" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-base">GoPark AI</h3>
+                <p className="text-xs opacity-80 truncate">
+                  {userInfo.role === "guest"
+                    ? "Khách vãng lai"
+                    : userInfo.role === "user"
+                    ? `Người dùng - ${userInfo.name}`
+                    : userInfo.role === "parking_owner"
+                    ? `Chủ bãi xe - ${userInfo.name}`
+                    : userInfo.role === "admin"
+                    ? `Quản trị viên - ${userInfo.name}`
+                    : `${userInfo.role} - ${userInfo.name}`}
+                </p>
+              </div>
+            </div>
+
+            <div className="flex gap-2">
+              {messages.length > 0 && (
                 <button
-                  onClick={toggleChat}
-                  className="font-semibold text-base hover:opacity-80 transition-opacity"
+                  onClick={clearChatHistory}
+                  className="p-2 hover:bg-white/20 rounded-lg transition-colors"
+                  title="Xóa lịch sử"
                 >
-                  GoPark AI
+                  <Trash2 size={18} />
                 </button>
-
-                {/* Badge hiển thị role user */}
-                {userInfo && (
-                  <Badge
-                    variant={
-                      userInfo.role === "guest" ? "outline" : "secondary"
-                    }
-                    className={`text-xs px-2 py-1 ${
-                      isDarkMode
-                        ? "bg-gray-700 text-[#00A859] border-[#00A859]"
-                        : "bg-white/90 text-gray-700 border-gray-300"
-                    }`}
-                  >
-                    {/* Thay thế điều kiện bằng expression để hiển thị đúng role */}
-                    {userInfo.role === "guest"
-                      ? "Khách vãng lai"
-                      : userInfo.role === "user"
-                      ? "User"
-                      : userInfo.role === "owner"
-                      ? "Chủ bãi"
-                      : userInfo.role === "admin"
-                      ? "Admin"
-                      : "khach vang lai"}
-                  </Badge>
-                )}
-              </div>
-
-              <div className="flex gap-1">
-                {/* Nút xóa lịch sử */}
-                {messages.length > 0 && (
-                  <Button
-                    size="icon"
-                    variant="ghost"
-                    onClick={clearChatHistory}
-                    className={`h-8 w-8 hover:bg-white/20 ${
-                      isDarkMode ? "text-[#00A859]" : "text-white"
-                    }`}
-                    title="Xóa lịch sử chat"
-                  >
-                    <Trash2 size={14} />
-                  </Button>
-                )}
-
-                {/* Toggle dark mode */}
-                <Button
-                  size="icon"
-                  variant="ghost"
-                  onClick={() => setIsDarkMode((prev) => !prev)}
-                  className={`h-8 w-8 hover:bg-white/20 ${
-                    isDarkMode ? "text-[#00A859]" : "text-white"
-                  }`}
-                >
-                  {isDarkMode ? <Sun size={16} /> : <Moon size={16} />}
-                </Button>
-
-                {/* Đóng chat */}
-                <Button
-                  size="icon"
-                  variant="ghost"
-                  onClick={toggleChat}
-                  className={`h-8 w-8 hover:bg-white/20 ${
-                    isDarkMode ? "text-[#00A859]" : "text-white"
-                  }`}
-                >
-                  <X size={16} />
-                </Button>
-              </div>
-            </CardHeader>
-
-            <CardContent
-              className={`p-3 ${
-                isDarkMode ? "bg-gray-900/90" : "bg-gray-50/90"
-              }`}
-            >
-              {/* Hiển thị lỗi kết nối */}
-              {connectionError && (
-                <div className="mb-2 p-2 bg-red-100 border border-red-300 rounded-md text-red-700 text-xs">
-                  ⚠️ Lỗi kết nối server. Kiểm tra backend có chạy không?
-                </div>
               )}
 
-              {/* Gợi ý */}
-              <div className="mb-2 flex flex-wrap gap-1.5">
-                {showSuggestions ? (
-                  getCurrentSuggestions().map((sugg, idx) => (
-                    <button
-                      key={idx}
-                      className={`text-xs rounded-full px-2.5 py-1 border transition-all hover:scale-105 ${
-                        isDarkMode
-                          ? "border-[#00A859] text-[#00A859] hover:bg-[#00A859]/10"
-                          : "border-gray-300 text-gray-700 hover:bg-[#00A859]/10 hover:border-[#00A859]"
-                      }`}
-                      onClick={() => sendMessage(sugg)}
-                    >
-                      {sugg}
-                    </button>
-                  ))
-                ) : (
+              <button
+                onClick={() => setIsDarkMode((prev) => !prev)}
+                className="p-2 hover:bg-white/20 rounded-lg transition-colors"
+              >
+                {isDarkMode ? <Sun size={18} /> : <Moon size={18} />}
+              </button>
+
+              <button
+                onClick={() => setVisible(false)}
+                className="p-2 hover:bg-white/20 rounded-lg transition-colors"
+              >
+                <X size={18} />
+              </button>
+            </div>
+          </div>
+
+          {/* Messages Area - CHIỀU CAO CỐ ĐỊNH */}
+          <div
+            ref={scrollAreaRef}
+            className={`overflow-y-auto p-3 space-y-2 ${
+              isDarkMode ? "bg-gray-900/50" : "bg-gray-50/50"
+            }`}
+            style={{
+              // QUAN TRỌNG: Chiều cao tự động, không vượt quá container
+              height: chatContainerHeight,
+              maxHeight: "calc(100vh - 280px)", // Để chỗ cho header + input + margin
+            }}
+          >
+            {/* Welcome Message */}
+            {messages.length === 0 && !isLoading && (
+              <div
+                className={`text-center p-6 rounded-xl ${
+                  isDarkMode ? "bg-gray-800/50" : "bg-white/80"
+                }`}
+              >
+                <Bot className="w-12 h-12 mx-auto mb-3 text-[#00A859]" />
+                <p className="font-semibold text-lg mb-2">
+                  👋 Xin chào {userInfo.name || "bạn"}!
+                </p>
+                <p className="text-sm opacity-75">
+                  Tôi là trợ lý AI của GoPark. Hãy hỏi tôi về bãi đậu xe nhé!
+                </p>
+              </div>
+            )}
+
+            {/* Messages */}
+            {messages.map((msg, idx) => (
+              <div
+                key={idx}
+                className={`flex ${
+                  msg.role === "user" ? "justify-end" : "justify-start"
+                }`}
+              >
+                <div
+                  className={`max-w-[85%] px-4 py-3 rounded-2xl shadow-sm ${
+                    msg.role === "user"
+                      ? "bg-[#00A859] text-white rounded-br-sm"
+                      : isDarkMode
+                      ? "bg-gray-800 text-white rounded-bl-sm"
+                      : "bg-white text-gray-800 rounded-bl-sm"
+                  }`}
+                >
+                  <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
+                  {msg.timestamp && (
+                    <p className="text-xs opacity-50 mt-1">
+                      {new Date(msg.timestamp).toLocaleTimeString("vi-VN", {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}
+                    </p>
+                  )}
+                </div>
+              </div>
+            ))}
+
+            {/* Loading Indicator */}
+            {isLoading && (
+              <div className="flex justify-start">
+                <div
+                  className={`px-4 py-3 rounded-2xl rounded-bl-sm ${
+                    isDarkMode ? "bg-gray-800" : "bg-white"
+                  }`}
+                >
+                  <div className="flex gap-2 items-center">
+                    <div
+                      className="w-2 h-2 bg-[#00A859] rounded-full animate-bounce"
+                      style={{ animationDelay: "0ms" }}
+                    ></div>
+                    <div
+                      className="w-2 h-2 bg-[#00A859] rounded-full animate-bounce"
+                      style={{ animationDelay: "150ms" }}
+                    ></div>
+                    <div
+                      className="w-2 h-2 bg-[#00A859] rounded-full animate-bounce"
+                      style={{ animationDelay: "300ms" }}
+                    ></div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            <div ref={messagesEndRef} />
+          </div>
+
+          {/* Scroll to bottom button */}
+          {showScrollButton && (
+            <button
+              onClick={scrollToBottom}
+              className="absolute bottom-32 right-6 p-2 bg-[#00A859] text-white rounded-full shadow-lg hover:bg-[#007d42] transition-all"
+            >
+              <ChevronDown size={20} />
+            </button>
+          )}
+
+          {/* Connection Error */}
+          {connectionError && (
+            <div className="px-4 py-2 bg-red-100 border-t border-red-300 text-red-700 text-xs text-center">
+              ⚠️ Lỗi kết nối server
+            </div>
+          )}
+
+          {/* Smart Suggestions & Input Area */}
+          <div className="px-4 py-3 border-t border-gray-200 dark:border-gray-700 flex-shrink-0">
+            {" "}
+            {/* THÊM flex-shrink-0 */}
+            <div className="flex flex-wrap gap-2 mb-3">
+              {getCurrentSuggestions().map((suggestion, idx) => (
+                <button
+                  key={idx}
+                  onClick={() =>
+                    sendMessage(suggestion.replace(/^[^\s]+\s/, ""))
+                  }
+                  disabled={isLoading}
+                  className={`text-xs px-3 py-1.5 rounded-full border transition-all hover:scale-105 disabled:opacity-50 ${
+                    isDarkMode
+                      ? "border-[#00A859] text-[#00A859] hover:bg-[#00A859]/10"
+                      : "border-gray-300 text-gray-700 hover:bg-[#00A859]/10 hover:border-[#00A859]"
+                  }`}
+                >
+                  {suggestion}
+                </button>
+              ))}
+            </div>
+            {/* Input Area */}
+            <div className="flex gap-2 items-end">
+              <div className="flex-1 relative">
+                <textarea
+                  ref={inputRef}
+                  rows={1}
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  placeholder="Nhập câu hỏi..."
+                  disabled={isLoading}
+                  className={`w-full resize-none max-h-24 text-sm border rounded-xl px-4 py-3 pr-12 focus:ring-2 focus:ring-[#00A859] focus:outline-none transition-all disabled:opacity-50 ${
+                    isDarkMode
+                      ? "bg-gray-800 text-white border-gray-600"
+                      : "bg-white text-gray-900 border-gray-300"
+                  } ${isListening ? "ring-2 ring-red-400" : ""}`}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && !e.shiftKey) {
+                      e.preventDefault();
+                      sendMessage(input);
+                    }
+                  }}
+                  style={{ minHeight: "44px" }}
+                />
+
+                {speechSupported && (
                   <button
-                    onClick={() => setShowSuggestions(true)}
-                    className={`text-xs underline hover:no-underline transition-all ${
-                      isDarkMode
-                        ? "text-[#00A859] hover:text-white"
-                        : "text-[#00A859] hover:text-gray-700"
+                    onClick={toggleListening}
+                    disabled={isLoading}
+                    className={`absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-full transition-all disabled:opacity-50 ${
+                      isListening
+                        ? "bg-red-500 text-white"
+                        : isDarkMode
+                        ? "text-gray-400 hover:text-[#00A859] hover:bg-gray-700"
+                        : "text-gray-500 hover:text-[#00A859] hover:bg-gray-100"
                     }`}
                   >
-                    + Hiện gợi ý ({userInfo.role || "guest"})
+                    {isListening ? <MicOff size={18} /> : <Mic size={18} />}
                   </button>
                 )}
               </div>
 
-              {/* Tin nhắn */}
-              <ScrollArea className="h-[180px] px-1 py-1 mb-2 rounded-md">
-                <div className="flex flex-col gap-1.5">
-                  {/* Welcome message */}
-                  {messages.length === 0 && !isLoading && (
-                    <div
-                      className={`text-center text-xs p-4 rounded-lg ${
-                        isDarkMode
-                          ? "text-gray-300 bg-gray-800/50"
-                          : "text-gray-600 bg-gray-100/80"
-                      }`}
-                    >
-                      👋 Xin chào{" "}
-                      {userInfo?.name && (
-                        <span className="font-medium">
-                          {userInfo.role === "guest"
-                            ? "Khách vãng lai"
-                            : userInfo.role === "user"
-                            ? userInfo.name
-                            : userInfo.role === "owner"
-                            ? `Chủ bãi `
-                            : userInfo.role === "admin"
-                            ? `Admin `
-                            : userInfo.name}
-                        </span>
-                      )}
-                      !
-                      <br />
-                      Tôi là trợ lý AI của GoPark.{" "}
-                      {userInfo?.role === "guest" &&
-                        "Hãy hỏi tôi về bãi đậu xe nhé!"}
-                      {userInfo?.role === "user" &&
-                        "Tôi có thể giúp bạn tìm và đặt bãi đỗ xe!"}
-                      {userInfo?.role === "owner" &&
-                        "Tôi có thể giúp bạn quản lý bãi đỗ xe của mình!"}
-                      {userInfo?.role === "admin" &&
-                        "Tôi có thể giúp bạn quản lý hệ thống!"}
-                    </div>
-                  )}
-
-                  {/* Messages */}
-                  {messages.map((msg, idx) => (
-                    <div
-                      key={idx}
-                      className={`text-xs sm:text-sm px-3 py-2 rounded-2xl whitespace-pre-line shadow-sm transition-all duration-200 max-w-[85%] ${
-                        msg.role === "user"
-                          ? "self-end bg-[#00A859] text-white"
-                          : isDarkMode
-                          ? "self-start bg-gray-700/80 text-white"
-                          : "self-start bg-white/90 text-gray-800 shadow-md"
-                      }`}
-                    >
-                      {msg.content}
-                    </div>
-                  ))}
-
-                  {/* Loading indicator */}
-                  {isLoading && (
-                    <div
-                      className={`self-start px-3 py-2 rounded-2xl font-medium animate-pulse w-fit ${
-                        isDarkMode
-                          ? "bg-gray-700/80 text-[#00A859]"
-                          : "bg-white/90 text-[#00A859] shadow-md"
-                      }`}
-                    >
-                      🤖 Đang suy nghĩ...
-                    </div>
-                  )}
-                  <div ref={scrollRef} />
-                </div>
-              </ScrollArea>
-
-              {/* Input với Voice Recognition */}
-              <div className="flex gap-2 items-end">
-                <div className="flex-1 relative">
-                  <Textarea
-                    ref={inputRef}
-                    rows={1}
-                    value={input}
-                    onChange={(e) => setInput(e.target.value)}
-                    placeholder={`Nhập câu hỏi hoặc nhấn mic... (${
-                      userInfo?.role || "guest"
-                    })`}
-                    className={`resize-none max-h-20 text-xs border rounded-xl px-3 py-2 pr-12 min-h-[40px] transition-all focus:ring-2 focus:ring-[#00A859] ${
-                      isDarkMode
-                        ? "bg-gray-800/80 text-white border-gray-600 placeholder:text-gray-400"
-                        : "bg-white text-gray-900 border-gray-300 placeholder:text-gray-500"
-                    } ${isListening ? "ring-2 ring-red-400" : ""}`}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter" && !e.shiftKey) {
-                        e.preventDefault();
-                        sendMessage(input);
-                      }
-                    }}
-                  />
-
-                  {/* Mic button inside input */}
-                  {speechSupported && (
-                    <Button
-                      type="button"
-                      size="icon"
-                      variant="ghost"
-                      onClick={isListening ? stopListening : startListening}
-                      disabled={isLoading}
-                      className={`absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full transition-all ${
-                        isListening
-                          ? "bg-red-500 text-white hover:bg-red-600"
-                          : isDarkMode
-                          ? "text-gray-400 hover:text-[#00A859] hover:bg-gray-700"
-                          : "text-gray-500 hover:text-[#00A859] hover:bg-gray-100"
-                      }`}
-                      title={
-                        isListening
-                          ? "Đang nghe... (nhấn để dừng)"
-                          : "Nhấn để nói"
-                      }
-                    >
-                      {isListening ? <MicOff size={16} /> : <Mic size={16} />}
-                    </Button>
-                  )}
-                </div>
-
-                {/* Send button */}
-                <Button
-                  onClick={() => sendMessage(input)}
-                  disabled={!input.trim() || isLoading}
-                  className="bg-[#00A859] hover:bg-[#007d42] text-white rounded-xl px-4 py-2 h-10 text-sm disabled:opacity-50 transition-all hover:scale-105 shadow-lg"
-                >
-                  {isLoading ? (
-                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                  ) : (
-                    <Send size={16} />
-                  )}
-                </Button>
-              </div>
-
-              {/* Voice status indicator */}
-              {isListening && (
-                <div className="mt-1 text-xs text-center">
-                  <span className="inline-flex items-center gap-1 text-red-500">
-                    🎤 Đang nghe... Hãy nói rõ ràng
-                  </span>
-                </div>
-              )}
-
-              {!speechSupported && (
-                <div className="mt-1 text-xs text-center text-gray-500">
-                  Trình duyệt không hỗ trợ nhận diện giọng nói
-                </div>
-              )}
-            </CardContent>
-          </Card>
+              <button
+                onClick={() => sendMessage(input)}
+                disabled={!input.trim() || isLoading}
+                className="bg-[#00A859] hover:bg-[#007d42] text-white rounded-xl px-5 py-3 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0"
+                style={{ height: "44px" }}
+              >
+                {isLoading ? (
+                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                ) : (
+                  <Send size={18} />
+                )}
+              </button>
+            </div>
+            {isListening && (
+              <p className="text-xs text-red-500 text-center mt-2 animate-pulse">
+                🎤 Đang nghe...
+              </p>
+            )}
+          </div>
         </div>
       )}
 
-      {/* Nút mở chat */}
-      <div className="fixed bottom-4 right-4 z-50">
-        <Button
-          onClick={toggleChat}
-          className="w-12 h-12 sm:w-14 sm:h-14 rounded-full shadow-2xl bg-gradient-to-r from-gray-900 to-black hover:from-[#007d42] hover:to-[#00A859] text-[#00A859] hover:text-white flex items-center justify-center transition-all duration-300 hover:scale-110 relative border-2 border-[#00A859]"
-        >
-          <Bot className="w-6 h-6 sm:w-7 sm:h-7" />
+      {/* Toggle Button */}
+      <button
+        onClick={() => setVisible((prev) => !prev)}
+        className="fixed bottom-4 right-4 z-50 w-14 h-14 rounded-full shadow-2xl bg-gradient-to-r from-[#00A859] to-[#007d42] hover:from-[#007d42] hover:to-[#00A859] text-white transition-all duration-300 hover:scale-110 flex items-center justify-center  group"
+      >
+        <Bot className="w-7 h-7" />
 
-          {/* Role indicator */}
-          {userInfo && userInfo.role !== "guest" && (
-            <div className="absolute -top-1 -right-1 w-5 h-5 bg-[#00A859] rounded-full flex items-center justify-center text-[8px] shadow-lg border-2 border-white">
-              {userInfo.role === "user"
-                ? "👤"
-                : userInfo.role === "owner"
-                ? "🏢"
-                : "👨‍💼"}
-            </div>
-          )}
+        {userInfo.role !== "guest" && (
+          <div className="absolute -top-1 -right-1 w-5 h-5 bg-white rounded-full flex items-center justify-center text-xs border-2 border-[#00A859]">
+            {userInfo.role === "user"
+              ? "👤"
+              : userInfo.role === "owner"
+              ? "🏢"
+              : "👨‍💼"}
+          </div>
+        )}
 
-          {/* Connection error indicator */}
-          {connectionError && (
-            <div className="absolute -top-1 -left-1 w-3 h-3 bg-red-500 rounded-full animate-pulse shadow-lg"></div>
-          )}
+        {connectionError && (
+          <div className="absolute -top-1 -left-1 w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
+        )}
 
-          {/* Listening indicator */}
-          {isListening && (
-            <div className="absolute -top-2 -right-2 w-4 h-4 bg-red-500 rounded-full animate-pulse shadow-lg">
-              <div className="w-full h-full rounded-full bg-red-400 animate-ping"></div>
-            </div>
-          )}
-        </Button>
-      </div>
-
-      {/* CSS Animations */}
-      <style jsx>{`
-        @keyframes pulse {
-          0%,
-          100% {
-            opacity: 1;
-          }
-          50% {
-            opacity: 0.5;
-          }
-        }
-      `}</style>
+        <div className="absolute -top-12 right-0 bg-gray-900 text-white text-xs px-3 py-1 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+          GoPark AI Assistant
+        </div>
+      </button>
     </>
   );
 }

@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "sonner";
 import "leaflet-routing-machine/dist/leaflet-routing-machine.css";
+import { RememberLoginProvider } from '@/components/RememberLoginProvider';
 
 // ✅ Nhúng ChatBot
 import ChatBot from "@/components/ChatBot"; // Đảm bảo file ChatBot.tsx đã có trong components/
@@ -47,9 +48,11 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
+          <RememberLoginProvider>
         {children}
         <Toaster richColors position="top-center" />
         <ChatBot /> {/* ✅ Nhúng chatbot AI tại đây */}
+        </RememberLoginProvider>
       </body>
     </html>
   );
