@@ -42,7 +42,7 @@ export async function resetPasswordWithToken(
 ): Promise<ResetResponse> {
   try {
     const hashedToken = encodeURIComponent(token);
-    const res = await API.patch(`/users/resetPassword/${hashedToken}`, {
+    const res = await API.patch(`/api/v1/users/resetPassword/${hashedToken}`, {
       password,
       passwordConfirm
     });

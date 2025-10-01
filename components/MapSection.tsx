@@ -1,122 +1,230 @@
 "use client";
 
 import CountUp from "react-countup";
-import { FaMapMarkedAlt, FaCity, FaParking } from "react-icons/fa";
-import { motion } from "framer-motion";
+import { FaMapMarkedAlt, FaCity, FaParking, FaSearch } from "react-icons/fa";
+import { motion, easeOut } from "framer-motion";
+import { useInView } from "react-intersection-observer";
+import { ChevronRight } from "lucide-react";
+
+// Animation variants
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      delayChildren: 0.3,
+      staggerChildren: 0.2
+    }
+  }
+};
+
+const itemVariants = {
+  hidden: { y: 30, opacity: 0 },
+  visible: {
+    y: 0,
+    opacity: 1,
+    transition: {
+      duration: 0.6,
+      ease: easeOut
+    }
+  }
+};
+
+function AnimatedSection({ children, className = "" }) {
+  const [ref, inView] = useInView({
+    triggerOnce: true,
+    threshold: 0.1,
+  });
+
+  return (
+    <motion.div
+      ref={ref}
+      initial="hidden"
+      animate={inView ? "visible" : "hidden"}
+      variants={containerVariants}
+      className={className}
+    >
+      {children}
+    </motion.div>
+  );
+}
+
+function AnimatedItem({ children, variants = itemVariants, className = "" }) {
+  return (
+    <motion.div variants={variants} className={className}>
+      {children}
+    </motion.div>
+  );
+}
 
 export default function MapSection() {
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
   return (
-    <section className="relative flex flex-col items-center justify-center py-20 text-center min-h-[90vh] bg-gradient-to-b from-sky-50 to-white overflow-hidden">
-      {/* Background Decorative Circles */}
-      <div className="absolute top-[-100px] left-[-100px] w-[400px] h-[400px] bg-sky-200 rounded-full mix-blend-multiply filter blur-3xl opacity-40 animate-pulse"></div>
-      <div className="absolute bottom-[-100px] right-[-100px] w-[400px] h-[400px] bg-sky-300 rounded-full mix-blend-multiply filter blur-3xl opacity-40 animate-pulse"></div>
+    <section className="relative py-20 px-6 text-center bg-gradient-to-br from-blue-50 via-white to-cyan-50 overflow-hidden">
+      {/* Background pattern */}
+      <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgdmlld0JveD0iMCAwIDYwIDYwIj4KICA8ZyBmaWxsPSJub25lIiBzdHJva2U9IiMxNzkwZTYiIHN0cm9rZS1vcGFjaXR5PSIwLjEiIHN0cm9rZS13aWR0aD0iMiI+CiAgICA8Y2lyY2xlIGN4PSIzMCIgY3k9IjMwIiByPSIxNSIgLz4KICAgIDxjaXJjbGUgY3g9IjMwIiBjeT0iMzAiIHI9IjI1IiAvPgogIDwvZz4KPC9zdmc+')] opacity-30"></div>
+      
+      {/* Decorative elements */}
+      <div className="absolute top-[-100px] left-[-100px] w-[400px] h-[400px] bg-blue-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30"></div>
+      <div className="absolute bottom-[-100px] right-[-100px] w-[400px] h-[400px] bg-cyan-300 rounded-full mix-blend-multiply filter blur-3xl opacity-30"></div>
 
-      {/* Wave Bottom */}
-      <svg className="absolute bottom-0 left-0 w-full" viewBox="0 0 1440 320">
-        <path
-          fill="#38bdf8"
-          fillOpacity="0.2"
-          d="M0,160L48,186.7C96,213,192,267,288,266.7C384,267,480,213,576,181.3C672,149,768,139,864,160C960,181,1056,235,1152,224C1248,213,1344,139,1392,101.3L1440,64L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"
-        ></path>
-      </svg>
+      <div className="container mx-auto relative z-10">
+        <AnimatedSection className="mb-16">
+          <AnimatedItem className="mb-2 flex items-center justify-center gap-2 text-blue-600 font-medium">
+            <div className="w-6 h-px bg-blue-600"></div>
+            <span>MẠNG LƯỚI ĐẬU XE</span>
+            <div className="w-6 h-px bg-blue-600"></div>
+          </AnimatedItem>
+          
+          <AnimatedItem>
+            <h2 className="text-4xl md:text-5xl font-bold mb-6 text-gray-900">
+              Hệ thống bãi đỗ xe <span className="text-blue-600">toàn quốc</span>
+            </h2>
+          </AnimatedItem>
+          
+          <AnimatedItem>
+            <p className="text-lg text-gray-700 max-w-3xl mx-auto mb-8 leading-relaxed">
+              Chúng tôi kết nối hàng nghìn chỗ đậu xe an toàn trên khắp Việt Nam, mang lại sự tiện lợi và công nghệ gần gũi hơn với tài xế mỗi ngày.
+            </p>
+          </AnimatedItem>
+        </AnimatedSection>
 
-      {/* Heading */}
-      <motion.h2
-        initial={{ opacity: 0, y: -20 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.8 }}
-        viewport={{ once: true }}
-        className="text-4xl sm:text-5xl font-bold text-sky-600 mb-4 z-10"
-      >
-        Mạng Lưới Đậu Xe Thông Minh
-      </motion.h2>
+        {/* Map Image */}
+        <AnimatedSection className="mb-16">
+          <AnimatedItem>
+            <motion.div 
+              whileHover={{ scale: 1.02 }}
+              className="relative w-full max-w-4xl mx-auto rounded-2xl shadow-2xl overflow-hidden border-4 border-white group"
+            >
+              <img
+                src="https://en.parkopedia.co.uk/public/images/map-with-markers.png"
+                alt="Bản đồ hệ thống bãi đỗ xe GoPark trên toàn quốc"
+                className="w-full h-auto transform transition-transform duration-700 group-hover:scale-105"
+              />
+              
+              {/* Map overlay effect */}
+              <div className="absolute inset-0 bg-gradient-to-t from-blue-900/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+              
+              {/* Floating search button */}
+              <motion.button
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.95 }}
+                className="absolute bottom-6 right-6 flex items-center gap-2 bg-blue-600 text-white px-5 py-3 rounded-full font-medium shadow-lg hover:bg-blue-700 transition-colors duration-300"
+              >
+                <FaSearch className="w-4 h-4" />
+                Tìm bãi đỗ
+              </motion.button>
+            </motion.div>
+          </AnimatedItem>
+        </AnimatedSection>
 
-      <motion.p
-        initial={{ opacity: 0, y: -10 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.8, delay: 0.2 }}
-        viewport={{ once: true }}
-        className="text-gray-600 max-w-2xl mb-12 px-4 z-10"
-      >
-        Chúng tôi kết nối hàng nghìn chỗ đậu xe an toàn trên khắp Việt Nam, mang lại sự tiện lợi và công nghệ gần gũi hơn với tài xế mỗi ngày.
-      </motion.p>
+        {/* Statistics */}
+        <AnimatedSection className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto mb-16">
+          <AnimatedItem>
+            <motion.div 
+              whileHover={{ y: -5 }}
+              className="flex flex-col items-center p-6 bg-white rounded-2xl shadow-lg border border-gray-100"
+            >
+              <div className="w-16 h-16 rounded-full bg-blue-100 flex items-center justify-center mb-4">
+                <FaMapMarkedAlt className="text-2xl text-blue-600" />
+              </div>
+              <div className="text-4xl font-bold text-blue-600 mb-2">
+                <CountUp end={23} duration={2} />
+              </div>
+              <div className="text-gray-700 font-medium">Tỉnh Thành</div>
+            </motion.div>
+          </AnimatedItem>
 
-      {/* Map Image */}
-      <motion.div
-        initial={{ opacity: 0, scale: 0.95 }}
-        whileInView={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 1, delay: 0.4 }}
-        viewport={{ once: true }}
-        className="w-full max-w-2xl px-6 z-10 group perspective-1000"
-      >
-        <img
-          src="https://en.parkopedia.co.uk/public/images/map-with-markers.png"
-          alt="Bản Đồ Việt Nam"
-          className="w-full h-auto rounded-2xl shadow-2xl ring-4 ring-sky-300 transform group-hover:scale-105 group-hover:rotate-2 transition duration-500 ease-out"
-        />
-      </motion.div>
+          <AnimatedItem>
+            <motion.div 
+              whileHover={{ y: -5 }}
+              className="flex flex-col items-center p-6 bg-white rounded-2xl shadow-lg border border-gray-100"
+            >
+              <div className="w-16 h-16 rounded-full bg-cyan-100 flex items-center justify-center mb-4">
+                <FaCity className="text-2xl text-cyan-600" />
+              </div>
+              <div className="text-4xl font-bold text-cyan-600 mb-2">
+                <CountUp end={65} duration={2.5} />
+              </div>
+              <div className="text-gray-700 font-medium">Thành Phố</div>
+            </motion.div>
+          </AnimatedItem>
 
-      {/* Statistics */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-10 mt-14 px-6 w-full max-w-5xl z-10">
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
-          viewport={{ once: true }}
-          className="flex flex-col items-center"
-        >
-          <FaMapMarkedAlt className="text-5xl mb-3 text-transparent bg-clip-text bg-gradient-to-r from-sky-400 to-blue-600 animate-bounce" />
-          <div className="bg-gradient-to-r from-sky-500 to-blue-600 text-white text-4xl font-bold px-6 py-3 rounded-xl shadow-md">
-            <CountUp end={23} duration={1.5} />
-          </div>
-          <div className="text-gray-700 mt-2 text-lg font-medium">Tỉnh Thành</div>
-        </motion.div>
+          <AnimatedItem>
+            <motion.div 
+              whileHover={{ y: -5 }}
+              className="flex flex-col items-center p-6 bg-white rounded-2xl shadow-lg border border-gray-100"
+            >
+              <div className="w-16 h-16 rounded-full bg-blue-100 flex items-center justify-center mb-4">
+                <FaParking className="text-2xl text-blue-600" />
+              </div>
+              <div className="text-4xl font-bold text-blue-600 mb-2">
+                <CountUp start={5000} end={50200} duration={4} separator="," />
+              </div>
+              <div className="text-gray-700 font-medium">Chỗ Đậu Xe</div>
+            </motion.div>
+          </AnimatedItem>
+        </AnimatedSection>
 
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.2 }}
-          viewport={{ once: true }}
-          className="flex flex-col items-center"
-        >
-          <FaCity className="text-5xl mb-3 text-transparent bg-clip-text bg-gradient-to-r from-sky-400 to-blue-600 animate-bounce delay-200" />
-          <div className="bg-gradient-to-r from-sky-500 to-blue-600 text-white text-4xl font-bold px-6 py-3 rounded-xl shadow-md">
-            <CountUp end={6} duration={2} separator="," />
-          </div>
-          <div className="text-gray-700 mt-2 text-lg font-medium">Thành Phố</div>
-        </motion.div>
+        {/* Features */}
+        <AnimatedSection className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto mb-16">
+          <AnimatedItem>
+            <div className="text-center p-5 bg-white rounded-2xl shadow-md border border-gray-100">
+              <div className="w-12 h-12 rounded-lg bg-blue-100 flex items-center justify-center mx-auto mb-4">
+                <span className="text-blue-600 font-bold">24/7</span>
+              </div>
+              <h3 className="font-semibold text-gray-900 mb-2">Hoạt động liên tục</h3>
+              <p className="text-gray-600 text-sm">Hỗ trợ đặt chỗ mọi lúc, mọi nơi</p>
+            </div>
+          </AnimatedItem>
 
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.4 }}
-          viewport={{ once: true }}
-          className="flex flex-col items-center"
-        >
-          <FaParking className="text-5xl mb-3 text-transparent bg-clip-text bg-gradient-to-r from-sky-400 to-blue-600 animate-bounce delay-500" />
-          <div className="bg-gradient-to-r from-sky-500 to-blue-600 text-white text-4xl font-bold px-6 py-3 rounded-xl shadow-md min-w-[160px]">
-            <CountUp start={5000} end={50200} duration={5} separator="," />
-          </div>
-          <div className="text-gray-700 mt-2 text-lg font-medium">Chỗ Đậu Xe</div>
-        </motion.div>
+          <AnimatedItem>
+            <div className="text-center p-5 bg-white rounded-2xl shadow-md border border-gray-100">
+              <div className="w-12 h-12 rounded-lg bg-blue-100 flex items-center justify-center mx-auto mb-4">
+                <span className="text-blue-600 font-bold">✓</span>
+              </div>
+              <h3 className="font-semibold text-gray-900 mb-2">Xác thực an toàn</h3>
+              <p className="text-gray-600 text-sm">Bãi đỗ kiểm duyệt chất lượng</p>
+            </div>
+          </AnimatedItem>
+
+          <AnimatedItem>
+            <div className="text-center p-5 bg-white rounded-2xl shadow-md border border-gray-100">
+              <div className="w-12 h-12 rounded-lg bg-blue-100 flex items-center justify-center mx-auto mb-4">
+                <span className="text-blue-600 font-bold">₫</span>
+              </div>
+              <h3 className="font-semibold text-gray-900 mb-2">Giá cả minh bạch</h3>
+              <p className="text-gray-600 text-sm">Không phát sinh chi phí ẩn</p>
+            </div>
+          </AnimatedItem>
+
+          <AnimatedItem>
+            <div className="text-center p-5 bg-white rounded-2xl shadow-md border border-gray-100">
+              <div className="w-12 h-12 rounded-lg bg-blue-100 flex items-center justify-center mx-auto mb-4">
+                <span className="text-blue-600 font-bold">⏱</span>
+              </div>
+              <h3 className="font-semibold text-gray-900 mb-2">Tiết kiệm thời gian</h3>
+              <p className="text-gray-600 text-sm">Đặt chỗ nhanh trong 30 giây</p>
+            </div>
+          </AnimatedItem>
+        </AnimatedSection>
+
+        {/* CTA Button */}
+        <AnimatedItem>
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={scrollToTop}
+            className="inline-flex items-center gap-2 bg-blue-600 text-white px-8 py-4 rounded-full font-medium shadow-lg hover:bg-blue-700 transition-colors duration-300 group/btn"
+          >
+            Khám phá bản đồ
+            <ChevronRight className="w-5 h-5 group-hover/btn:translate-x-1 transition-transform" />
+          </motion.button>
+        </AnimatedItem>
       </div>
-
-      {/* CTA Button with scrollTo */}
-      <motion.button
-        onClick={() =>
-          window.scrollTo({
-            top: 0,
-            behavior: "smooth",
-          })
-        }
-        initial={{ opacity: 0, y: 20 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.8, delay: 0.6 }}
-        viewport={{ once: true }}
-        className="mt-14 px-8 py-4 bg-gradient-to-r cursor-pointer from-sky-500 to-blue-600 text-white font-semibold rounded-full shadow-lg hover:scale-105 hover:shadow-2xl transition transform duration-300 z-10"
-      >
-        Tìm Bản Đồ
-      </motion.button>
     </section>
   );
 }

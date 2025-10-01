@@ -42,7 +42,7 @@ function ResetPasswordForm() {
       
       if (result.success) {
         setSuccess(result.message ?? "Đặt lại mật khẩu thành công! Đang chuyển hướng đến trang đăng nhập...");
-        setTimeout(() => router.push("/login"), 2000);
+        setTimeout(() => router.push("/account/login"), 2000);
       } else {
         setError(result.error ?? "Đặt lại mật khẩu thất bại.");
       }

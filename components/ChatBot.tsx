@@ -209,28 +209,36 @@ export default function ImprovedChatBot() {
   // Hàm check user authentication - ĐÃ ĐƯỢC SỬA ĐỂ LẤY ĐÚNG ROLE
  // THÊM event listener để detect auth changes
 useEffect(() => {
-  const checkUserAuth = async () => {
-    try {
-      console.log("🔍 Checking user auth...");
-      const token = localStorage.getItem("token") || sessionStorage.getItem("token");
+ const checkUserAuth = async () => {
+  try {
+    console.log("🔍 Checking user auth...");
+    const token = localStorage.getItem("token") || sessionStorage.getItem("token");
 
-      if (token) {
-        try {
-          const response = await fetch("http://localhost:5000/api/v1/users/me", {
-            method: "GET",
-            headers: {
-              Authorization: `Bearer ${token}`,
-              "Content-Type": "application/json",
-            },
-          });
+    if (token) {
+      try {
+        const response = await fetch("http://localhost:5000/api/v1/users/me", {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        });
 
-          if (response.ok) {
-            const user = await response.json();
-            console.log("📡 Server response:", user);
+        if (response.ok) {
+          let user: any = null;
+          try {
+            user = await response.json();
+          } catch (jsonError) {
+            console.error("❌ Lỗi parse JSON từ server:", jsonError);
+          }
 
-            if (user._id || user.id) {
-              const userId = user._id?.$oid || user._id || user.id;
-              
+          console.log("📡 Server response:", user);
+
+          if (user && (user._id || user.id)) {
+            const userId =
+              typeof user._id === "object" ? user._id.$oid : user._id || user.id;
+
+            if (userId) {
               setCurrentUserId(userId.toString());
               setUserInfo({
                 role: user.role || "user",
@@ -239,28 +247,35 @@ useEffect(() => {
               return;
             }
           }
-        } catch (serverError) {
-          console.error("❌ Server auth error:", serverError);
+        } else {
+          console.warn("⚠️ Server trả về lỗi:", response.status);
         }
+      } catch (serverError) {
+        console.error("❌ Server auth error:", serverError);
+      }
+    }
+
+    // 🔹 Fallback logic
+    const userData = localStorage.getItem("user") || sessionStorage.getItem("user");
+
+    if (!userData || userData === "undefined" || userData === "null") {
+      const role = localStorage.getItem("role") || sessionStorage.getItem("role");
+      const userId = localStorage.getItem("userId") || sessionStorage.getItem("userId");
+
+      if (role && userId) {
+        setCurrentUserId(userId.toString());
+        setUserInfo({ role, name: "User" });
+        return;
+      }
+    } else {
+      let user: any = null;
+      try {
+        user = JSON.parse(userData);
+      } catch (parseError) {
+        console.error("❌ Lỗi parse userData từ storage:", parseError, userData);
       }
 
-      // Fallback logic...
-      const userData = localStorage.getItem("user") || sessionStorage.getItem("user");
-
-      if (!userData || userData === "undefined" || userData === "null") {
-        const role = localStorage.getItem("role") || sessionStorage.getItem("role");
-        const userId = localStorage.getItem("userId") || sessionStorage.getItem("userId");
-
-        if (role && userId) {
-          setCurrentUserId(userId.toString());
-          setUserInfo({
-            role: role,
-            name: "User",
-          });
-          return;
-        }
-      } else {
-        const user = JSON.parse(userData);
+      if (user) {
         let userId = null;
         if (user._id) {
           if (typeof user._id === "string") {
@@ -281,15 +296,18 @@ useEffect(() => {
           return;
         }
       }
-
-      setCurrentUserId(null);
-      setUserInfo({ role: "guest", name: "Khách vãng lai" });
-    } catch (error) {
-      console.error("❌ Lỗi kiểm tra auth:", error);
-      setCurrentUserId(null);
-      setUserInfo({ role: "guest", name: "Khách vãng lai" });
     }
-  };
+
+    // 🔹 Nếu không có gì hợp lệ → guest
+    setCurrentUserId(null);
+    setUserInfo({ role: "guest", name: "Khách vãng lai" });
+  } catch (error) {
+    console.error("❌ Lỗi kiểm tra auth:", error);
+    setCurrentUserId(null);
+    setUserInfo({ role: "guest", name: "Khách vãng lai" });
+  }
+};
+
 
   // Gọi ngay khi component mount
   checkUserAuth();
@@ -765,10 +783,6 @@ useEffect(() => {
         {connectionError && (
           <div className="absolute -top-1 -left-1 w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
         )}
-
-        <div className="absolute -top-12 right-0 bg-gray-900 text-white text-xs px-3 py-1 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
-          GoPark AI Assistant
-        </div>
       </button>
     </>
   );

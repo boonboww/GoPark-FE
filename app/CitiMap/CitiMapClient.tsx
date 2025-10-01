@@ -2,12 +2,17 @@
 import { useState, useEffect, useCallback } from "react";
 import { useSearchParams } from "next/navigation";
 import { toast } from "sonner";
-import { Menu, X, LocateFixed, Loader2 } from "lucide-react";
+import { Menu, X, LocateFixed, Loader2, Search } from "lucide-react";
 import MapComponent from "./MapComponent";
 import { ParkingDetail } from "./ParkingDetail";
 import { ParkingList } from "./ParkingList";
 import { Parking, API_BASE_URL } from "./types";
 import L from "leaflet";
+
+const SEARCH_TYPES = [
+  { value: "name", label: "Tên bãi" },
+  { value: "city", label: "Thành phố" },
+];
 
 const CitiMap = () => {
   const searchParams = useSearchParams();
@@ -21,6 +26,11 @@ const CitiMap = () => {
   const isNearby = searchParams.get("isNearby") === "true";
   const userLat = searchParams.get("userLat");
   const userLon = searchParams.get("userLon");
+  // Lấy thông tin bãi đỗ từ query nếu có
+  const parkingId = searchParams.get("parkingId");
+  const parkingLat = searchParams.get("lat");
+  const parkingLon = searchParams.get("lon");
+  const parkingName = searchParams.get("name");
 
   const [map, setMap] = useState<L.Map | null>(null);
   const [userCoords, setUserCoords] = useState<[number, number] | null>(
@@ -30,6 +40,8 @@ const CitiMap = () => {
   const [selectedParking, setSelectedParking] = useState<Parking | null>(null);
   const [parkings, setParkings] = useState<Parking[]>([]);
   const [filteredParkings, setFilteredParkings] = useState<Parking[]>([]);
+  const [searchType, setSearchType] = useState("name");
+  const [searchValue, setSearchValue] = useState("");
   const [isPanelOpen, setIsPanelOpen] = useState(true);
   const [loading, setLoading] = useState(true);
   const [isLocating, setIsLocating] = useState(false);
@@ -38,6 +50,32 @@ const CitiMap = () => {
   >(null);
 
   useEffect(() => {
+    // Nếu có thông tin bãi đỗ từ query thì chỉ hiển thị marker đó
+    if (parkingId && parkingLat && parkingLon) {
+      const markerParking = {
+        _id: parkingId,
+        name: parkingName || "Bãi đỗ xe",
+        address: "Vị trí được chọn",
+        location: {
+          type: "Point",
+          coordinates: [parseFloat(parkingLon), parseFloat(parkingLat)] as [number, number]
+        },
+        avtImage: "",
+        pricePerHour: null,
+        isActive: true,
+        zones: [],
+        allowedPaymentMethods: [],
+        createdAt: "",
+        updatedAt: ""
+      };
+      setParkings([markerParking]);
+      setFilteredParkings([markerParking]);
+      setLoading(false);
+      setNearestParkingCoords([parseFloat(parkingLat), parseFloat(parkingLon)]);
+      setSelectedParking(markerParking);
+      return;
+    }
+
     if (!city) return;
 
     const fetchParkings = async () => {
@@ -70,7 +108,7 @@ const CitiMap = () => {
     };
 
     fetchParkings();
-  }, [city]);
+  }, [city, parkingId, parkingLat, parkingLon, parkingName]);
 
   const findNearbyParkings = useCallback(async () => {
     if (!navigator.geolocation) {
@@ -212,10 +250,78 @@ const CitiMap = () => {
     );
   }
 
+  // Lọc bãi đỗ theo loại tìm kiếm
+  const displayedParkings = filteredParkings.filter((p) => {
+    if (!searchValue.trim()) return true;
+    if (searchType === "name") {
+      return p.name.toLowerCase().includes(searchValue.toLowerCase());
+    }
+    if (searchType === "city") {
+      // Không có property city, dùng address để lọc theo thành phố
+      return p.address?.toLowerCase().includes(searchValue.toLowerCase());
+    }
+    return true;
+  });
+
   return (
-    <div className="flex h-screen bg-gray-100 relative">
-      {isPanelOpen && (
-        <div className="fixed top-0 left-0 w-full sm:w-96 h-full z-[1000] bg-white bg-opacity-95 backdrop-blur-sm p-4 border-r border-gray-200 shadow-lg overflow-y-auto">
+    <div className="flex flex-col h-screen bg-gray-100 relative">
+      {/* Thanh tìm kiếm ngang phía trên cùng */}
+      <div className="w-full shadow-sm px-4 py-3 flex flex-col sm:flex-row gap-2 items-center sticky top-0 z-[1100] border-b border-gray-200">
+        <div className="flex gap-2 w-full sm:w-auto">
+          <select
+            value={searchType}
+            onChange={e => setSearchType(e.target.value)}
+            className="border rounded px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            {SEARCH_TYPES.map(opt => (
+              <option key={opt.value} value={opt.value}>{opt.label}</option>
+            ))}
+          </select>
+          <input
+            type="text"
+            value={searchValue}
+            onChange={e => {
+              setSearchValue(e.target.value);
+              // Khi nhập vào ô tìm kiếm, reset về chế độ tìm kiếm bình thường
+              setFilteredParkings(parkings);
+              setNearestParkingCoords(null);
+              setSelectedParking(null);
+              // Nếu đang ở chế độ chỉ hiển thị 1 bãi đỗ từ query, chuyển về chế độ city
+              if (window.location.search.includes('parkingId=')) {
+                const url = new URL(window.location.href);
+                url.searchParams.delete('parkingId');
+                url.searchParams.delete('lat');
+                url.searchParams.delete('lon');
+                url.searchParams.delete('name');
+                window.history.replaceState({}, '', url.toString());
+              }
+            }}
+            placeholder={searchType === "name" ? "Nhập tên bãi..." : "Nhập tên thành phố..."}
+            className="border rounded px-2 py-1 text-sm w-48 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+          <button
+            className="bg-blue-600 text-white px-4 py-1 cursor-pointer rounded flex items-center gap-2 hover:bg-blue-700 transition-colors"
+            onClick={() => {}}
+            type="button"
+          >
+            <Search className="w-4 h-4" />
+            Tìm kiếm
+          </button>
+          <button
+            className="bg-green-600 text-white px-4 py-1 cursor-pointer rounded flex items-center gap-2 hover:bg-green-700 transition-colors"
+            onClick={findNearbyParkings}
+            type="button"
+            disabled={isLocating}
+          >
+            {isLocating ? <Loader2 className="w-4 h-4 animate-spin" /> : <LocateFixed className="w-4 h-4" />}
+            Tìm gần tôi
+          </button>
+        </div>
+      </div>
+
+      <div className="flex-1 flex h-full">
+        {isPanelOpen && (
+  <div className="fixed top-0 left-0 w-full sm:w-96 h-full z-[1000] bg-white bg-opacity-95 backdrop-blur-sm p-4 border-r border-gray-200 shadow-lg overflow-y-auto mt-[72px] sm:mt-[56px]">
           <button
             onClick={() => setIsPanelOpen(false)}
             className="absolute top-4 right-4 text-gray-600 hover:text-gray-800 transition-colors"
@@ -240,7 +346,7 @@ const CitiMap = () => {
           ) : (
             <ParkingList
               city={city}
-              parkings={filteredParkings}
+              parkings={displayedParkings}
               isLocating={isLocating}
               isNearby={isNearby}
               onFindNearby={findNearbyParkings}
@@ -292,8 +398,9 @@ const CitiMap = () => {
           </div>
         )}
       </div>
+      </div>
     </div>
   );
-};
+}
 
 export default CitiMap;

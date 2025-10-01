@@ -25,6 +25,30 @@
   .animate-spin-slow {
     animation: spin 8s linear infinite;
   }
+
+  /* Scroll to top button animations */
+  @keyframes scrollButtonPulse {
+    0% {
+      transform: scale(1);
+      box-shadow: 0 4px 15px rgba(34, 197, 94, 0.4);
+    }
+    50% {
+      transform: scale(1.05);
+      box-shadow: 0 6px 20px rgba(34, 197, 94, 0.6);
+    }
+    100% {
+      transform: scale(1);
+      box-shadow: 0 4px 15px rgba(34, 197, 94, 0.4);
+    }
+  }
+  
+  .scroll-to-top {
+    animation: bounce 2s infinite, scrollButtonPulse 3s infinite ease-in-out;
+  }
+  
+  .scroll-to-top:hover {
+    animation: none !important;
+  }
 }
 
 html {

@@ -19,6 +19,9 @@ import {
   SelectItem,
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
+import { useRouter } from "next/navigation";
+import { AiOutlineScan } from "react-icons/ai";
+import { Car } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import {
   fetchMyParkingLots,
@@ -86,6 +89,7 @@ export default function CombinedParkingManagement({
   const [slotBookings, setSlotBookings] = useState<Booking[]>([]);
   const [allSlotBookings, setAllSlotBookings] = useState<{[slotId: string]: Booking[]}>({});
   const [currentTime, setCurrentTime] = useState<Date>(new Date());
+  const router = useRouter();
 
   const selectedLot = parkingLots.find((lot) => lot._id === selectedLotId);
   const currentFloor =
@@ -517,11 +521,10 @@ export default function CombinedParkingManagement({
             <CardTitle className="text-lg font-semibold">Control Panel</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              
+            <div className="flex flex-col gap-4 w-full">
               {/* Parking Lot Selector */}
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-700">
+              <div className="flex flex-col">
+                <label className="text-sm font-medium text-gray-700 mb-1">
                   Select Parking Lot
                 </label>
                 <SelectParkingLotDropdown
@@ -532,8 +535,8 @@ export default function CombinedParkingManagement({
               </div>
 
               {/* Date Picker */}
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-700">
+              <div className="flex flex-col">
+                <label className="text-sm font-medium text-gray-700 mb-1">
                   Select Date
                 </label>
                 <div className="flex gap-2">
@@ -547,7 +550,7 @@ export default function CombinedParkingManagement({
                     variant="outline"
                     size="sm"
                     onClick={() => setSelectedDate("")}
-                    className="shrink-0"
+                    className="shrink-0 cursor-pointer"
                   >
                     Clear
                   </Button>
@@ -555,20 +558,31 @@ export default function CombinedParkingManagement({
               </div>
 
               {/* Action Buttons */}
-              <div className="flex flex-col sm:flex-row items-stretch sm:items-end gap-2 md:col-span-2 lg:col-span-1">
-                <AddParkingLotDialog
-                  open={newLotDialogOpen}
-                  onOpenChange={setNewLotDialogOpen}
-                  onCreated={loadParkingLots}
-                />
-                <EditParkingLotDialog
-                  open={editLotDialogOpen}
-                  onOpenChange={setEditLotDialogOpen}
-                  selectedLot={selectedLot}
-                  onUpdate={loadParkingLots}
-                  onDelete={handleDeleteParkingLot}
-                  setParkingLots={setParkingLots}
-                />
+              <div className="flex flex-col sm:flex-row gap-2 justify-end items-center flex-wrap mt-2 w-full">
+                <Button
+                  variant="default"
+                  className="flex items-center gap-2 px-4 py-2 min-w-[170px] cursor-pointer w-full sm:w-auto"
+                  onClick={() => router.push("/scan")}
+                  style={{ whiteSpace: 'nowrap' }}
+                >
+                  <AiOutlineScan className="text-lg" />
+                  Checkin/Checkout
+                </Button>
+                <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+                  <AddParkingLotDialog
+                    open={newLotDialogOpen}
+                    onOpenChange={setNewLotDialogOpen}
+                    onCreated={loadParkingLots}
+                  />
+                  <EditParkingLotDialog
+                    open={editLotDialogOpen}
+                    onOpenChange={setEditLotDialogOpen}
+                    selectedLot={selectedLot}
+                    onUpdate={loadParkingLots}
+                    onDelete={handleDeleteParkingLot}
+                    setParkingLots={setParkingLots}
+                  />
+                </div>
               </div>
             </div>
           </CardContent>
@@ -618,19 +632,21 @@ export default function CombinedParkingManagement({
                     const statusColor = getStatusColor(slot.status, slot._id);
                     
                     let bgColor = "";
-                    if (statusColor.includes("green")) bgColor = "bg-green-100 border-green-300 text-green-700";
-                    else if (statusColor.includes("yellow")) bgColor = "bg-yellow-100 border-yellow-300 text-yellow-700";
-                    else if (statusColor.includes("red")) bgColor = "bg-red-100 border-red-300 text-red-700";
-                    else bgColor = "bg-gray-100 border-gray-300 text-gray-700";
+                    if (statusColor.includes("green")) bgColor = "bg-green-100 cursor-pointer border-green-300 text-green-700";
+                    else if (statusColor.includes("yellow")) bgColor = "bg-yellow-100 cursor-pointer border-yellow-300 text-yellow-700";
+                    else if (statusColor.includes("red")) bgColor = "bg-red-100 cursor-pointer border-red-300 text-red-700";
+                    else bgColor = "bg-gray-100 cursor-pointer border-gray-300 text-gray-700";
 
                     return (
                       <button
                         key={slot._id}
                         onClick={() => handleSlotClick(slot)}
-                        className={`border rounded-lg h-16 flex flex-col items-center justify-center transition-all duration-200 hover:shadow-md ${bgColor} ${selected}`}
+                        className={`border rounded-lg h-16 flex flex-col items-center cursor-pointer justify-center transition-all duration-200 hover:shadow-md ${bgColor} ${selected}`}
                         title={getSlotTooltip(slot, slot._id)}
                       >
-                        <div className="text-lg mb-1">🚗</div>
+                        <div className="mb-1">
+                          <Car className="w-6 h-6 text-blue-500" />
+                        </div>
                         <div className="text-xs font-semibold">{slot.slotNumber}</div>
                       </button>
                     );
@@ -658,7 +674,7 @@ export default function CombinedParkingManagement({
           <Card className="shadow-sm border">
             <CardContent className="flex flex-col items-center justify-center py-12">
               <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
-                <span className="text-2xl">🚗</span>
+                <Car className="w-10 h-10 text-blue-400" />
               </div>
               <h3 className="text-lg font-semibold text-gray-900 mb-2">No Data Available</h3>
               <p className="text-gray-600 text-center">No parking slot data for this zone.</p>

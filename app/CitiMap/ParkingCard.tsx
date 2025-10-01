@@ -57,7 +57,7 @@ export const ParkingCard = ({ parking, onSelect, onNavigate }: ParkingCardProps)
             e.stopPropagation();
             onNavigate();
           }}
-          className="flex items-center justify-center bg-blue-600 text-white px-3 py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm"
+          className="flex items-center justify-center bg-blue-600 text-white px-3 py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm cursor-pointer"
         >
           <Navigation className="w-4 h-4 mr-1.5" />
           Chỉ đường
@@ -68,7 +68,7 @@ export const ParkingCard = ({ parking, onSelect, onNavigate }: ParkingCardProps)
             e.stopPropagation();
             router.push(`/detailParking/${parking._id}`);
           }}
-          className="flex items-center justify-center bg-gray-100 text-gray-700 px-3 py-2 rounded-lg hover:bg-gray-200 transition-colors text-sm"
+          className="flex items-center justify-center bg-gray-100 text-gray-700 px-3 py-2 rounded-lg hover:bg-gray-200 transition-colors text-sm cursor-pointer"
         >
           <Info className="w-4 h-4 mr-1.5" />
           Chi tiết

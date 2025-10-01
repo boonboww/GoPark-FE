@@ -13,13 +13,13 @@ import {
   X,
   LogOut,
   Bell,
-  Search,
   Building2,
   Ticket,
   User
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import QuickSearch from '@/components/QuickSearch';
 
 interface SidebarItem {
   title: string;
@@ -74,16 +74,26 @@ export default function OwnerSidebar({ className = "" }: OwnerSidebarProps) {
   const router = useRouter();
 
   const toggleExpanded = (title: string) => {
-    setExpandedItems(prev => 
-      prev.includes(title) 
+
+    setExpandedItems(prev =>
+      prev.includes(title)
         ? prev.filter(item => item !== title)
         : [...prev, title]
     );
+  }
+  // Returns true if the current path matches the item's href exactly
+  const isActive = (href?: string) => {
+    if (!href) return false;
+    return pathname === href;
   };
 
-  const isActive = (href: string) => {
-    return pathname === href || pathname.startsWith(href + '/');
-  };
+  // Returns true if any child of the item is active
+  const isChildActive = (item: SidebarItem): boolean => {
+    if (!item.children) return false;
+    return item.children.some(child =>
+      isActive(child.href) || isChildActive(child)
+    )
+  }
 
   const handleLogout = () => {
     localStorage.removeItem("token");
@@ -96,19 +106,31 @@ export default function OwnerSidebar({ className = "" }: OwnerSidebarProps) {
     const isExpanded = expandedItems.includes(item.title);
     const Icon = item.icon;
 
+    // Determine if this item or any of its children is active
+    const active = isActive(item.href);
+    const childActive = isChildActive(item);
+
     if (hasChildren) {
       return (
         <div key={item.title} className="mb-1">
           <button
             onClick={() => toggleExpanded(item.title)}
-            className={`w-full flex items-center justify-between px-3 py-2.5 text-left rounded-lg transition-all duration-200 group hover:bg-green-50 hover:text-green-700 ${
-              level > 0 ? 'ml-4 text-sm' : ''
-            }`}
+            className={`w-full flex items-center justify-between px-3 py-2.5 text-left rounded-lg transition-all duration-200 group
+              ${active || childActive ? (!isCollapsed ? 'bg-green-100 text-green-700 border-r-2 border-green-600' : '') : 'hover:bg-green-50 hover:text-green-700'}
+              ${level > 0 ? 'ml-4 text-sm' : ''}`}
           >
             <div className="flex items-center gap-3">
-              <Icon className={`${isCollapsed ? 'w-5 h-5' : 'w-4 h-4'} text-gray-500 group-hover:text-green-600`} />
+              {isCollapsed && (active || childActive) ? (
+                <span className="flex items-center justify-center w-11 h-11 bg-green-100 rounded-lg mx-auto">
+                  <Icon className="w-6 h-6 text-green-600" />
+                </span>
+              ) : (
+                <span className="flex items-center justify-center w-11 h-11 mx-auto">
+                  <Icon className={`${isCollapsed ? 'w-6 h-6' : 'w-4 h-4'} ${active || childActive ? 'text-green-600' : 'text-gray-500 group-hover:text-green-600'}`} />
+                </span>
+              )}
               {!isCollapsed && (
-                <span className="font-medium text-gray-700 group-hover:text-green-700">
+                <span className={`font-medium ${active || childActive ? 'text-green-700' : 'text-gray-700 group-hover:text-green-700'}`}>
                   {item.title}
                 </span>
               )}
@@ -128,53 +150,59 @@ export default function OwnerSidebar({ className = "" }: OwnerSidebarProps) {
               </div>
             )}
           </button>
-          
-          {isExpanded && !isCollapsed && (
-            <div className="mt-1 space-y-1 ml-4">
-              {item.children?.map(child => renderSidebarItem(child, level + 1))}
+          {/* Render children if expanded */}
+          {isExpanded && item.children && (
+            <div className="pl-4">
+              {item.children.map(child => renderSidebarItem(child, level + 1))}
             </div>
           )}
         </div>
       );
-    }
-
-    return (
-      <Link
-        key={item.title}
-        href={item.href || '#'}
-        className={`flex items-center justify-between px-3 py-2.5 rounded-lg transition-all duration-200 group mb-1 ${
-          item.href && isActive(item.href)
-            ? 'bg-green-100 text-green-700 border-r-2 border-green-600'
-            : 'hover:bg-green-50 hover:text-green-700'
-        } ${level > 0 ? 'ml-4 text-sm' : ''}`}
-      >
-        <div className="flex items-center gap-3">
-          <Icon className={`${isCollapsed ? 'w-5 h-5' : 'w-4 h-4'} ${
-            item.href && isActive(item.href) ? 'text-green-600' : 'text-gray-500 group-hover:text-green-600'
-          }`} />
-          {!isCollapsed && (
-            <span className={`font-medium ${
-              item.href && isActive(item.href) ? 'text-green-700' : 'text-gray-700 group-hover:text-green-700'
-            }`}>
-              {item.title}
-            </span>
+    } else {
+      return (
+        <Link
+          key={item.title}
+          href={item.href || '#'}
+          className={`flex items-center justify-between px-3 py-2.5 rounded-lg transition-all duration-200 group mb-1
+            ${active ? (!isCollapsed ? 'bg-green-100 text-green-700 border-r-2 border-green-600' : '') : 'hover:bg-green-50 hover:text-green-700'}
+            ${level > 0 ? 'ml-4 text-sm' : ''}`}
+          onClick={() => {
+            if (window.innerWidth < 1024) setIsMobileOpen(false);
+          }}
+        >
+          <div className="flex items-center gap-3">
+            {isCollapsed && active ? (
+              <span className="flex items-center justify-center w-11 h-11 bg-green-100 rounded-lg mx-auto">
+                <Icon className="w-6 h-6 text-green-600" />
+              </span>
+            ) : (
+              <span className="flex items-center justify-center w-11 h-11 mx-auto">
+                <Icon className={`${isCollapsed ? 'w-6 h-6' : 'w-4 h-4'} ${active ? 'text-green-600' : 'text-gray-500 group-hover:text-green-600'}`} />
+              </span>
+            )}
+            {!isCollapsed && (
+              <span className={`font-medium ${active ? 'text-green-700' : 'text-gray-700 group-hover:text-green-700'}`}>
+                {item.title}
+              </span>
+            )}
+          </div>
+          {!isCollapsed && item.badge && (
+            <Badge variant="secondary" className="bg-red-100 text-red-700 text-xs">
+              {item.badge}
+            </Badge>
           )}
-        </div>
-        {!isCollapsed && item.badge && (
-          <Badge variant="secondary" className="bg-red-100 text-red-700 text-xs">
-            {item.badge}
-          </Badge>
-        )}
-      </Link>
-    );
+        </Link>
+      );
+    }
   };
 
   return (
     <>
       {/* Mobile Overlay */}
       {isMobileOpen && (
-        <div 
-          className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
+        <div
+          className="fixed inset-0 z-40 lg:hidden backdrop-blur-sm bg-black/20 transition-all duration-300"
+          style={{ WebkitBackdropFilter: 'blur(6px)', backdropFilter: 'blur(6px)' }}
           onClick={() => setIsMobileOpen(false)}
         />
       )}
@@ -182,19 +210,20 @@ export default function OwnerSidebar({ className = "" }: OwnerSidebarProps) {
       {/* Mobile Menu Button */}
       <Button
         variant="outline"
-        size="sm"
-        className="fixed top-4 left-4 z-50 lg:hidden"
+        size="icon"
+        className="fixed top-6 left-4 z-50 lg:hidden w-12 h-12 flex items-center justify-center"
         onClick={() => setIsMobileOpen(!isMobileOpen)}
       >
-        {isMobileOpen ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
+        {isMobileOpen ? <X className="w-7 h-7" /> : <Menu className="w-7 h-7" />}
       </Button>
 
       {/* Sidebar */}
-      <div className={`fixed left-0 top-0 z-50 h-screen bg-white border-r border-gray-200 shadow-lg transition-all duration-300 lg:z-10 ${
-        isCollapsed ? 'w-16' : 'w-72'
-      } ${
-        isMobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
-      } ${className}`}>
+      <div className={`fixed lg:relative left-0 top-0 z-50 bg-white border-r border-gray-200 shadow-lg transition-all duration-300 lg:z-10
+        ${isCollapsed ? 'w-16 min-w-[56px]' : 'w-72'}
+        h-screen flex flex-col
+        ${isMobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
+        ${className}
+      `}>
         
         {/* Header */}
         <div className={`p-4 border-b border-gray-200 ${isCollapsed ? 'px-2' : ''}`}>
@@ -212,11 +241,11 @@ export default function OwnerSidebar({ className = "" }: OwnerSidebarProps) {
             )}
             <Button
               variant="ghost"
-              size="sm"
+              size="icon"
               onClick={() => setIsCollapsed(!isCollapsed)}
-              className="hidden lg:flex w-8 h-8 p-0"
+              className="hidden lg:flex w-12 h-12 items-center justify-center"
             >
-              <Menu className="w-4 h-4" />
+              <Menu className="w-7 h-7" />
             </Button>
           </div>
         </div>
@@ -241,8 +270,8 @@ export default function OwnerSidebar({ className = "" }: OwnerSidebarProps) {
         )}
 
         {/* Navigation */}
-        <nav className="flex-1 p-4 overflow-y-auto">
-          <div className="space-y-2">
+  <nav className={`flex-1 overflow-y-auto ${isCollapsed ? 'flex flex-col items-center justify-center pt-6' : 'p-4'}`}>
+          <div className={`${isCollapsed ? 'flex flex-col gap-2 items-center justify-center' : 'space-y-2'}`}>
             {sidebarItems.map(item => renderSidebarItem(item))}
           </div>
         </nav>
@@ -251,10 +280,7 @@ export default function OwnerSidebar({ className = "" }: OwnerSidebarProps) {
         <div className="p-4 border-t border-gray-200">
           {!isCollapsed ? (
             <div className="space-y-2">
-              <div className="flex items-center gap-2 px-3 py-2 text-sm text-gray-500">
-                <Search className="w-4 h-4" />
-                <span>Tìm kiếm nhanh</span>
-              </div>
+              <QuickSearch isCollapsed={false} />
               <Button 
                 variant="ghost" 
                 className="w-full justify-start text-red-600 hover:text-red-700 hover:bg-red-50"
@@ -265,14 +291,17 @@ export default function OwnerSidebar({ className = "" }: OwnerSidebarProps) {
               </Button>
             </div>
           ) : (
-            <Button 
-              variant="ghost" 
-              size="sm"
-              className="w-full p-2 text-red-600 hover:text-red-700 hover:bg-red-50"
-              onClick={handleLogout}
-            >
-              <LogOut className="w-4 h-4" />
-            </Button>
+            <div className="space-y-2">
+              <QuickSearch isCollapsed={true} />
+              <Button 
+                variant="ghost" 
+                size="sm"
+                className="w-full p-2 text-red-600 hover:text-red-700 hover:bg-red-50"
+                onClick={handleLogout}
+              >
+                <LogOut className="w-4 h-4" />
+              </Button>
+            </div>
           )}
         </div>
       </div>

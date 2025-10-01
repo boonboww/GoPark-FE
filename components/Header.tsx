@@ -33,6 +33,7 @@ export default function Header({
   const router = useRouter();
   const pathname = usePathname();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isAvatarMenuOpen, setIsAvatarMenuOpen] = useState(false);
   const [isAvatarClicked, setIsAvatarClicked] = useState(false);
@@ -141,11 +142,12 @@ export default function Header({
   };
 
   const handleLogout = () => {
-    localStorage.removeItem("token");
-    setIsLoggedIn(false);
-    setIsAvatarMenuOpen(false);
-    setIsAvatarClicked(false);
-    router.push("/account/login");
+  localStorage.removeItem("token");
+  setIsLoggedIn(false);
+  setIsAvatarMenuOpen(false);
+  setIsAvatarClicked(false);
+  setShowLogoutConfirm(false);
+  router.push("/account/login");
   };
 
   const handleNotificationClick = () => {
@@ -460,11 +462,33 @@ export default function Header({
                   <Settings size={16} className="mr-2" /> Cài đặt
                 </button>
                 <button
-                  onClick={handleLogout}
+                  onClick={() => setShowLogoutConfirm(true)}
                   className="flex items-center px-4 py-2 hover:bg-gray-100 w-full text-left cursor-pointer text-red-600 text-sm sm:text-base"
                 >
                   <LogOut size={16} className="mr-2" /> Đăng xuất
                 </button>
+                {showLogoutConfirm && (
+                  <div style={{position: 'fixed', left: 0, top: 0, width: '100vw', minHeight: '100vh', zIndex: 2000, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.4)'}}>
+                    <div className="bg-white rounded-lg shadow-lg p-6 w-80 max-w-full flex flex-col items-center">
+                      <div className="mb-4 text-lg font-semibold text-gray-800">Xác nhận đăng xuất</div>
+                      <div className="mb-6 text-gray-600 text-center">Bạn có chắc chắn muốn đăng xuất không?</div>
+                      <div className="flex gap-3">
+                        <button
+                          onClick={handleLogout}
+                          className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 font-semibold"
+                        >
+                          Đăng xuất
+                        </button>
+                        <button
+                          onClick={() => setShowLogoutConfirm(false)}
+                          className="bg-gray-200 text-gray-800 px-4 py-2 rounded hover:bg-gray-300 font-semibold"
+                        >
+                          Hủy
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </div>

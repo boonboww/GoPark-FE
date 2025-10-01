@@ -7,6 +7,8 @@ import toast from "react-hot-toast";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
+
+
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -27,6 +29,8 @@ import BookingDetail from "./BookingDetail";
 import { Booking } from "./types";
 import { getUserBookings, cancelBooking, formatBookingForUI } from "@/lib/booking.api";
 
+
+
 export default function MyBookingPage() {
   const router = useRouter();
   const [activeBookings, setActiveBookings] = useState<Booking[]>([]);
@@ -35,6 +39,7 @@ export default function MyBookingPage() {
   const [loading, setLoading] = useState(true);
   const [cancelling, setCancelling] = useState<string | null>(null);
   const [imageErrors, setImageErrors] = useState<Set<string>>(new Set());
+  const [confirmCancelId, setConfirmCancelId] = useState<string | null>(null);
 
   // Load bookings from API
   const loadBookings = async () => {
@@ -191,9 +196,9 @@ export default function MyBookingPage() {
             variant="outline"
             size="sm"
             onClick={() => setSelectedBooking(booking)}
-            className="flex items-center gap-2"
+            className="flex items-center gap-2 cursor-pointer"
           >
-            <Eye className="w-4 h-4" />
+            <Eye className="w-4 h-4 " />
             Xem chi tiết
           </Button>
           
@@ -201,9 +206,9 @@ export default function MyBookingPage() {
             <Button
               variant="outline"
               size="sm"
-              onClick={() => handleCancel(booking.id)}
+              onClick={() => setConfirmCancelId(booking.id)}
               disabled={cancelling === booking.id}
-              className="flex items-center gap-2 text-red-600 hover:text-red-700 hover:bg-red-50"
+              className="flex items-center gap-2 text-red-600 hover:text-red-700 hover:bg-red-50 cursor-pointer"
             >
               {cancelling === booking.id ? (
                 <Loader2 className="w-4 h-4 animate-spin" />
@@ -213,10 +218,41 @@ export default function MyBookingPage() {
               Hủy đặt chỗ
             </Button>
           )}
+  {/* Dialog xác nhận hủy với overlay trong suốt */}
+  {!!confirmCancelId && (
+    <>
+      {/* Custom transparent overlay */}
+      <div 
+        className="fixed inset-0 z-50 bg-white/20 backdrop-blur-sm" 
+        onClick={() => setConfirmCancelId(null)}
+      />
+      {/* Dialog content */}
+      <div className="fixed top-[50%] left-[50%] z-50 w-full max-w-xs translate-x-[-50%] translate-y-[-50%] bg-white rounded-lg border shadow-lg p-6 animate-in zoom-in-95 fade-in-0 duration-200">
+        <div className="flex flex-col gap-2 text-center sm:text-left mb-4">
+          <h2 className="text-lg font-semibold">Xác nhận hủy đặt chỗ</h2>
+        </div>
+        <div className="mb-6">Bạn có chắc chắn muốn hủy đặt chỗ này không?</div>
+        <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+          <Button variant="outline" onClick={() => setConfirmCancelId(null)}>
+            Không
+          </Button>
+          <Button
+            variant="destructive"
+            onClick={() => {
+              if (confirmCancelId) handleCancel(confirmCancelId);
+              setConfirmCancelId(null);
+            }}
+          >
+            Có, hủy đặt chỗ
+          </Button>
+        </div>
+      </div>
+    </>
+  )}
         </div>
       </CardContent>
     </Card>
-    );
+  );
   };
 
   if (loading) {
@@ -245,7 +281,7 @@ export default function MyBookingPage() {
               onClick={loadBookings}
               variant="outline"
               size="sm"
-              className="flex items-center gap-2"
+              className="flex items-center cursor-pointer gap-2"
             >
               <RefreshCw className="w-4 h-4" />
               Làm mới
@@ -261,7 +297,7 @@ export default function MyBookingPage() {
                   <p className="text-gray-600 mb-4">
                     Bạn chưa có chỗ đỗ xe nào. Hãy tìm và đặt một chỗ đỗ ngay bây giờ!
                   </p>
-                  <Button onClick={() => router.push("/")} className="bg-blue-600 hover:bg-blue-700">
+                  <Button onClick={() => router.push("/")} className="bg-blue-600 hover:bg-blue-700 cursor-pointer">
                     <Car className="w-4 h-4 mr-2" />
                     Tìm chỗ đỗ xe
                   </Button>

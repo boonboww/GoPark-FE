@@ -61,6 +61,7 @@ export default function ParkingBookingForm({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [timeError, setTimeError] = useState<string | null>(null);
+  const [parkingLotPrice, setParkingLotPrice] = useState<number>(20000); // Giá mặc định
 
   useEffect(() => {
     const fetchUserAndSlots = async () => {
@@ -68,6 +69,13 @@ export default function ParkingBookingForm({
         setLoading(true);
         const storedUserId = localStorage.getItem("userId");
         setUserId(storedUserId);
+
+        // Lấy thông tin parking lot để có giá thật
+        const parkingLotResponse = await API.get(`/api/v1/parkinglots/${parkingLotId}`);
+        const parkingLotData = parkingLotResponse.data?.data;
+        if (parkingLotData?.pricePerHour) {
+          setParkingLotPrice(parkingLotData.pricePerHour);
+        }
 
         const userResponse = await API.get("/api/v1/users/me");
         setName(userResponse.data.userName || "");
@@ -181,7 +189,8 @@ export default function ParkingBookingForm({
     const diffMs = end.getTime() - start.getTime();
     if (diffMs <= 0) return "0 VNĐ";
     const hours = diffMs / (1000 * 60 * 60);
-    const pricePerHour = selectedSpot?.pricePerHour || 20000;
+    // Sử dụng giá thật từ parking lot thay vì từ slot
+    const pricePerHour = parkingLotPrice;
     const fee = Math.ceil(hours * pricePerHour);
     return `${fee.toLocaleString("vi-VN")} VNĐ`;
   };
@@ -193,7 +202,8 @@ export default function ParkingBookingForm({
     const diffMs = end.getTime() - start.getTime();
     if (diffMs <= 0) return 0;
     const hours = diffMs / (1000 * 60 * 60);
-    const pricePerHour = selectedSpot?.pricePerHour || 20000;
+    // Sử dụng giá thật từ parking lot thay vì từ slot
+    const pricePerHour = parkingLotPrice;
     return Math.ceil(hours * pricePerHour);
   };
 
@@ -426,7 +436,7 @@ export default function ParkingBookingForm({
                       setSelectedSpotId(spot._id);
                     }}
                     className={`text-xs text-white flex items-center justify-center h-8 rounded ${
-                      spot.status === "available" ? "bg-green-400" : "bg-red-400"
+                      spot.status === "available" ? "bg-green-400 cursor-pointer" : "bg-red-400 cursor-not-allowed"
                     } ${selected}`}
                   >
                     {spot.slotNumber}
@@ -479,7 +489,7 @@ export default function ParkingBookingForm({
       </div>
 
       <Button
-        className="bg-black text-white hover:bg-gray-900 mt-4"
+        className="bg-black text-white hover:bg-gray-900 mt-4 cursor-pointer"
         onClick={handleSubmit}
         disabled={!!timeError}
       >
