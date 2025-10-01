@@ -307,8 +307,6 @@ useEffect(() => {
     setUserInfo({ role: "guest", name: "Khách vãng lai" });
   }
 };
-
-
   // Gọi ngay khi component mount
   checkUserAuth();
 
