@@ -216,7 +216,7 @@ useEffect(() => {
 
     if (token) {
       try {
-        const response = await fetch( "http://localhost:5000/api/v1/users/me", {
+        const response = await fetch( "api/v1/users/me", {
           method: "GET",
           headers: {
             Authorization: `Bearer ${token}`,
@@ -389,7 +389,7 @@ useEffect(() => {
 
     try {
       const response = await fetch(
-        "http://localhost:5000/api/chatbot/ai-chat",
+        "api/v1/chatbot/ai-chat",
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -451,7 +451,7 @@ useEffect(() => {
 
     try {
       await fetch(
-        `http://localhost:5000/api/chatbot/chat-history/${currentUserId}`,
+        `api/v1/chatbot/chat-history/${currentUserId}`,
         {
           method: "DELETE",
         }
