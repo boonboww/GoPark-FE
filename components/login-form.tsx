@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect } from "react";
@@ -115,71 +114,90 @@ export function LoginForm({ className, ...props }: React.ComponentProps<"div">) 
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
 
-   {showSuccessDialog && (
-  <div className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none">
-    <div className="absolute inset-0 bg-gradient-to-br from-blue-50/80 to-white/40 backdrop-blur-sm transition-all duration-300" />
-    
-    <div className="relative px-8 py-8 rounded-2xl shadow-2xl border border-blue-200 bg-white/95 flex flex-col items-center pointer-events-auto animate-scale-in min-w-[420px]">
-      
-      {/* Lottie Success Animation */}
-      <div className="w-24 h-24 mb-2">
-        <Lottie
-          animationData={successAnimation}
-          loop={false}
-          autoplay={true}
-        />
-      </div>
-      
-      <h3 className="text-2xl font-bold text-gray-800 mb-1">Đăng nhập thành công!</h3>
-      <p className="text-gray-600 text-center mb-4">
-        {loginRole === "admin" && "Chào mừng Quản trị viên đến với hệ thống GoPark"}
-        {loginRole === "owner" && "Chào mừng Chủ bãi xe đến với hệ thống GoPark"}
-        {(loginRole === "user" || !loginRole) && "Chào mừng bạn đến với hệ thống GoPark"}
-      </p>
-      
-      {/* Mini Car Animation kết hợp */}
-      <div className="w-full h-20 overflow-hidden flex items-center justify-center mb-4">
-        <div className="relative w-full h-[60px]">
-          <div className="absolute left-0 top-2 w-[120px] h-[40px] [animation:car-drive-in_1.2s_ease-out_forwards]">
-            {/* Simple car design */}
-            <div className="absolute w-[120px] h-6 bg-blue-600 rounded-[10px_10px_3px_3px] border-2 border-blue-700">
-              <div className="absolute right-4 -top-3 w-10 h-[15px] bg-blue-600 rounded-t-[10px] border-2 border-blue-700 border-b-0"></div>
-              <div className="absolute left-3 top-1 w-[15px] h-[8px] bg-amber-100 rounded-[2px] border border-amber-600"></div>
-              <div className="absolute left-8 top-1 w-[25px] h-[12px] bg-blue-400 rounded-[3px] border border-blue-700"></div>
+      {showSuccessDialog && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none">
+          <div className="absolute inset-0 bg-black/20 backdrop-blur-sm [animation:fadeIn_0.3s_ease-out]" />
+          
+          <div className="relative px-10 py-8 rounded-3xl shadow-2xl bg-white flex flex-col items-center pointer-events-auto min-w-[380px] [animation:slideUp_0.4s_ease-out]">
+            
+            {/* Animated Check Circle */}
+            <div className="relative w-20 h-20 mb-5">
+              <div className="absolute inset-0 bg-green-100 rounded-full [animation:pulse_1s_ease-out]"></div>
+              <div className="absolute inset-2 bg-green-500 rounded-full flex items-center justify-center [animation:scaleIn_0.5s_ease-out_0.2s_both]">
+                <svg className="w-10 h-10 text-white [animation:checkmark_0.6s_ease-out_0.4s_both]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
             </div>
-            {/* Wheels */}
-            <div className="absolute left-6 top-[22px] w-[15px] h-[15px] bg-gray-800 rounded-full border border-gray-900"></div>
-            <div className="absolute left-[85px] top-[22px] w-[15px] h-[15px] bg-gray-800 rounded-full border border-gray-900"></div>
+            
+            <h3 className="text-2xl font-bold text-gray-800 mb-2 [animation:fadeIn_0.5s_ease-out_0.3s_both]">
+              Đăng nhập thành công!
+            </h3>
+            <p className="text-gray-600 text-center mb-6 [animation:fadeIn_0.5s_ease-out_0.4s_both]">
+              {loginRole === "admin" && "Chào mừng Quản trị viên đến với hệ thống GoPark"}
+              {loginRole === "owner" && "Chào mừng Chủ bãi xe đến với hệ thống GoPark"}
+              {(loginRole === "user" || !loginRole) && "Chào mừng bạn đến với hệ thống GoPark"}
+            </p>
+            
+            {/* Progress Bar */}
+            <div className="w-full bg-gray-100 rounded-full h-1.5 overflow-hidden">
+              <div className="bg-gradient-to-r from-green-500 to-emerald-500 h-full rounded-full [animation:progressBar_2.5s_ease-out]"></div>
+            </div>
+            
+            <style>{`
+              @keyframes fadeIn {
+                from { opacity: 0; }
+                to { opacity: 1; }
+              }
+              @keyframes slideUp {
+                from { 
+                  opacity: 0;
+                  transform: translateY(20px);
+                }
+                to { 
+                  opacity: 1;
+                  transform: translateY(0);
+                }
+              }
+              @keyframes pulse {
+                0%, 100% { 
+                  transform: scale(1);
+                  opacity: 1;
+                }
+                50% { 
+                  transform: scale(1.1);
+                  opacity: 0.8;
+                }
+              }
+              @keyframes scaleIn {
+                from { 
+                  transform: scale(0);
+                  opacity: 0;
+                }
+                to { 
+                  transform: scale(1);
+                  opacity: 1;
+                }
+              }
+              @keyframes checkmark {
+                0% {
+                  stroke-dasharray: 0 50;
+                  stroke-dashoffset: 0;
+                }
+                100% {
+                  stroke-dasharray: 50 50;
+                  stroke-dashoffset: 0;
+                }
+              }
+              @keyframes progressBar {
+                from { width: 0%; }
+                to { width: 100%; }
+              }
+            `}</style>
           </div>
-          {/* Road */}
-          <div className="absolute bottom-2 w-full h-[3px] bg-gray-500 rounded-[2px]"></div>
-          <div className="absolute bottom-[1px] left-0 w-full h-[1px] bg-[linear-gradient(to_right,#fcd34d_0%,#fcd34d_20%,transparent_20%,transparent_100%)] bg-[length:20px_100%] [animation:road-move_0.4s_linear_infinite]"></div>
         </div>
-      </div>
-      
-      {/* Progress Bar */}
-      <div className="w-full bg-gray-100 rounded-full h-2">
-        <div className="bg-green-500 h-2 rounded-full [animation:progressBar_2.5s_linear]"></div>
-      </div>
-      
-      <style>{`
-        @keyframes car-drive-in {
-          0% { left: -120px; }
-          70% { left: calc(50% - 60px); }
-          100% { left: calc(50% - 60px); }
-        }
-        @keyframes road-move {
-          0% { background-position: 0 0; }
-          100% { background-position: 20px 0; }
-        }
-        @keyframes progressBar {
-          0% { width: 0%; }
-          100% { width: 100%; }
-        }
-      `}</style>
-    </div>
-  </div>
-)}
+      )}
+
       <Card>
         <CardHeader>
           <CardTitle>Đăng nhập tài khoản</CardTitle>
