@@ -12,7 +12,8 @@ const markerIcon = L.icon({
 
 export default function MapFrame({ lat, lon, name }: { lat: number; lon: number; name: string }) {
   return (
-    <MapContainer
+    <div className="relative z-0">
+      <MapContainer
       center={[lat, lon]}
       zoom={17}
       scrollWheelZoom={false}
@@ -31,5 +32,6 @@ export default function MapFrame({ lat, lon, name }: { lat: number; lon: number;
         </Popup>
       </Marker>
     </MapContainer>
+    </div>
   );
 }

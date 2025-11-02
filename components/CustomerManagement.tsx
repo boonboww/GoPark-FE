@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 import api from "@/lib/api";
+import { fetchMyParkingLots } from "@/lib/parkingLot.api";
+import SelectParkingLotDropdown from "./SelectParkingLotDropdown";
 import {
   Card,
   CardContent,
@@ -40,32 +42,59 @@ export default function CustomerManagement({
   setCustomers,
 }: CustomerManagementProps) {
   const [searchTerm, setSearchTerm] = useState("");
+  const [parkingLots, setParkingLots] = useState<import("@/app/owner/types").ParkingLot[]>([]);
+  const [selectedLotId, setSelectedLotId] = useState("");
   const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [addVehicleCustomer, setAddVehicleCustomer] = useState<Customer | null>(null);
   const [viewVehicleCustomer, setViewVehicleCustomer] = useState<Customer | null>(null);
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
 
+  // Fetch owner's parking lots on mount
   useEffect(() => {
-    const fetchCustomers = async () => {
+    const loadParkingLots = async () => {
       try {
-        const res = await api.get<
-          { _id: string; userName: string; email: string; phoneNumber: string }[]
-        >("/api/v1/users_new");
-        const mapped: Customer[] = res.data.map((user) => ({
-          id: user._id,
-          userName: user.userName,
-          email: user.email,
-          phoneNumber: user.phoneNumber,
-        }));
-        setCustomers(mapped);
+        const res = await fetchMyParkingLots();
+        // response shape: { data: ParkingLot[] }
+        const lots = Array.isArray(res.data.data)
+          ? res.data.data
+          : Array.isArray(res.data)
+          ? res.data
+          : [];
+        setParkingLots(lots);
+        // If there's at least one lot, select the first by default
+        if (lots.length > 0) setSelectedLotId(lots[0]._id);
       } catch (err) {
-        console.error("Lỗi khi lấy danh sách khách hàng:", err);
+        console.error("Lỗi khi lấy danh sách bãi đỗ của owner:", err);
       }
     };
 
-    fetchCustomers();
-  }, [setCustomers]);
+    loadParkingLots();
+  }, []);
+
+  // Fetch users who have booked in the selected parking lot
+  useEffect(() => {
+    if (!selectedLotId) return;
+    const fetchCustomersByLot = async () => {
+      try {
+        const res = await api.get(`/api/v1/parkinglots/${selectedLotId}/users`);
+        // controller returns { status: 'success', results, data: users }
+        const users = res.data.data || [];
+        const mapped: Customer[] = users.map((user: any) => ({
+          id: user._id || user.id,
+          userName: user.userName || user.name || "",
+          email: user.email || "",
+          phoneNumber: user.phoneNumber || "",
+        }));
+        setCustomers(mapped);
+      } catch (err) {
+        console.error("Lỗi khi lấy khách hàng của bãi đỗ:", err);
+        setCustomers([]);
+      }
+    };
+
+    fetchCustomersByLot();
+  }, [selectedLotId, setCustomers]);
 
   const handleAddCustomer = async (data: Omit<Customer, "id">) => {
     try {
@@ -138,12 +167,24 @@ export default function CustomerManagement({
       c.phoneNumber.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  // per-customer selected lot (local mapping)
+  const [customerLotMap, setCustomerLotMap] = useState<Record<string, string>>({});
+
   return (
     <Card>
       <CardHeader className="flex justify-between items-center">
-        <div>
-          <CardTitle>Danh sách khách hàng</CardTitle>
-          <CardDescription>Quản lý khách hàng đã đăng ký</CardDescription>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:gap-4">
+          <div>
+            <CardTitle>Danh sách khách hàng</CardTitle>
+            <CardDescription>Quản lý khách hàng đã đăng ký</CardDescription>
+          </div>
+          <div className="w-56">
+            <SelectParkingLotDropdown
+              parkingLots={parkingLots}
+              selectedLotId={selectedLotId}
+              onSelect={(id) => setSelectedLotId(id)}
+            />
+          </div>
         </div>
         <Input
           placeholder="Tìm kiếm theo tên/email/số điện thoại..."
@@ -239,6 +280,7 @@ export default function CustomerManagement({
               <TableHead>Tên khách hàng</TableHead>
               <TableHead>Email</TableHead>
               <TableHead>Số điện thoại</TableHead>
+              <TableHead>Bãi</TableHead>
               <TableHead>Hành động</TableHead>
             </TableRow>
           </TableHeader>
@@ -248,9 +290,21 @@ export default function CustomerManagement({
                 <TableCell>{c.userName}</TableCell>
                 <TableCell>{c.email}</TableCell>
                 <TableCell>{c.phoneNumber}</TableCell>
+                <TableCell className="w-56">
+                  <SelectParkingLotDropdown
+                    parkingLots={parkingLots}
+                    selectedLotId={customerLotMap[c.id] || selectedLotId}
+                    onSelect={(id) =>
+                      setCustomerLotMap((prev) => ({ ...prev, [c.id]: id }))
+                    }
+                  />
+                </TableCell>
                 <TableCell className="space-x-2 flex flex-wrap gap-2">
                   <Button size="sm" variant="outline" onClick={() => setEditingCustomer(c)}>
                     Sửa
+                  </Button>
+                  <Button size="sm" variant="outline" onClick={() => console.log('Save mapping', c.id, customerLotMap[c.id])}>
+                    Lưu
                   </Button>
                   <Button size="sm" variant="destructive" onClick={() => handleDeleteCustomer(c.id)}>
                     Xóa
