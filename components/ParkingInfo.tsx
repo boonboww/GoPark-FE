@@ -91,13 +91,21 @@ export default function ParkingInfo({ parkingLotId }: ParkingInfoProps) {
         const slotsResponse = await getParkingSlotsByLotId(parkingLotId);
         setSpots(slotsResponse.data.data?.data || []);
 
-        // 📌 Lấy thông tin user hiện tại
-        const userResponse = await API.get("/api/v1/users/me");
-        setUser({
-          userName: userResponse.data.userName,
-          email: userResponse.data.email,
-          phoneNumber: userResponse.data.phoneNumber,
-        });
+        // 📌 Lấy thông tin user hiện tại (chỉ nếu đã đăng nhập)
+        const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+        if (token) {
+          try {
+            const userResponse = await API.get("/api/v1/users/me");
+            setUser({
+              userName: userResponse.data.userName,
+              email: userResponse.data.email,
+              phoneNumber: userResponse.data.phoneNumber,
+            });
+          } catch (userError: any) {
+            console.warn("Không thể lấy thông tin user:", userError.message);
+            // Không set error, user có thể chưa đăng nhập
+          }
+        }
 
         // 📌 Nếu parkingLot trả về parkingOwner là object hoặc id, fetch owner
         // Note: parkingLotResponse may include the lot directly under data or data.parkingLot
@@ -128,7 +136,24 @@ export default function ParkingInfo({ parkingLotId }: ParkingInfoProps) {
 
         setLoading(false);
       } catch (error: any) {
-        console.error("Lỗi khi lấy dữ liệu:", error.response?.data || error.message);
+        console.error("Lỗi khi lấy dữ liệu:", {
+          message: error.message,
+          response: error.response?.data,
+          status: error.response?.status,
+          url: error.config?.url,
+        });
+        
+        // Xử lý lỗi 401
+        if (error.response?.status === 401) {
+          setError("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.");
+          localStorage.removeItem("token");
+          localStorage.removeItem("role");
+          setTimeout(() => {
+            window.location.href = "/login";
+          }, 2000);
+          return;
+        }
+        
         setError("Không thể tải thông tin bãi đỗ, vị trí đỗ hoặc thông tin người dùng. Vui lòng thử lại sau.");
         setLoading(false);
       }
