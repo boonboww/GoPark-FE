@@ -363,8 +363,33 @@ function AddVehicleContent() {
             <Label>Ảnh phương tiện (tùy chọn)</Label>
             <Input
               type="file"
-              accept="image/*"
-              onChange={(e) => e.target.files && setFile(e.target.files[0])}
+              accept=".jpg,.jpeg,.png"
+              onChange={(e) => {
+                const selected = e.target.files && e.target.files[0];
+                if (!selected) return;
+
+                // Validate MIME type
+                const allowedTypes = ["image/jpeg", "image/jpg", "image/png"];
+                if (!allowedTypes.includes(selected.type)) {
+                  setFile(null);
+                  setImageError("Định dạng ảnh không hợp lệ. Vui lòng chọn file JPG hoặc PNG.");
+                  toast.error("Định dạng ảnh không hợp lệ. Vui lòng chọn file JPG hoặc PNG.");
+                  return;
+                }
+
+                // Validate size (5MB)
+                const maxSize = 5 * 1024 * 1024;
+                if (selected.size > maxSize) {
+                  setFile(null);
+                  setImageError("Kích thước ảnh vượt quá 5MB.");
+                  toast.error("Kích thước ảnh vượt quá 5MB.");
+                  return;
+                }
+
+                // OK
+                setImageError("");
+                setFile(selected);
+              }}
             />
             {imageError && <p className="text-sm text-red-600">{imageError}</p>}
           </div>
