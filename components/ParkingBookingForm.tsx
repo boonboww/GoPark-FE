@@ -1,11 +1,10 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-unused-vars */
-
 "use client";
 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import DetailBookingModal from "./DetailBookingModal";
 import { useState, useEffect } from "react";
 import { getParkingSlotsByLotId, getAvailableSlotsByDate } from "@/lib/api";
 import API from "@/lib/api";
@@ -17,6 +16,8 @@ import {
   CreditCard,
   DollarSign,
 } from "lucide-react";
+import { useRouter } from "next/navigation";
+import qs from "qs";
 
 type Spot = {
   _id: string;
@@ -42,6 +43,8 @@ export default function ParkingBookingForm({
   parkingLotId,
   allowedPaymentMethods,
 }: ParkingBookingFormProps) {
+  const router = useRouter();
+
   const [spots, setSpots] = useState<Spot[]>([]);
   const [selectedZone, setSelectedZone] = useState<string>("");
   const [selectedSpotId, setSelectedSpotId] = useState<string | null>(null);
@@ -56,12 +59,11 @@ export default function ParkingBookingForm({
   const [bookingType, setBookingType] = useState<"date" | "hours" | "month">(
     "hours"
   );
-  const [modalOpen, setModalOpen] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [timeError, setTimeError] = useState<string | null>(null);
-  const [parkingLotPrice, setParkingLotPrice] = useState<number>(20000); // Giá mặc định
+  const [parkingLotPrice, setParkingLotPrice] = useState<number>(20000);
 
   useEffect(() => {
     const fetchUserAndSlots = async () => {
@@ -70,12 +72,12 @@ export default function ParkingBookingForm({
         const storedUserId = localStorage.getItem("userId");
         setUserId(storedUserId);
 
-        // Lấy thông tin parking lot để có giá thật
-        const parkingLotResponse = await API.get(`/api/v1/parkinglots/${parkingLotId}`);
+        const parkingLotResponse = await API.get(
+          `/api/v1/parkinglots/${parkingLotId}`
+        );
         const parkingLotData = parkingLotResponse.data?.data;
-        if (parkingLotData?.pricePerHour) {
+        if (parkingLotData?.pricePerHour)
           setParkingLotPrice(parkingLotData.pricePerHour);
-        }
 
         const userResponse = await API.get("/api/v1/users/me");
         setName(userResponse.data.userName || "");
@@ -86,20 +88,19 @@ export default function ParkingBookingForm({
         const slotsResponse = await getParkingSlotsByLotId(parkingLotId);
         const rawSlots = slotsResponse.data?.data?.data;
         if (Array.isArray(rawSlots)) {
-          // Sắp xếp các slot theo số của slotNumber (loại bỏ ký tự đầu)
-          const sortedSlots = rawSlots.sort((a, b) => 
-            parseInt(a.slotNumber.replace(/^\D+/g, '')) - parseInt(b.slotNumber.replace(/^\D+/g, ''))
+          const sortedSlots = rawSlots.sort(
+            (a, b) =>
+              parseInt(a.slotNumber.replace(/^\D+/g, "")) -
+              parseInt(b.slotNumber.replace(/^\D+/g, ""))
           );
           setSpots(sortedSlots);
-          if (sortedSlots.length > 0) {
+          if (sortedSlots.length > 0)
             setSelectedZone(sortedSlots[0].zone || "");
-          }
         } else {
           setSpots([]);
           setError("Không tìm thấy danh sách vị trí đỗ.");
         }
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      } catch (error: any) {
+      } catch (err: any) {
         setError(
           "Không thể tải thông tin người dùng, xe hoặc danh sách vị trí đỗ."
         );
@@ -108,7 +109,6 @@ export default function ParkingBookingForm({
         setLoading(false);
       }
     };
-
     fetchUserAndSlots();
   }, [parkingLotId]);
 
@@ -123,22 +123,18 @@ export default function ParkingBookingForm({
         const availableSpots = response.data.data.data.filter(
           (spot: Spot) => spot.status === "available"
         );
-        // Sắp xếp các slot theo số của slotNumber (loại bỏ ký tự đầu)
-        const sortedSpots = availableSpots.sort((a, b) => 
-          parseInt(a.slotNumber.replace(/^\D+/g, '')) - parseInt(b.slotNumber.replace(/^\D+/g, ''))
+        const sortedSpots = availableSpots.sort(
+          (a, b) =>
+            parseInt(a.slotNumber.replace(/^\D+/g, "")) -
+            parseInt(b.slotNumber.replace(/^\D+/g, ""))
         );
         setSpots(sortedSpots);
-        if (sortedSpots.length > 0) {
-          setSelectedZone(sortedSpots[0].zone || "");
-        } else {
-          setSelectedZone("");
-          setError("Không tìm thấy slot trống cho khoảng thời gian này.");
-        }
+        if (sortedSpots.length > 0) setSelectedZone(sortedSpots[0].zone || "");
+        else setError("Không tìm thấy slot trống cho khoảng thời gian này.");
       } else {
         setSpots([]);
         setError("Không tìm thấy slot trống cho khoảng thời gian này.");
       }
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
       setSpots([]);
       setError("Không thể tải danh sách slot trống. Vui lòng thử lại.");
@@ -152,7 +148,7 @@ export default function ParkingBookingForm({
       const start = new Date(startTime);
       const end = new Date(endTime);
       const diffMs = end.getTime() - start.getTime();
-      const minDiffMs = 10 * 60 * 1000; // 10 minutes in milliseconds
+      const minDiffMs = 10 * 60 * 1000;
 
       if (isNaN(start.getTime()) || isNaN(end.getTime())) {
         setTimeError("Thời gian bắt đầu hoặc kết thúc không hợp lệ!");
@@ -172,82 +168,18 @@ export default function ParkingBookingForm({
     }
   }, [startTime, endTime, parkingLotId]);
 
-  const zones = Array.from(
-    new Set(Array.isArray(spots) ? spots.map((spot) => spot.zone) : [])
+  const zones = Array.from(new Set(spots.map((spot) => spot.zone)));
+  const currentZoneSpots = spots.filter(
+    (spot) => spot.zone === selectedZone && spot.status === "available"
   );
-  const currentZoneSpots = Array.isArray(spots)
-    ? spots.filter((spot) => spot.zone === selectedZone && spot.status === "available")
-    : [];
-  const selectedSpot = Array.isArray(spots)
-    ? spots.find((s) => s._id === selectedSpotId) || null
-    : null;
-
-  const calculateFee = () => {
-    if (!startTime || !endTime || !selectedSpotId || timeError) return "0 VNĐ";
-    const start = new Date(startTime);
-    const end = new Date(endTime);
-    const diffMs = end.getTime() - start.getTime();
-    if (diffMs <= 0) return "0 VNĐ";
-    const hours = diffMs / (1000 * 60 * 60);
-    // Sử dụng giá thật từ parking lot thay vì từ slot
-    const pricePerHour = parkingLotPrice;
-    const fee = Math.ceil(hours * pricePerHour);
-    return `${fee.toLocaleString("vi-VN")} VNĐ`;
-  };
+  const selectedSpot = spots.find((s) => s._id === selectedSpotId) || null;
 
   const calculateFeeValue = () => {
     if (!startTime || !endTime || !selectedSpotId || timeError) return 0;
     const start = new Date(startTime);
     const end = new Date(endTime);
-    const diffMs = end.getTime() - start.getTime();
-    if (diffMs <= 0) return 0;
-    const hours = diffMs / (1000 * 60 * 60);
-    // Sử dụng giá thật từ parking lot thay vì từ slot
-    const pricePerHour = parkingLotPrice;
-    return Math.ceil(hours * pricePerHour);
-  };
-
-  const handleStartTimeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newStartTime = e.target.value;
-    if (newStartTime) {
-      setStartTime(newStartTime);
-      setEndTime("");
-      setTimeError(null);
-      setSelectedSpotId(null);
-      const start = new Date(newStartTime);
-      if (isNaN(start.getTime())) {
-        setTimeError("Thời gian bắt đầu không hợp lệ!");
-      }
-    } else {
-      setStartTime("");
-      setTimeError(null);
-      setSelectedSpotId(null);
-    }
-  };
-
-  const handleEndTimeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newEndTime = e.target.value;
-    if (newEndTime && startTime) {
-      setEndTime(newEndTime);
-      setSelectedSpotId(null);
-      const start = new Date(startTime);
-      const end = new Date(newEndTime);
-      const diffMs = end.getTime() - start.getTime();
-      const minDiffMs = 10 * 60 * 1000; // 10 minutes in milliseconds
-      if (isNaN(end.getTime())) {
-        setTimeError("Thời gian kết thúc không hợp lệ!");
-      } else if (diffMs <= minDiffMs) {
-        setTimeError(
-          "Thời gian kết thúc phải lớn hơn thời gian bắt đầu ít nhất 10 phút!"
-        );
-      } else {
-        setTimeError(null);
-      }
-    } else {
-      setEndTime("");
-      setTimeError(null);
-      setSelectedSpotId(null);
-    }
+    const hours = (end.getTime() - start.getTime()) / (1000 * 60 * 60);
+    return Math.ceil(hours * parkingLotPrice);
   };
 
   const handleSubmit = async () => {
@@ -272,60 +204,42 @@ export default function ParkingBookingForm({
       return;
     }
 
-    try {
-      const response = await getAvailableSlotsByDate(parkingLotId, startTime, endTime);
-      const availableSpots = response.data.data.data;
-      const isSpotAvailable = availableSpots.some(
-        (spot: Spot) => spot._id === selectedSpotId && spot.status === "available"
-      );
-      if (!isSpotAvailable) {
-        alert("Slot này đã được đặt bởi người dùng khác. Vui lòng chọn slot khác.");
-        fetchAvailableSlotsByDate(startTime, endTime);
-        setSelectedSpotId(null);
-        return;
-      }
-      console.log("Start Time:", startTime);
-      console.log("End Time:", endTime);
-      setModalOpen(true);
-    } catch (err) {
-      alert("Lỗi khi kiểm tra slot. Vui lòng thử lại.");
+    const selectedVehicle = vehicles.find((v) => v.licensePlate === vehicle);
+    if (!selectedVehicle) {
+      alert("Vui lòng chọn phương tiện hợp lệ");
+      return;
     }
+
+    const bookingData = {
+      userId,
+      userName: name, // gửi tên người dùng
+      slotNumber: selectedSpot.slotNumber, // gửi tên slot
+      parkingSlotId: selectedSpotId,
+      vehicleId: selectedVehicle._id,
+      vehicleNumber: vehicle,
+      startTime: new Date(startTime).toISOString(),
+      endTime: new Date(endTime).toISOString(),
+      bookingType,
+      paymentMethod,
+      totalPrice: calculateFeeValue().toString(),
+    };
+
+    const queryString = qs.stringify(bookingData);
+    router.push(`/payment?${queryString}`);
   };
 
-  const handleConfirm = () => {
-    API.get("/api/v1/users/me")
-      .then((userResponse) => {
-        setName(userResponse.data.userName || "");
-      })
-      .catch((error) => {
-        setName("");
-      });
-
-    setVehicle(vehicles[0]?.licensePlate || "");
-    setStartTime("");
-    setEndTime("");
-    setSelectedSpotId(null);
-    setSelectedZone(zones[0] || "");
-    setPaymentMethod("pay-at-parking");
-    setBookingType("hours");
-    setModalOpen(false);
-  };
-
-  if (error) {
+  if (error)
     return (
       <div className="border rounded-lg shadow-sm p-6 bg-white text-red-600">
         {error}
       </div>
     );
-  }
-
-  if (loading) {
+  if (loading)
     return (
       <div className="border rounded-lg shadow-sm p-6 bg-white text-gray-600">
         Đang tải...
       </div>
     );
-  }
 
   return (
     <aside className="border rounded-lg shadow-sm p-6 flex flex-col gap-4 bg-white">
@@ -357,6 +271,7 @@ export default function ParkingBookingForm({
           ))}
         </select>
       </div>
+
       <div>
         <Label className="flex items-center gap-1">
           <Clock className="w-4 h-4" /> Thời gian bắt đầu
@@ -365,7 +280,7 @@ export default function ParkingBookingForm({
           type="datetime-local"
           value={startTime}
           min={new Date().toISOString().slice(0, 16)}
-          onChange={handleStartTimeChange}
+          onChange={(e) => setStartTime(e.target.value)}
         />
       </div>
 
@@ -383,10 +298,11 @@ export default function ParkingBookingForm({
                   .slice(0, 16)
               : undefined
           }
-          onChange={handleEndTimeChange}
+          onChange={(e) => setEndTime(e.target.value)}
         />
         {timeError && <p className="text-red-600 text-sm mt-1">{timeError}</p>}
       </div>
+
       <div>
         <Label className="flex items-center gap-1">
           <MapPin className="w-4 h-4" /> Khu vực
@@ -411,47 +327,36 @@ export default function ParkingBookingForm({
         <Label className="flex items-center gap-1">
           <LayoutGrid className="w-4 h-4" /> Chọn vị trí
         </Label>
-        {currentZoneSpots.length === 0 && startTime && endTime && !timeError ? (
-          <p className="text-red-600 text-sm mt-1">
-            Không có slot nào khả dụng trong khoảng thời gian này.
-          </p>
-        ) : (
-          <div className="grid grid-cols-8 gap-2 mt-2">
-            {currentZoneSpots
-              .sort((a, b) => parseInt(a.slotNumber.replace(/^\D+/g, '')) - parseInt(b.slotNumber.replace(/^\D+/g, '')))
-              .map((spot) => {
-                const selected =
-                  selectedSpotId === spot._id ? "ring-2 ring-black" : "";
-                return (
-                  <button
-                    key={spot._id}
-                    disabled={spot.status !== "available"}
-                    onClick={() => {
-                      if (spot.status !== "available") {
-                        alert(
-                          "Slot này đã được đặt. Vui lòng chọn slot khác."
-                        );
-                        return;
-                      }
-                      setSelectedSpotId(spot._id);
-                    }}
-                    className={`text-xs text-white flex items-center justify-center h-8 rounded ${
-                      spot.status === "available" ? "bg-green-400 cursor-pointer" : "bg-red-400 cursor-not-allowed"
-                    } ${selected}`}
-                  >
-                    {spot.slotNumber}
-                  </button>
-                );
-              })}
-          </div>
-        )}
+        <div className="grid grid-cols-8 gap-2 mt-2">
+          {currentZoneSpots.map((spot) => {
+            const selected =
+              selectedSpotId === spot._id ? "ring-2 ring-black" : "";
+            return (
+              <button
+                key={spot._id}
+                disabled={spot.status !== "available"}
+                onClick={() => setSelectedSpotId(spot._id)}
+                className={`text-xs text-white flex items-center justify-center h-8 rounded ${
+                  spot.status === "available"
+                    ? "bg-green-400 cursor-pointer"
+                    : "bg-red-400 cursor-not-allowed"
+                } ${selected}`}
+              >
+                {spot.slotNumber}
+              </button>
+            );
+          })}
+        </div>
       </div>
 
       <div>
         <Label className="flex items-center gap-1">
           <DollarSign className="w-4 h-4" /> Phí dự kiến
         </Label>
-        <Input value={calculateFee()} disabled />
+        <Input
+          value={`${calculateFeeValue().toLocaleString("vi-VN")} VNĐ`}
+          disabled
+        />
       </div>
 
       <div>
@@ -495,28 +400,6 @@ export default function ParkingBookingForm({
       >
         Xác nhận đặt chỗ
       </Button>
-
-      {selectedSpot && (
-        <DetailBookingModal
-          open={modalOpen}
-          onClose={() => setModalOpen(false)}
-          selectedSlot={{
-            _id: selectedSpot._id,
-            slotNumber: selectedSpot.slotNumber,
-          }}
-          bookingMeta={{
-            name,
-            vehicle,
-            zone: selectedZone,
-            startTime: startTime,
-            endTime: endTime,
-            paymentMethod,
-            estimatedFee: calculateFeeValue().toString(),
-            bookingType,
-          }}
-          onConfirm={handleConfirm}
-        />
-      )}
     </aside>
   );
 }

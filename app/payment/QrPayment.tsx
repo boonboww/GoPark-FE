@@ -4,13 +4,13 @@ import { Button } from "@/components/ui/button";
 import { QrCode, CheckCircle, ArrowLeft, Scan, Loader2 } from "lucide-react";
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { BookingInfo } from "./page";
+import { BookingInfo } from "./types";
 
 export default function QrPayment({
   onBack,
   onComplete,
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  bookingInfo
+  bookingInfo,
 }: {
   onBack: () => void;
   onComplete: () => void;
@@ -33,15 +33,21 @@ export default function QrPayment({
       className="border border-gray-200 rounded-lg shadow-sm p-6 bg-white"
     >
       <div className="flex justify-between mb-6">
-        {['1', '2', '3'].map((step, index) => (
+        {["1", "2", "3"].map((step, index) => (
           <div key={step} className="flex flex-col items-center">
-            <div className={`w-8 h-8 rounded-full flex items-center justify-center mb-1 ${
-              index <= 1 ? 'bg-black text-white' : 'bg-gray-100 text-gray-400'
-            }`}>
+            <div
+              className={`w-8 h-8 rounded-full flex items-center justify-center mb-1 ${
+                index <= 1 ? "bg-black text-white" : "bg-gray-100 text-gray-400"
+              }`}
+            >
               {step}
             </div>
             <span className="text-xs text-gray-500">
-              {index === 0 ? 'Thông Tin' : index === 1 ? 'Thanh Toán' : 'Hoàn Thành'}
+              {index === 0
+                ? "Thông Tin"
+                : index === 1
+                ? "Thanh Toán"
+                : "Hoàn Thành"}
             </span>
           </div>
         ))}
@@ -66,9 +72,11 @@ export default function QrPayment({
               <div className="relative">
                 <div className="grid grid-cols-10 gap-1 w-48 h-48">
                   {Array.from({ length: 100 }).map((_, i) => (
-                    <div 
+                    <div
                       key={i}
-                      className={`w-4 h-4 ${Math.random() > 0.5 ? 'bg-black' : 'bg-white'}`}
+                      className={`w-4 h-4 ${
+                        Math.random() > 0.5 ? "bg-black" : "bg-white"
+                      }`}
                     />
                   ))}
                 </div>
@@ -83,16 +91,16 @@ export default function QrPayment({
         </motion.div>
 
         <div className="flex flex-col sm:flex-row gap-3">
-          <Button 
-            variant="outline" 
-            onClick={onBack} 
+          <Button
+            variant="outline"
+            onClick={onBack}
             className="flex-1 h-12 border-gray-300 hover:bg-gray-50"
           >
             <ArrowLeft className="w-5 h-5 mr-2" />
             Quay Lại
           </Button>
-          <Button 
-            onClick={handlePaymentComplete} 
+          <Button
+            onClick={handlePaymentComplete}
             className="flex-1 h-12 bg-black hover:bg-gray-800 text-white"
             disabled={isProcessing}
           >
