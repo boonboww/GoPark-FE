@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import API from "@/lib/api";
 import { Car, CreditCard, Clock, MapPin, User, ArrowRight } from "lucide-react";
@@ -19,7 +19,7 @@ type BookingData = {
   totalPrice: number;
 };
 
-export default function PaymentPage() {
+function PaymentContent() {
   const router = useRouter();
   const query = useSearchParams();
 
@@ -204,5 +204,19 @@ export default function PaymentPage() {
         `}
       </style>
     </div>
+  );
+}
+
+export default function PaymentPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex items-center justify-center">
+          <p>Đang tải dữ liệu thanh toán...</p>
+        </div>
+      }
+    >
+      <PaymentContent />
+    </Suspense>
   );
 }
