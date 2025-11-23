@@ -11,8 +11,7 @@ function SuccessContent() {
   const [ticket, setTicket] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
-  const API_URL =
-    process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api/v1";
+  const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
   useEffect(() => {
     const ticketId = query.get("ticketId");
