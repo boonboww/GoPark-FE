@@ -35,14 +35,14 @@ export const saveRememberedLogin = (email: string, password: string): void => {
   try {
     const expiryDate = new Date();
     expiryDate.setDate(expiryDate.getDate() + EXPIRY_DAYS);
-    
+
     const data = {
       email: encodeData(email),
       password: encodeData(password),
       expiry: expiryDate.toISOString(),
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     };
-    
+
     localStorage.setItem(REMEMBER_KEY, JSON.stringify(data));
   } catch (error) {
     console.warn("Failed to save remembered login:", error);
@@ -56,25 +56,25 @@ export const getRememberedLogin = (): RememberedLogin | null => {
   try {
     const saved = localStorage.getItem(REMEMBER_KEY);
     if (!saved) return null;
-    
+
     const data = JSON.parse(saved);
     if (!data.expiry) {
       // Dữ liệu cũ không có expiry, xóa đi
       clearRememberedLogin();
       return null;
     }
-    
+
     const expiryDate = new Date(data.expiry);
-    
+
     // Kiểm tra xem dữ liệu đã hết hạn chưa
     if (new Date() > expiryDate) {
       clearRememberedLogin();
       return null;
     }
-    
+
     return {
       email: decodeData(data.email),
-      password: decodeData(data.password)
+      password: decodeData(data.password),
     };
   } catch (error) {
     console.warn("Failed to get remembered login:", error);
@@ -113,22 +113,41 @@ export const refreshRememberedLogin = (): void => {
 };
 
 /**
+ * Lưu access token vào localStorage
+ */
+export const saveAccessToken = (token: string): void => {
+  try {
+    // Cũng lưu vào key 'token' để tương thích với code cũ
+    localStorage.setItem("token", token);
+  } catch (error) {
+    console.warn("Failed to save access token:", error);
+  }
+};
+
+/**
+ * Lấy access token từ localStorage
+ */
+export const getAccessToken = (): string | null => {
+  try {
+    return localStorage.getItem("token");
+  } catch (error) {
+    console.warn("Failed to get access token:", error);
+    return null;
+  }
+};
+
+/**
  * Xóa tất cả dữ liệu liên quan đến authentication khi logout
  */
 export const clearAllAuthData = (): void => {
   try {
     // Xóa remembered login
     clearRememberedLogin();
-    
+
     // Xóa các dữ liệu auth khác nếu có
-    const authKeys = [
-      'access_token',
-      'refresh_token',
-      'user_data',
-      'session_data'
-    ];
-    
-    authKeys.forEach(key => {
+    const authKeys = ["token", "refresh_token", "user_data", "session_data"];
+
+    authKeys.forEach((key) => {
       localStorage.removeItem(key);
       sessionStorage.removeItem(key);
     });
@@ -136,4 +155,3 @@ export const clearAllAuthData = (): void => {
     console.warn("Failed to clear auth data:", error);
   }
 };
-
