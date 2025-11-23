@@ -86,8 +86,12 @@ export default function CombinedParkingManagement({
   const [qrCodeUrl, setQrCodeUrl] = useState<string | null>(null);
   const [showModal, setShowModal] = useState(false);
   const [selectedDate, setSelectedDate] = useState<string>("");
+  const [selectedStartTime, setSelectedStartTime] = useState<string>("00:00");
+  const [selectedEndTime, setSelectedEndTime] = useState<string>("23:59");
   const [slotBookings, setSlotBookings] = useState<Booking[]>([]);
   const [allSlotBookings, setAllSlotBookings] = useState<{[slotId: string]: Booking[]}>({});
+  const [overlapInfo, setOverlapInfo] = useState<{ bookingsCount: number; occupiedSlotsCount: number; activeNowCount: number; parkedCount: number } | null>(null);
+  const [showOverlapBanner, setShowOverlapBanner] = useState<boolean>(false);
   const [currentTime, setCurrentTime] = useState<Date>(new Date());
   const router = useRouter();
 
@@ -148,19 +152,32 @@ export default function CombinedParkingManagement({
     }
   };
 
+  // hide banner on initial loads or whenever lot/date/time selection changes
+  useEffect(() => {
+    setShowOverlapBanner(false);
+  }, [selectedLotId, selectedDate, selectedStartTime, selectedEndTime]);
+
   const loadParkingLotDetails = async (lotId: string, date?: string) => {
     setIsLoading(true);
     try {
-      const startTime = date
-        ? new Date(date).toISOString()
-        : new Date().toISOString();
-      const endTime = date
-        ? new Date(new Date(date).setHours(23, 59, 59, 999)).toISOString()
-        : new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
+      // Build ISO start/end from selected date and time. If date not provided, use today.
+      const buildIsoRange = (dateStr?: string, startTimeStr?: string, endTimeStr?: string) => {
+        const baseDate = dateStr ? new Date(dateStr) : new Date();
+        // Parse startTimeStr (HH:mm)
+        const [sh, sm] = (startTimeStr || '00:00').split(':').map((s) => parseInt(s, 10));
+        const [eh, em] = (endTimeStr || '23:59').split(':').map((s) => parseInt(s, 10));
+        const start = new Date(baseDate);
+        start.setHours(sh, sm, 0, 0);
+        const end = new Date(baseDate);
+        end.setHours(eh, em, 59, 999);
+        return { start: start.toISOString(), end: end.toISOString() };
+      };
+
+      const { start: startTimeIso, end: endTimeIso } = buildIsoRange(date, selectedStartTime, selectedEndTime);
       const slotRes = (await fetchParkingLotDetails(
         lotId,
-        startTime,
-        endTime
+        startTimeIso,
+        endTimeIso
       )) as unknown as ParkingLotDetailsResponse;
       const slots: ParkingSlot[] = slotRes.data?.data?.data ?? [];
 
@@ -196,7 +213,7 @@ export default function CombinedParkingManagement({
       setSelectedFloor(floors[0]?.number || 1);
       
       // Load bookings for all slots
-      await loadAllSlotBookings(slots, startTime, endTime);
+  await loadAllSlotBookings(slots, startTimeIso, endTimeIso);
     } catch (error) {
       const err = error as AxiosError<{ message?: string }>;
       const errorMessage = err.response?.data?.message || err.message;
@@ -238,16 +255,22 @@ export default function CombinedParkingManagement({
   useEffect(() => {
     if (selectedLotId && parkingFloors.length > 0) {
       const refreshTimer = setInterval(() => {
-        const startTime = selectedDate
-          ? new Date(selectedDate).toISOString()
-          : new Date().toISOString();
-        const endTime = selectedDate
-          ? new Date(new Date(selectedDate).setHours(23, 59, 59, 999)).toISOString()
-          : new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
+        const { start: startTimeIso, end: endTimeIso } = ((): {start: string; end: string} => {
+          const base = selectedDate || new Date().toISOString();
+          const build = (d: string) => {
+            const baseDate = new Date(d);
+            const [sh, sm] = (selectedStartTime || '00:00').split(':').map((s) => parseInt(s, 10));
+            const [eh, em] = (selectedEndTime || '23:59').split(':').map((s) => parseInt(s, 10));
+            const sDate = new Date(baseDate); sDate.setHours(sh, sm, 0, 0);
+            const eDate = new Date(baseDate); eDate.setHours(eh, em, 59, 999);
+            return { start: sDate.toISOString(), end: eDate.toISOString() };
+          };
+          return build(selectedDate || new Date().toISOString());
+        })();
         
         const allSlots = parkingFloors.flatMap(floor => floor.slots);
         if (allSlots.length > 0) {
-          loadAllSlotBookings(allSlots, startTime, endTime);
+          loadAllSlotBookings(allSlots, startTimeIso, endTimeIso);
         }
       }, 30000); // Refresh mỗi 30 giây
 
@@ -277,42 +300,40 @@ export default function CombinedParkingManagement({
   };
 
   const getStatusColor = (status: string, slotId: string) => {
-    // Kiểm tra xem slot có booking đang active trong thời gian hiện tại không
+    // Determine overlap with selected range (selectedDate + start/end times)
     const currentBookings = allSlotBookings[slotId] || [];
-    
-    const hasActiveBooking = currentBookings.some(booking => {
-      const bookingStart = new Date(booking.startTime);
-      const bookingEnd = new Date(booking.endTime);
-      
-      // Nếu có ngày được chọn, kiểm tra booking trong ngày đó
-      if (selectedDate) {
-        const selectedDay = new Date(selectedDate);
-        const startOfDay = new Date(selectedDay.setHours(0, 0, 0, 0));
-        const endOfDay = new Date(selectedDay.setHours(23, 59, 59, 999));
-        
-        // Kiểm tra xem có booking nào trong ngày được chọn không
-        return (bookingStart <= endOfDay && bookingEnd >= startOfDay);
-      } else {
-        // Sử dụng currentTime để kiểm tra real-time - chỉ trong khoảng startTime đến endTime
-        return (bookingStart <= currentTime && bookingEnd >= currentTime);
-      }
+    const buildRange = () => {
+      const baseDate = selectedDate ? new Date(selectedDate) : new Date();
+      const [sh, sm] = (selectedStartTime || '00:00').split(':').map((s) => parseInt(s, 10));
+      const [eh, em] = (selectedEndTime || '23:59').split(':').map((s) => parseInt(s, 10));
+      const s = new Date(baseDate); s.setHours(sh, sm, 0, 0);
+      const e = new Date(baseDate); e.setHours(eh, em, 59, 999);
+      return { s, e };
+    };
+    const { s: rangeStart, e: rangeEnd } = buildRange();
+
+    const hasOverlap = currentBookings.some((booking) => {
+      const bs = new Date(booking.startTime);
+      const be = new Date(booking.endTime);
+      return bs <= rangeEnd && be >= rangeStart;
     });
+    // If there is any booking overlapping the selected range, show yellow
+    if (hasOverlap) return "bg-yellow-400";
 
-    // Nếu có booking đang active (trong khoảng thời gian), hiển thị màu vàng
-    if (hasActiveBooking) {
-      return "bg-yellow-400";
-    }
+    // Next: red only if there's a booking currently active (real-time)
+    const now = new Date();
+    const hasActiveNow = currentBookings.some((booking) => {
+      const bs = new Date(booking.startTime);
+      const be = new Date(booking.endTime);
+      return bs <= now && be >= now;
+    });
+    if (hasActiveNow) return "bg-red-400";
 
-    // Nếu không có booking active, hiển thị theo trạng thái thực tế của slot
-    switch (status) {
-      case "available":
-        return "bg-green-400";
-      case "booked":
-      case "reserved":
-        return "bg-red-400";
-      default:
-        return "bg-gray-500";
-    }
+    // Otherwise treat as available (green) unless explicitly marked unavailable
+    // We'll still show gray for unknown status
+    if (status === "available") return "bg-green-400";
+    if (status === "booked" || status === "reserved") return "bg-green-400"; // treated as available if not currently active
+    return "bg-gray-500";
   };
 
   const getSlotTooltip = (slot: ParkingSlot, slotId: string) => {
@@ -369,6 +390,41 @@ export default function CombinedParkingManagement({
     }
     
     setAllSlotBookings(bookingsMap);
+      // Compute overlap summary for provided range
+      try {
+        const start = new Date(startTime);
+        const end = new Date(endTime);
+        let bookingsCount = 0;
+        const occupiedSlots = new Set<string>();
+        let activeNowCount = 0;
+        const now = new Date();
+        let parkedCount = 0;
+        // parkedCount: slots that are marked as booked and have a vehicle currently
+        for (const slot of slots) {
+          if ((slot.status === 'booked' || slot.status === 'reserved') && slot.vehicle) parkedCount++;
+        }
+        for (const slot of slots) {
+          const slotBookings = bookingsMap[slot._id] || [];
+          for (const b of slotBookings) {
+            const bs = new Date(b.startTime);
+            const be = new Date(b.endTime);
+            if (bs <= end && be >= start) {
+              bookingsCount++;
+              occupiedSlots.add(slot._id);
+            }
+            // count currently active bookings (real-time)
+            if (bs <= now && be >= now) {
+              activeNowCount++;
+            }
+          }
+        }
+        setOverlapInfo({ bookingsCount, occupiedSlotsCount: occupiedSlots.size, activeNowCount, parkedCount });
+        if (bookingsCount > 0 || parkedCount > 0 || activeNowCount > 0) {
+          toast(`${bookingsCount} đặt chỗ tìm thấy trong khoảng thời gian, ${occupiedSlots.size} vị trí bị ảnh hưởng. ${activeNowCount} đang diễn ra ngay bây giờ. ${parkedCount} xe đang đỗ.`);
+        }
+      } catch (err) {
+        console.error("Error computing overlaps:", err);
+      }
   };
 
   const fetchSlotBookingsLocal = async (
@@ -392,20 +448,22 @@ export default function CombinedParkingManagement({
   const handleSlotClick = (slot: ParkingSlot) => {
     setSelectedSlot(slot);
     setSlotBookings([]);
-    const startTime = selectedDate
-      ? new Date(selectedDate).toISOString()
-      : new Date().toISOString();
-    const endTime = selectedDate
-      ? new Date(new Date(selectedDate).setHours(23, 59, 59, 999)).toISOString()
-      : new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
+    const { start: startTimeIso, end: endTimeIso } = ((): {start: string; end: string} => {
+      const baseDate = selectedDate ? new Date(selectedDate) : new Date();
+      const [sh, sm] = (selectedStartTime || '00:00').split(':').map((s) => parseInt(s, 10));
+      const [eh, em] = (selectedEndTime || '23:59').split(':').map((s) => parseInt(s, 10));
+      const sDate = new Date(baseDate); sDate.setHours(sh, sm, 0, 0);
+      const eDate = new Date(baseDate); eDate.setHours(eh, em, 59, 999);
+      return { start: sDate.toISOString(), end: eDate.toISOString() };
+    })();
     if (slot.status === "booked" || slot.status === "reserved") {
       setSelectedVehicle(slot.vehicle || null);
       generateQRCode(slot.vehicle?.id || `RES-${slot.slotNumber}`);
-      fetchSlotBookingsLocal(slot._id, startTime, endTime);
+  fetchSlotBookingsLocal(slot._id, startTimeIso, endTimeIso);
     } else {
       setSelectedVehicle(null);
       setQrCodeUrl(null);
-      fetchSlotBookingsLocal(slot._id, startTime, endTime);
+  fetchSlotBookingsLocal(slot._id, startTimeIso, endTimeIso);
     }
     setShowModal(true);
   };
@@ -479,6 +537,7 @@ export default function CombinedParkingManagement({
           </Button>
         </CardContent>
       </Card>
+      
     );
   }
 
@@ -546,10 +605,24 @@ export default function CombinedParkingManagement({
                     onChange={(e) => setSelectedDate(e.target.value)}
                     className="flex-1"
                   />
+                  <Input
+                    type="time"
+                    value={selectedStartTime}
+                    onChange={(e) => setSelectedStartTime(e.target.value)}
+                    className="w-28"
+                    aria-label="Start time"
+                  />
+                  <Input
+                    type="time"
+                    value={selectedEndTime}
+                    onChange={(e) => setSelectedEndTime(e.target.value)}
+                    className="w-28"
+                    aria-label="End time"
+                  />
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => setSelectedDate("")}
+                    onClick={() => { setSelectedDate(""); setSelectedStartTime('00:00'); setSelectedEndTime('23:59'); setShowOverlapBanner(false); }}
                     className="shrink-0 cursor-pointer"
                   >
                     Clear
@@ -582,11 +655,49 @@ export default function CombinedParkingManagement({
                     onDelete={handleDeleteParkingLot}
                     setParkingLots={setParkingLots}
                   />
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    onClick={() => {
+                      if (!selectedLotId) return toast.error('Vui lòng chọn bãi để xem');
+                      // mark that user explicitly requested a view so banner can show
+                      setShowOverlapBanner(true);
+                      loadParkingLotDetails(selectedLotId, selectedDate);
+                    }}
+                  >
+                    Xem
+                  </Button>
                 </div>
               </div>
             </div>
           </CardContent>
         </Card>
+
+        {/* Banner: show clear message after "Xem" (overlapInfo is set) */}
+  {overlapInfo && showOverlapBanner && (
+          <div className="mt-4">
+            <div className={`p-3 rounded border ${overlapInfo.bookingsCount > 0 || overlapInfo.parkedCount > 0 || overlapInfo.activeNowCount > 0 ? 'bg-yellow-50 border-yellow-300 text-yellow-800' : 'bg-green-50 border-green-300 text-green-800'}`}>
+              <div className="flex items-start justify-between">
+                <div className="flex-1">
+                  {overlapInfo.bookingsCount > 0 || overlapInfo.parkedCount > 0 ? (
+                    <div className="text-sm">
+                      <strong>{overlapInfo.bookingsCount}</strong> đặt chỗ được tìm thấy trong khoảng thời gian đã chọn, ảnh hưởng <strong>{overlapInfo.occupiedSlotsCount}</strong> vị trí. {overlapInfo.activeNowCount > 0 && (<span>Hiện có <strong>{overlapInfo.activeNowCount}</strong> booking đang diễn ra.</span>)} {overlapInfo.parkedCount > 0 && (<span>Có <strong>{overlapInfo.parkedCount}</strong> xe đang đỗ trong bãi.</span>)}
+                    </div>
+                  ) : (
+                    <div className="text-sm">
+                      Không có đặt chỗ hoặc xe đang đỗ trong khoảng thời gian đã chọn.
+                    </div>
+                  )}
+                </div>
+                <div className="ml-4">
+                  <Button size="sm" variant="outline" onClick={() => { setShowOverlapBanner(false); }}>
+                    Đóng
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Parking Slots */}
         {parkingFloors.length > 0 && currentFloor?.slots.length > 0 ? (
@@ -852,11 +963,11 @@ export default function CombinedParkingManagement({
                                 </div>
                                 <div>
                                   <p className="text-sm font-medium text-gray-700">Start Time</p>
-                                  <p className="text-sm text-gray-900">{new Date(booking.startTime).toLocaleString()}</p>
+                                  <p className="text-sm text-gray-900">{new Date(booking.startTime).toLocaleString(undefined, { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false })}</p>
                                 </div>
                                 <div>
                                   <p className="text-sm font-medium text-gray-700">End Time</p>
-                                  <p className="text-sm text-gray-900">{new Date(booking.endTime).toLocaleString()}</p>
+                                  <p className="text-sm text-gray-900">{new Date(booking.endTime).toLocaleString(undefined, { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false })}</p>
                                 </div>
                               </div>
                             </div>

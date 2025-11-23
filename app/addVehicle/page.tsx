@@ -11,9 +11,11 @@ import QRCode from "react-qr-code";
 import EditVehicleForm from "./EditVehicleForm";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import { ToastProvider, useToast } from "@/components/ToastProvider";
 
 interface ApiError {
   response?: {
+    status?: number;
     data?: {
       field?: string;
       message?: string;
@@ -21,17 +23,18 @@ interface ApiError {
   };
 }
 
-export default function AddVehiclePage() {
+function AddVehicleContent() {
+  const toast = useToast();
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
-  const [newVehicle, setNewVehicle] = useState<Omit<Vehicle, "_id">>({
+  const [newVehicle, setNewVehicle] = useState({
     licensePlate: "",
     capacity: 4,
     imageVehicle: "",
   });
   const [file, setFile] = useState<File | null>(null);
-  const [message, setMessage] = useState<string>("");
   const [editing, setEditing] = useState<Vehicle | null>(null);
   const [imageError, setImageError] = useState<string>("");
+  const [licensePlateError, setLicensePlateError] = useState<string>("");
 
   const MAX_VEHICLES = 3;
 
@@ -39,23 +42,109 @@ export default function AddVehiclePage() {
     fetchMyVehicles();
   }, []);
 
+  // Validate biển số xe theo format Việt Nam
+  const validateLicensePlate = (plate: string): boolean => {
+    if (!plate || plate.trim() === "") {
+      setLicensePlateError("Biển số xe không được để trống");
+      return false;
+    }
+
+    // Format mới (từ 2023): XX-Y XXXX hoặc XX-Y XXXXX (11-12 ký tự)
+    // XX: Mã tỉnh/thành (2 số)
+    // Y: Chữ cái (1 ký tự)
+    // XXXX hoặc XXXXX: Số (4-5 chữ số)
+    const newFormat = /^[0-9]{2}[A-Z]{1}[-\s]?[0-9]{4,5}$/i;
+    
+    // Format cũ: XX(X)-YYYYY (ví dụ: 43A-12345, 29B-12345)
+    // XX(X): Mã tỉnh (2-3 ký tự bao gồm số + chữ)
+    // YYYYY: Số thứ tự (4-5 số)
+    const oldFormat = /^[0-9]{2}[A-Z]{1}[-\s]?[0-9]{4,5}$/i;
+    
+    // Format cho xe máy: XX-YY XXX.XX (có dấu chấm)
+    const motorbikeFormat = /^[0-9]{2}[A-Z]{1}[-\s]?[0-9]{2}[-\s]?[0-9]{3}\.[0-9]{2}$/i;
+
+    const trimmedPlate = plate.trim().toUpperCase();
+    
+    if (!newFormat.test(trimmedPlate) && !oldFormat.test(trimmedPlate) && !motorbikeFormat.test(trimmedPlate)) {
+      setLicensePlateError(
+        "Biển số không đúng định dạng. VD: 30A-12345, 51B-12345, 29C-123.45"
+      );
+      return false;
+    }
+
+    setLicensePlateError("");
+    return true;
+  };
+
   const fetchMyVehicles = async () => {
     try {
+      // Kiểm tra token trước khi gọi API
+      const token = localStorage.getItem("token");
+      if (!token) {
+        toast.error("Bạn chưa đăng nhập. Vui lòng đăng nhập lại.");
+        // Redirect to login after 2 seconds
+        setTimeout(() => {
+          window.location.href = "/login";
+        }, 2000);
+        return;
+      }
+
       const res = await API.get<{ data: Vehicle[] }>("/api/v1/vehicles/my-vehicles");
       setVehicles(res.data.data || []);
-    } catch (error) {
+    } catch (error: any) {
       console.error(error);
-      setMessage("Lỗi: Không thể tải danh sách phương tiện.");
+      
+      // Xử lý lỗi 401 Unauthorized
+      if (error.response?.status === 401) {
+        toast.error("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.");
+        localStorage.removeItem("token");
+        localStorage.removeItem("role");
+        setTimeout(() => {
+          window.location.href = "/login";
+        }, 2000);
+        return;
+      }
+      
+      toast.error("Không thể tải danh sách phương tiện.");
     }
   };
 
   const handleAddVehicle = async () => {
-    if (vehicles.length >= MAX_VEHICLES) {
-      setMessage("Lỗi: Bạn chỉ được đăng ký tối đa 3 phương tiện.");
+    // Clear previous errors
+    setLicensePlateError("");
+
+    // Kiểm tra token
+    const token = localStorage.getItem("token");
+    if (!token) {
+      toast.error("Bạn chưa đăng nhập. Vui lòng đăng nhập lại.");
+      setTimeout(() => {
+        window.location.href = "/login";
+      }, 2000);
       return;
     }
-    if (!newVehicle.licensePlate || !newVehicle.capacity) {
-      setMessage("Lỗi: Vui lòng điền biển số và sức chứa.");
+
+    if (vehicles.length >= MAX_VEHICLES) {
+      toast.warning("Bạn chỉ được đăng ký tối đa 3 phương tiện.");
+      return;
+    }
+
+    // Validate biển số xe
+    if (!validateLicensePlate(newVehicle.licensePlate)) {
+      return;
+    }
+
+    // Validate sức chứa
+    if (!newVehicle.capacity || newVehicle.capacity < 1) {
+      toast.error("Sức chứa phải lớn hơn 0.");
+      return;
+    }
+
+    // Xác nhận thêm xe
+    const confirmed = window.confirm(
+      `Xác nhận thêm phương tiện?\n\nBiển số: ${newVehicle.licensePlate.toUpperCase()}\nSức chứa: ${newVehicle.capacity} chỗ`
+    );
+    
+    if (!confirmed) {
       return;
     }
 
@@ -72,43 +161,144 @@ export default function AddVehiclePage() {
         imageUrl = uploadRes.data.url;
       }
 
-      await API.post("/api/v1/vehicles", { ...newVehicle, imageVehicle: imageUrl });
+      await API.post("/api/v1/vehicles", { 
+        ...newVehicle, 
+        licensePlate: newVehicle.licensePlate.toUpperCase().trim(),
+        imageVehicle: imageUrl 
+      });
 
-      setMessage("✅ Thêm phương tiện thành công!");
+      toast.success("Thêm phương tiện thành công!");
       setNewVehicle({ licensePlate: "", capacity: 4, imageVehicle: "" });
       setFile(null);
+      setLicensePlateError("");
       fetchMyVehicles();
     } catch (error) {
       const apiError = error as ApiError;
+      
+      // Xử lý lỗi 401
+      if (apiError.response?.status === 401) {
+        toast.error("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.");
+        localStorage.removeItem("token");
+        localStorage.removeItem("role");
+        setTimeout(() => {
+          window.location.href = "/login";
+        }, 2000);
+        return;
+      }
+      
       if (apiError.response?.data?.field === "licensePlate") {
-        setMessage("Lỗi: Biển số này đã được đăng ký.");
+        toast.error("Biển số này đã được đăng ký.");
         return;
       }
       console.error(error);
-      setMessage("Lỗi: Thêm phương tiện thất bại.");
+      toast.error("Thêm phương tiện thất bại.");
     }
   };
 
   const handleDelete = async (id?: string) => {
     if (!id || !confirm("Bạn có chắc chắn muốn xóa phương tiện này?")) return;
+    
+    // Kiểm tra token
+    const token = localStorage.getItem("token");
+    if (!token) {
+      alert("Lỗi: Bạn chưa đăng nhập. Vui lòng đăng nhập lại.");
+      setTimeout(() => {
+        window.location.href = "/login";
+      }, 2000);
+      return;
+    }
+    
     try {
       await API.delete(`/api/v1/vehicles/${id}`);
+      toast.success("Xóa phương tiện thành công!");
       fetchMyVehicles();
-    } catch (error) {
+    } catch (error: any) {
       console.error(error);
-      setMessage("Lỗi: Xóa phương tiện thất bại.");
+      
+      // Xử lý lỗi 401
+      if (error.response?.status === 401) {
+        toast.error("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.");
+        localStorage.removeItem("token");
+        localStorage.removeItem("role");
+        setTimeout(() => {
+          window.location.href = "/login";
+        }, 2000);
+        return;
+      }
+      
+      toast.error("Xóa phương tiện thất bại.");
     }
   };
 
   const handleUpdate = async (vehicle: Vehicle) => {
     if (!vehicle._id) return;
+
+    // Kiểm tra token
+    const token = localStorage.getItem("token");
+    if (!token) {
+      alert("Lỗi: Bạn chưa đăng nhập. Vui lòng đăng nhập lại.");
+      setTimeout(() => {
+        window.location.href = "/login";
+      }, 2000);
+      return;
+    }
+
+    // Validate trước khi update
+    if (!vehicle.licensePlate || vehicle.licensePlate.trim() === "") {
+      alert("Lỗi: Biển số xe không được để trống!");
+      return;
+    }
+
+    if (!vehicle.capacity || vehicle.capacity < 1) {
+      alert("Lỗi: Sức chứa phải lớn hơn 0!");
+      return;
+    }
+
+    // Validate format biển số
+    const tempError = licensePlateError;
+    if (!validateLicensePlate(vehicle.licensePlate)) {
+      alert(`Lỗi: ${licensePlateError}`);
+      setLicensePlateError(tempError);
+      return;
+    }
+
+    // Xác nhận lưu thay đổi
+    const confirmed = window.confirm(
+      `Bạn có chắc chắn muốn lưu thay đổi?\n\nBiển số: ${vehicle.licensePlate.toUpperCase()}\nSức chứa: ${vehicle.capacity} chỗ`
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
     try {
-      await API.put(`/api/v1/vehicles/${vehicle._id}`, vehicle);
+      await API.put(`/api/v1/vehicles/${vehicle._id}`, {
+        ...vehicle,
+        licensePlate: vehicle.licensePlate.toUpperCase().trim()
+      });
+      toast.success("Cập nhật phương tiện thành công!");
       setEditing(null);
       fetchMyVehicles();
     } catch (error) {
+      const apiError = error as ApiError;
+      
+      // Xử lý lỗi 401
+      if (apiError.response?.status === 401) {
+        toast.error("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.");
+        localStorage.removeItem("token");
+        localStorage.removeItem("role");
+        setTimeout(() => {
+          window.location.href = "/login";
+        }, 2000);
+        return;
+      }
+      
+      if (apiError.response?.data?.field === "licensePlate") {
+        alert("Lỗi: Biển số này đã được đăng ký.");
+        return;
+      }
       console.error(error);
-      setMessage("Lỗi: Cập nhật phương tiện thất bại.");
+      toast.error("Cập nhật phương tiện thất bại.");
     }
   };
 
@@ -128,32 +318,78 @@ export default function AddVehiclePage() {
             </div>
           )}
           <div>
-            <Label>Biển số xe</Label>
+            <Label>Biển số xe <span className="text-red-500">*</span></Label>
             <Input
               value={newVehicle.licensePlate}
-              onChange={(e) =>
-                setNewVehicle({ ...newVehicle, licensePlate: e.target.value })
-              }
-              placeholder="VD: 43A-12345"
+              onChange={(e) => {
+                setNewVehicle({ ...newVehicle, licensePlate: e.target.value });
+                setLicensePlateError("");
+              }}
+              onBlur={() => {
+                if (newVehicle.licensePlate) {
+                  validateLicensePlate(newVehicle.licensePlate);
+                }
+              }}
+              placeholder="VD: 30A-12345, 51B-12345, 29C-123.45"
+              className={licensePlateError ? "border-red-500" : ""}
             />
+            {licensePlateError && (
+              <p className="text-sm text-red-600 mt-1 flex items-center gap-1">
+                <AlertTriangle className="w-3 h-3" />
+                {licensePlateError}
+              </p>
+            )}
+            <p className="text-xs text-gray-500 mt-1">
+              Format: XX[A-Z]-XXXXX (VD: 30A-12345) hoặc XX[A-Z]-XX-XXX.XX (xe máy)
+            </p>
           </div>
           <div>
-            <Label>Sức chứa</Label>
+            <Label>Sức chứa <span className="text-red-500">*</span></Label>
             <Input
               type="number"
+              min="1"
+              max="50"
               value={newVehicle.capacity}
               onChange={(e) =>
                 setNewVehicle({ ...newVehicle, capacity: Number(e.target.value) })
               }
               placeholder="VD: 4"
             />
+            <p className="text-xs text-gray-500 mt-1">
+              Số chỗ ngồi của phương tiện (từ 1-50)
+            </p>
           </div>
           <div>
             <Label>Ảnh phương tiện (tùy chọn)</Label>
             <Input
               type="file"
-              accept="image/*"
-              onChange={(e) => e.target.files && setFile(e.target.files[0])}
+              accept=".jpg,.jpeg,.png"
+              onChange={(e) => {
+                const selected = e.target.files && e.target.files[0];
+                if (!selected) return;
+
+                // Validate MIME type
+                const allowedTypes = ["image/jpeg", "image/jpg", "image/png"];
+                if (!allowedTypes.includes(selected.type)) {
+                  setFile(null);
+                  setImageError("Định dạng ảnh không hợp lệ. Vui lòng chọn file JPG hoặc PNG.");
+                  toast.error("Định dạng ảnh không hợp lệ. Vui lòng chọn file JPG hoặc PNG.");
+                  return;
+                }
+
+                // Validate size (5MB)
+                const maxSize = 5 * 1024 * 1024;
+                if (selected.size > maxSize) {
+                  setFile(null);
+                  setImageError("Kích thước ảnh vượt quá 5MB.");
+                  toast.error("Kích thước ảnh vượt quá 5MB.");
+                  return;
+                }
+
+                // OK
+                setImageError("");
+                setFile(selected);
+              }}
             />
             {imageError && <p className="text-sm text-red-600">{imageError}</p>}
           </div>
@@ -166,15 +402,6 @@ export default function AddVehiclePage() {
             >
               <Plus className="w-4 h-4" /> Thêm phương tiện
             </Button>
-            {message && (
-              <div
-                className={`flex gap-2 items-center text-sm ${
-                  message.startsWith("Lỗi") ? "text-red-600" : "text-green-600"
-                }`}
-              >
-                <AlertTriangle className="w-4 h-4" /> <span>{message}</span>
-              </div>
-            )}
           </div>
         </section>
 
@@ -230,5 +457,13 @@ export default function AddVehiclePage() {
       </main>
       <Footer />
     </>
+  );
+}
+
+export default function AddVehiclePage() {
+  return (
+    <ToastProvider>
+      <AddVehicleContent />
+    </ToastProvider>
   );
 }
