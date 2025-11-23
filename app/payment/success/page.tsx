@@ -22,7 +22,7 @@ function SuccessContent() {
 
     const fetchTicket = async () => {
       try {
-        const res = await fetch(`${API_URL}/tickets/${ticketId}`, {
+        const res = await fetch(`${API_URL}/api/v1/tickets/${ticketId}`, {
           method: "GET",
           credentials: "include",
         });
