@@ -16,10 +16,11 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import Lottie from "lottie-react";
-import successAnimation from "@/public/animation.json"; 
 
-export function LoginForm({ className, ...props }: React.ComponentProps<"div">) {
+export function LoginForm({
+  className,
+  ...props
+}: React.ComponentProps<"div">) {
   const [formData, setFormData] = useState({ email: "", password: "" });
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
@@ -27,20 +28,20 @@ export function LoginForm({ className, ...props }: React.ComponentProps<"div">) 
   const [loginRole, setLoginRole] = useState<string | undefined>(undefined);
   const router = useRouter();
 
-  const { 
-    rememberedData, 
-    isRememberEnabled, 
-    saveLogin, 
-    clearLogin, 
+  const {
+    rememberedData,
+    isRememberEnabled,
+    saveLogin,
+    clearLogin,
     toggleRemember,
-    hasRemembered 
+    hasRemembered,
   } = useRememberLogin();
 
   useEffect(() => {
     if (rememberedData) {
       setFormData({
         email: rememberedData.email,
-        password: rememberedData.password
+        password: rememberedData.password,
       });
     }
   }, [rememberedData]);
@@ -52,7 +53,7 @@ export function LoginForm({ className, ...props }: React.ComponentProps<"div">) 
   const handleRememberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const isChecked = e.target.checked;
     toggleRemember(isChecked);
-    
+
     if (!isChecked && hasRemembered) {
       setFormData({ email: "", password: "" });
     }
@@ -64,7 +65,7 @@ export function LoginForm({ className, ...props }: React.ComponentProps<"div">) 
     setMessage("");
 
     const { email, password } = formData;
-    
+
     if (!email.trim() || !password.trim()) {
       setMessage("❌ Vui lòng nhập đầy đủ email và mật khẩu");
       setLoading(false);
@@ -113,37 +114,48 @@ export function LoginForm({ className, ...props }: React.ComponentProps<"div">) 
 
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
-
       {showSuccessDialog && (
         <div className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none">
           <div className="absolute inset-0 bg-black/20 backdrop-blur-sm [animation:fadeIn_0.3s_ease-out]" />
-          
+
           <div className="relative px-10 py-8 rounded-3xl shadow-2xl bg-white flex flex-col items-center pointer-events-auto min-w-[380px] [animation:slideUp_0.4s_ease-out]">
-            
             {/* Animated Check Circle */}
             <div className="relative w-20 h-20 mb-5">
               <div className="absolute inset-0 bg-green-100 rounded-full [animation:pulse_1s_ease-out]"></div>
               <div className="absolute inset-2 bg-green-500 rounded-full flex items-center justify-center [animation:scaleIn_0.5s_ease-out_0.2s_both]">
-                <svg className="w-10 h-10 text-white [animation:checkmark_0.6s_ease-out_0.4s_both]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                <svg
+                  className="w-10 h-10 text-white [animation:checkmark_0.6s_ease-out_0.4s_both]"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth="3"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M5 13l4 4L19 7"
+                  />
                 </svg>
               </div>
             </div>
-            
+
             <h3 className="text-2xl font-bold text-gray-800 mb-2 [animation:fadeIn_0.5s_ease-out_0.3s_both]">
               Đăng nhập thành công!
             </h3>
             <p className="text-gray-600 text-center mb-6 [animation:fadeIn_0.5s_ease-out_0.4s_both]">
-              {loginRole === "admin" && "Chào mừng Quản trị viên đến với hệ thống GoPark"}
-              {loginRole === "owner" && "Chào mừng Chủ bãi xe đến với hệ thống GoPark"}
-              {(loginRole === "user" || !loginRole) && "Chào mừng bạn đến với hệ thống GoPark"}
+              {loginRole === "admin" &&
+                "Chào mừng Quản trị viên đến với hệ thống GoPark"}
+              {loginRole === "owner" &&
+                "Chào mừng Chủ bãi xe đến với hệ thống GoPark"}
+              {(loginRole === "user" || !loginRole) &&
+                "Chào mừng bạn đến với hệ thống GoPark"}
             </p>
-            
+
             {/* Progress Bar */}
             <div className="w-full bg-gray-100 rounded-full h-1.5 overflow-hidden">
               <div className="bg-gradient-to-r from-green-500 to-emerald-500 h-full rounded-full [animation:progressBar_2.5s_ease-out]"></div>
             </div>
-            
+
             <style>{`
               @keyframes fadeIn {
                 from { opacity: 0; }
@@ -228,7 +240,11 @@ export function LoginForm({ className, ...props }: React.ComponentProps<"div">) 
               <div className="grid gap-3">
                 <div className="flex items-center">
                   <Label htmlFor="password">Mật khẩu</Label>
-                  <a href="/account/reset" tabIndex={-1} className="ml-auto text-sm underline">
+                  <a
+                    href="/account/reset"
+                    tabIndex={-1}
+                    className="ml-auto text-sm underline"
+                  >
                     Quên mật khẩu?
                   </a>
                 </div>
@@ -254,19 +270,32 @@ export function LoginForm({ className, ...props }: React.ComponentProps<"div">) 
                   onChange={handleRememberChange}
                   className="mr-2 cursor-pointer w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
                 />
-                <Label htmlFor="remember" className="cursor-pointer select-none text-sm font-medium">
+                <Label
+                  htmlFor="remember"
+                  className="cursor-pointer select-none text-sm font-medium"
+                >
                   Ghi nhớ đăng nhập
                   {hasRemembered && (
-                    <span className="ml-1 text-xs text-green-600">(đã lưu)</span>
+                    <span className="ml-1 text-xs text-green-600">
+                      (đã lưu)
+                    </span>
                   )}
                 </Label>
               </div>
               <div className="flex flex-col gap-3">
-                <Button type="submit" className="w-full flex items-center justify-center gap-2 cursor-pointer" disabled={loading}>
+                <Button
+                  type="submit"
+                  className="w-full flex items-center justify-center gap-2 cursor-pointer"
+                  disabled={loading}
+                >
                   <LogIn className="w-4 h-4 cursor-pointer" />
                   {loading ? "Đang đăng nhập..." : "Đăng nhập"}
                 </Button>
-                <Button type="button" variant="outline" className="w-full flex items-center justify-center gap-2 cursor-pointer">
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="w-full flex items-center justify-center gap-2 cursor-pointer"
+                >
                   <Globe className="w-4 h-4 text-red-500 cursor-pointer" />
                   Đăng nhập bằng Google
                 </Button>
@@ -279,7 +308,10 @@ export function LoginForm({ className, ...props }: React.ComponentProps<"div">) 
             </div>
             <div className="mt-4 text-center text-sm">
               Chưa có tài khoản?{" "}
-              <a href="/account/signup" className="inline-flex items-center gap-1 underline text-blue-600 font-medium cursor-pointer">
+              <a
+                href="/account/signup"
+                className="inline-flex items-center gap-1 underline text-blue-600 font-medium cursor-pointer"
+              >
                 <UserPlus className="w-4 h-4 cursor-pointer" /> Đăng ký ngay
               </a>
             </div>

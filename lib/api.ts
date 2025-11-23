@@ -5,13 +5,16 @@ const URL_BE: string =
   process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
 const API = axios.create({
+
   baseURL: URL_BE || "http://localhost:5000",
+
   withCredentials: true,
 });
 
 API.interceptors.request.use((config) => {
   const token =
     typeof window !== "undefined" ? useAuthStore.getAccessToken() : null;
+
   console.log("Token gửi trong yêu cầu:", token); // Debug token
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
