@@ -5,7 +5,6 @@ const URL_BE: string =
   process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
 const API = axios.create({
-
   baseURL: URL_BE || "http://localhost:5000",
 
   withCredentials: true,
@@ -49,7 +48,11 @@ API.interceptors.response.use(
       try {
         // Gọi refresh bằng instance API để đảm bảo withCredentials + baseURL
         const refreshPath = `${apiVersion}/users/refresh`;
-        const refreshRes = await API.post(refreshPath);
+        const refreshRes = await axios.post(
+          refreshPath,
+          {},
+          { withCredentials: true }
+        );
         const newAccessToken: string | undefined = refreshRes.data?.token;
         if (!newAccessToken)
           throw new Error("No accessToken in refresh response");
