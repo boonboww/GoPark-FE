@@ -2,10 +2,10 @@
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import HeroSection from "@/components/HeroSection";
-import MapSection from "@/components/MapSection";
-import PromotionSection from "@/components/PromotionSection";
+// import MapSection from "@/components/MapSection";
+// import PromotionSection from "@/components/PromotionSection";
 import ContactSection from "@/components/ContactSection";
-import HowItWorksSection from "@/components/HowItWorksSection";
+// import HowItWorksSection from "@/components/HowItWorksSection";
 import TestimonialsSection from "@/components/TestimonialsSection";
 import WavyDivider from "@/components/WavyDivider";
 import PublicOnlyGuard from "@/components/PublicOnlyGuard";
@@ -25,16 +25,15 @@ export default function Home() {
 
         {/* Các section nội dung khác */}
         <div className="space-y-12 md:space-y-24 bg-white">
-          
           <WavyDivider targetId="video" />
           <section id="video" className="scroll-mt-20">
             <VideoSection />
           </section>
-          
-          <WavyDivider targetId="how" />
+
+          {/* <WavyDivider targetId="how" />
           <section id="how" className="scroll-mt-20">
             <HowItWorksSection />
-          </section>
+          </section> */}
 
           <WavyDivider targetId="how-user" />
           <section id="how-user" className="scroll-mt-20">
@@ -46,15 +45,15 @@ export default function Home() {
             <HowItWorkOwnerSection />
           </section>
 
-          <WavyDivider targetId="map" />
+          {/* <WavyDivider targetId="map" />
           <section id="map" className="scroll-mt-20">
             <MapSection />
-          </section>
+          </section> */}
 
-          <WavyDivider targetId="promotion" />
+          {/* <WavyDivider targetId="promotion" />
           <section id="promotion" className="scroll-mt-20">
             <PromotionSection />
-          </section>
+          </section> */}
 
           <WavyDivider targetId="test" />
           <section id="test" className="scroll-mt-20">

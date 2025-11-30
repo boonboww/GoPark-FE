@@ -13,7 +13,7 @@ import type { ParkingLot } from "@/app/owner/types";
 import { fetchMyParkingLots, deleteParkingLot } from "@/lib/parkingLot.api";
 import AddParkingLotDialog from "@/components/AddParkingLotDialog";
 import EditParkingLotDialog from "@/components/EditParkingLotDialog";
-import SelectParkingLotDropdown from "@/components/SelectParkingLotDropdown";
+import SelectParkingLotDropdown from "@/app/owner/tickets/SelectParkingLotDropdown";
 
 export default function ParkingLotManagement() {
   const [parkingLots, setParkingLots] = useState<ParkingLot[]>([]);

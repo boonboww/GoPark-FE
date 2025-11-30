@@ -2,7 +2,9 @@
 
 import Image from "next/image";
 import dynamic from "next/dynamic";
-const MapFrame = dynamic(() => import("./MapFrame"), { ssr: false });
+const MapFrame = dynamic(() => import("../../components/MapFrame"), {
+  ssr: false,
+});
 import { useKeenSlider } from "keen-slider/react";
 import "keen-slider/keen-slider.min.css";
 import {
@@ -65,8 +67,12 @@ export default function ParkingInfo({ parkingLotId }: ParkingInfoProps) {
     [
       // plugins / events
       (sliderInstance) => {
-        sliderInstance.on("created", () => setCurrentSlide(sliderInstance.track.details.rel));
-        sliderInstance.on("slideChanged", () => setCurrentSlide(sliderInstance.track.details.rel));
+        sliderInstance.on("created", () =>
+          setCurrentSlide(sliderInstance.track.details.rel)
+        );
+        sliderInstance.on("slideChanged", () =>
+          setCurrentSlide(sliderInstance.track.details.rel)
+        );
       },
     ]
   );
@@ -92,7 +98,8 @@ export default function ParkingInfo({ parkingLotId }: ParkingInfoProps) {
         setSpots(slotsResponse.data.data?.data || []);
 
         // 📌 Lấy thông tin user hiện tại (chỉ nếu đã đăng nhập)
-        const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+        const token =
+          typeof window !== "undefined" ? localStorage.getItem("token") : null;
         if (token) {
           try {
             const userResponse = await API.get("/api/v1/users/me");
@@ -109,7 +116,10 @@ export default function ParkingInfo({ parkingLotId }: ParkingInfoProps) {
 
         // 📌 Nếu parkingLot trả về parkingOwner là object hoặc id, fetch owner
         // Note: parkingLotResponse may include the lot directly under data or data.parkingLot
-        const lotData = parkingLotResponse.data.data?.parkingLot || parkingLotResponse.data.data || parkingLotResponse.data;
+        const lotData =
+          parkingLotResponse.data.data?.parkingLot ||
+          parkingLotResponse.data.data ||
+          parkingLotResponse.data;
         const parkingOwner = lotData?.parkingOwner;
         if (parkingOwner) {
           // nếu parkingOwner là object đã populate
@@ -142,7 +152,7 @@ export default function ParkingInfo({ parkingLotId }: ParkingInfoProps) {
           status: error.response?.status,
           url: error.config?.url,
         });
-        
+
         // Xử lý lỗi 401
         if (error.response?.status === 401) {
           setError("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.");
@@ -153,8 +163,10 @@ export default function ParkingInfo({ parkingLotId }: ParkingInfoProps) {
           }, 2000);
           return;
         }
-        
-        setError("Không thể tải thông tin bãi đỗ, vị trí đỗ hoặc thông tin người dùng. Vui lòng thử lại sau.");
+
+        setError(
+          "Không thể tải thông tin bãi đỗ, vị trí đỗ hoặc thông tin người dùng. Vui lòng thử lại sau."
+        );
         setLoading(false);
       }
     };
@@ -166,12 +178,20 @@ export default function ParkingInfo({ parkingLotId }: ParkingInfoProps) {
   useEffect(() => {
     if (!lightboxOpen) return;
     const handler = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setLightboxOpen(false);
-      if (e.key === 'ArrowLeft') setLightboxIndex((prev) => (prev - 1 + (parkingLot?.image?.length || 0)) % (parkingLot?.image?.length || 1));
-      if (e.key === 'ArrowRight') setLightboxIndex((prev) => (prev + 1) % (parkingLot?.image?.length || 1));
+      if (e.key === "Escape") setLightboxOpen(false);
+      if (e.key === "ArrowLeft")
+        setLightboxIndex(
+          (prev) =>
+            (prev - 1 + (parkingLot?.image?.length || 0)) %
+            (parkingLot?.image?.length || 1)
+        );
+      if (e.key === "ArrowRight")
+        setLightboxIndex(
+          (prev) => (prev + 1) % (parkingLot?.image?.length || 1)
+        );
     };
-    window.addEventListener('keydown', handler);
-    return () => window.removeEventListener('keydown', handler);
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
   }, [lightboxOpen, parkingLot]);
 
   const zones = Array.from(new Set(spots.map((spot) => spot.zone)));
@@ -248,7 +268,7 @@ export default function ParkingInfo({ parkingLotId }: ParkingInfoProps) {
                   aria-label={`Go to slide ${idx + 1}`}
                   onClick={() => slider.current?.moveToIdx(idx)}
                   className={`w-3 h-3 md:w-3 md:h-3 rounded-full transition-colors duration-150 ${
-                    currentSlide === idx ? 'bg-white' : 'bg-white/60'
+                    currentSlide === idx ? "bg-white" : "bg-white/60"
                   }`}
                 />
               ))}
@@ -286,13 +306,15 @@ export default function ParkingInfo({ parkingLotId }: ParkingInfoProps) {
       </div>
 
       <div className="text-sm text-gray-600">
-        <strong>Khu vực:</strong> {zones.join(", ")} — Tổng: {spots.length} vị trí
+        <strong>Khu vực:</strong> {zones.join(", ")} — Tổng: {spots.length} vị
+        trí
       </div>
 
       <div className="text-sm text-gray-600">
         <strong>Giá:</strong>{" "}
         {parkingLot && typeof (parkingLot as any).pricePerHour === "number"
-          ? (parkingLot as any).pricePerHour.toLocaleString("vi-VN") + " VNĐ/giờ"
+          ? (parkingLot as any).pricePerHour.toLocaleString("vi-VN") +
+            " VNĐ/giờ"
           : "Chưa có thông tin giá"}
       </div>
 
@@ -310,7 +332,8 @@ export default function ParkingInfo({ parkingLotId }: ParkingInfoProps) {
               <User className="w-4 h-4" /> {owner.userName || "Không có tên"}
             </div>
             <div className="flex items-center gap-2">
-              <Phone className="w-4 h-4" /> {owner.phoneNumber || "Không có số điện thoại"}
+              <Phone className="w-4 h-4" />{" "}
+              {owner.phoneNumber || "Không có số điện thoại"}
             </div>
             <div className="flex items-center gap-2">
               <Mail className="w-4 h-4" /> {owner.email || "Không có email"}
@@ -322,14 +345,17 @@ export default function ParkingInfo({ parkingLotId }: ParkingInfoProps) {
               <User className="w-4 h-4" /> {user.userName || "Không có tên"}
             </div>
             <div className="flex items-center gap-2">
-              <Phone className="w-4 h-4" /> {user.phoneNumber || "Không có số điện thoại"}
+              <Phone className="w-4 h-4" />{" "}
+              {user.phoneNumber || "Không có số điện thoại"}
             </div>
             <div className="flex items-center gap-2">
               <Mail className="w-4 h-4" /> {user.email || "Không có email"}
             </div>
           </>
         ) : (
-          <div className="text-red-600">Không thể tải thông tin người dùng.</div>
+          <div className="text-red-600">
+            Không thể tải thông tin người dùng.
+          </div>
         )}
       </div>
 
@@ -350,7 +376,10 @@ export default function ParkingInfo({ parkingLotId }: ParkingInfoProps) {
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/80"
           onClick={() => setLightboxOpen(false)}
         >
-          <div className="relative max-w-[95%] max-h-[95%]" onClick={(e) => e.stopPropagation()}>
+          <div
+            className="relative max-w-[95%] max-h-[95%]"
+            onClick={(e) => e.stopPropagation()}
+          >
             <button
               className="absolute top-2 right-2 text-white bg-black/40 p-2 rounded-full"
               onClick={() => setLightboxOpen(false)}
@@ -360,14 +389,22 @@ export default function ParkingInfo({ parkingLotId }: ParkingInfoProps) {
 
             <button
               className="absolute left-2 top-1/2 transform -translate-y-1/2 text-white bg-black/40 p-2 rounded-full"
-              onClick={() => setLightboxIndex((prev) => (prev - 1 + parkingLot.image.length) % parkingLot.image.length)}
+              onClick={() =>
+                setLightboxIndex(
+                  (prev) =>
+                    (prev - 1 + parkingLot.image.length) %
+                    parkingLot.image.length
+                )
+              }
             >
               ‹
             </button>
 
             <button
               className="absolute right-2 top-1/2 transform -translate-y-1/2 text-white bg-black/40 p-2 rounded-full"
-              onClick={() => setLightboxIndex((prev) => (prev + 1) % parkingLot.image.length)}
+              onClick={() =>
+                setLightboxIndex((prev) => (prev + 1) % parkingLot.image.length)
+              }
             >
               ›
             </button>

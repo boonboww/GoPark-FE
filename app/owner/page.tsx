@@ -1,21 +1,27 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import RoleGuard from '@/components/RoleGuard';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import RoleGuard from "@/components/RoleGuard";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import CombinedParkingManagement from "@/components/VehicleManagement";
+import CombinedParkingManagement from "@/app/owner/VehicleManagement";
 import type { Customer, Vehicle, Ticket, ParkingLot } from "@/app/owner/types";
 import API from "@/lib/api";
-import { 
-  Building2, 
-  Car, 
-  TrendingUp, 
+import {
+  Building2,
+  Car,
+  TrendingUp,
   DollarSign,
   Calendar,
   Clock,
-  MapPin
-} from 'lucide-react';
+  MapPin,
+} from "lucide-react";
 
 const initialData = {
   customers: [
@@ -81,7 +87,9 @@ const initialData = {
 
 export default function OwnerDashboard() {
   const [customerList] = useState<Customer[]>(initialData.customers);
-  const [vehicleList, setVehicleList] = useState<Vehicle[]>(initialData.vehicles);
+  const [vehicleList, setVehicleList] = useState<Vehicle[]>(
+    initialData.vehicles
+  );
   const [ticketList] = useState<Ticket[]>(initialData.tickets);
   const [accountName, setAccountName] = useState<string>("");
   const [parkingLots, setParkingLots] = useState<ParkingLot[]>([]);
@@ -97,8 +105,6 @@ export default function OwnerDashboard() {
     };
     fetchAccountName();
   }, []);
-
-
 
   // Mock statistics
   const stats = {
@@ -119,7 +125,9 @@ export default function OwnerDashboard() {
             Dashboard Overview
           </h1>
           <p className="text-gray-600">
-            Chào mừng trở lại, <span className="font-semibold">{accountName}</span>! Đây là tổng quan về hoạt động bãi đỗ của bạn.
+            Chào mừng trở lại,{" "}
+            <span className="font-semibold">{accountName}</span>! Đây là tổng
+            quan về hoạt động bãi đỗ của bạn.
           </p>
         </div>
 
@@ -127,24 +135,28 @@ export default function OwnerDashboard() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Tổng số bãi đỗ</CardTitle>
+              <CardTitle className="text-sm font-medium">
+                Tổng số bãi đỗ
+              </CardTitle>
               <Building2 className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{stats.totalLots}</div>
-              <p className="text-xs text-muted-foreground">
-                Đang hoạt động
-              </p>
+              <p className="text-xs text-muted-foreground">Đang hoạt động</p>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Tỷ lệ lấp đầy</CardTitle>
+              <CardTitle className="text-sm font-medium">
+                Tỷ lệ lấp đầy
+              </CardTitle>
               <Car className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{Math.round((stats.occupiedSlots / stats.totalSlots) * 100)}%</div>
+              <div className="text-2xl font-bold">
+                {Math.round((stats.occupiedSlots / stats.totalSlots) * 100)}%
+              </div>
               <p className="text-xs text-muted-foreground">
                 {stats.occupiedSlots}/{stats.totalSlots} chỗ đậu
               </p>
@@ -153,11 +165,15 @@ export default function OwnerDashboard() {
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Doanh thu tháng</CardTitle>
+              <CardTitle className="text-sm font-medium">
+                Doanh thu tháng
+              </CardTitle>
               <DollarSign className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{(stats.revenue / 1000000).toFixed(1)}M</div>
+              <div className="text-2xl font-bold">
+                {(stats.revenue / 1000000).toFixed(1)}M
+              </div>
               <p className="text-xs text-muted-foreground">
                 +20.1% so với tháng trước
               </p>
@@ -166,7 +182,9 @@ export default function OwnerDashboard() {
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Đặt chỗ hôm nay</CardTitle>
+              <CardTitle className="text-sm font-medium">
+                Đặt chỗ hôm nay
+              </CardTitle>
               <Calendar className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
@@ -221,7 +239,9 @@ export default function OwnerDashboard() {
                 <div className="flex items-center gap-3">
                   <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
                   <div className="flex-1">
-                    <p className="text-sm font-medium">Khách hàng mới đăng ký</p>
+                    <p className="text-sm font-medium">
+                      Khách hàng mới đăng ký
+                    </p>
                     <p className="text-xs text-gray-500">15 phút trước</p>
                   </div>
                 </div>
@@ -245,7 +265,9 @@ export default function OwnerDashboard() {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600">Khách hàng hoạt động</span>
+                  <span className="text-sm text-gray-600">
+                    Khách hàng hoạt động
+                  </span>
                   <Badge variant="secondary">{stats.activeCustomers}</Badge>
                 </div>
                 <div className="flex justify-between items-center">

@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import ChangePasswordForm from "./ChangePasswordForm";
+import ChangePasswordForm from "../app/owner/account/ChangePasswordForm";
 import API from "@/lib/api";
 
 export default function AccountSettingsPanel() {
@@ -53,7 +53,9 @@ export default function AccountSettingsPanel() {
       setPhoneSuccess("Đổi số điện thoại thành công!");
       setPhone("");
     } catch (err: any) {
-      setPhoneError(err?.response?.data?.message || "Đổi số điện thoại thất bại.");
+      setPhoneError(
+        err?.response?.data?.message || "Đổi số điện thoại thất bại."
+      );
     } finally {
       setPhoneLoading(false);
     }
@@ -75,8 +77,12 @@ export default function AccountSettingsPanel() {
               onChange={(e) => setEmail(e.target.value)}
               required
             />
-            {emailError && <div className="text-red-500 text-sm">{emailError}</div>}
-            {emailSuccess && <div className="text-green-600 text-sm">{emailSuccess}</div>}
+            {emailError && (
+              <div className="text-red-500 text-sm">{emailError}</div>
+            )}
+            {emailSuccess && (
+              <div className="text-green-600 text-sm">{emailSuccess}</div>
+            )}
             <Button type="submit" disabled={emailLoading} className="w-full">
               {emailLoading ? "Đang xử lý..." : "Đổi email"}
             </Button>
@@ -96,8 +102,12 @@ export default function AccountSettingsPanel() {
               onChange={(e) => setPhone(e.target.value)}
               required
             />
-            {phoneError && <div className="text-red-500 text-sm">{phoneError}</div>}
-            {phoneSuccess && <div className="text-green-600 text-sm">{phoneSuccess}</div>}
+            {phoneError && (
+              <div className="text-red-500 text-sm">{phoneError}</div>
+            )}
+            {phoneSuccess && (
+              <div className="text-green-600 text-sm">{phoneSuccess}</div>
+            )}
             <Button type="submit" disabled={phoneLoading} className="w-full">
               {phoneLoading ? "Đang xử lý..." : "Đổi số điện thoại"}
             </Button>

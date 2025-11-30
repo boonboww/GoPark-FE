@@ -4,10 +4,10 @@ import Head from "next/head";
 import Link from "next/link";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import ParkingInfo from "@/components/ParkingInfo";
-import ParkingBookingForm from "@/components/ParkingBookingForm";
-import ParkingReview from "@/components/ParkingReview";
-import ParkingSuggestion from "@/components/ParkingSuggestion";
+import ParkingInfo from "@/app/detailParking/ParkingInfo";
+import ParkingBookingForm from "@/app/detailParking/ParkingBookingForm";
+import ParkingReview from "@/app/detailParking/ParkingReview";
+import ParkingSuggestion from "@/app/detailParking/ParkingSuggestion";
 import { useEffect, useState } from "react";
 import { getParkingLotById } from "@/lib/api";
 import { useParams } from "next/navigation";
@@ -48,8 +48,14 @@ export default function DetailParkingPage() {
         setLoading(false);
       })
       .catch((error) => {
-        console.error("Lỗi khi lấy thông tin bãi đỗ:", error.response?.data || error.message);
-        setError(error.response?.data?.message || "Không thể tải thông tin bãi đỗ. Vui lòng thử lại sau.");
+        console.error(
+          "Lỗi khi lấy thông tin bãi đỗ:",
+          error.response?.data || error.message
+        );
+        setError(
+          error.response?.data?.message ||
+            "Không thể tải thông tin bãi đỗ. Vui lòng thử lại sau."
+        );
         setLoading(false);
       });
   }, [params]);
@@ -65,14 +71,18 @@ export default function DetailParkingPage() {
   if (error || !parkingLot) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <p className="text-lg text-red-600">{error || "Không tìm thấy bãi đỗ xe"}</p>
+        <p className="text-lg text-red-600">
+          {error || "Không tìm thấy bãi đỗ xe"}
+        </p>
       </div>
     );
   }
 
   const pageTitle = `${parkingLot.name} - Đà Nẵng`;
   const pageDescription = `Thông tin ${parkingLot.name}: vị trí, giá theo giờ, đặt chỗ online dễ dàng.`;
-  const ogImage = parkingLot.avtImage || "https://gopark.vn/images/parking/nguyen-trai-preview.jpg";
+  const ogImage =
+    parkingLot.avtImage ||
+    "https://gopark.vn/images/parking/nguyen-trai-preview.jpg";
   const pageUrl = `https://gopark.vn/parking/${parkingLot._id}`;
 
   return (
@@ -91,11 +101,17 @@ export default function DetailParkingPage() {
       <main className="min-h-screen mt-20 px-4 py-12 flex flex-col items-center">
         <div className="w-full max-w-6xl mb-6">
           <nav className="text-sm text-gray-600 space-x-2">
-            <Link href="/" className="hover:underline">Trang chủ</Link>
+            <Link href="/" className="hover:underline">
+              Trang chủ
+            </Link>
             <span>/</span>
-            <Link href="/findParking" className="hover:underline">Tìm kiếm bãi</Link>
+            <Link href="/findParking" className="hover:underline">
+              Tìm kiếm bãi
+            </Link>
             <span>/</span>
-            <span className="text-gray-900 font-semibold">{parkingLot.name}</span>
+            <span className="text-gray-900 font-semibold">
+              {parkingLot.name}
+            </span>
           </nav>
         </div>
 
@@ -110,12 +126,25 @@ export default function DetailParkingPage() {
                   parkingId: parkingLot._id,
                   lat: parkingLot.location?.coordinates?.[1]?.toString() || "",
                   lon: parkingLot.location?.coordinates?.[0]?.toString() || "",
-                  name: parkingLot.name || ""
+                  name: parkingLot.name || "",
                 }).toString();
                 window.location.href = `/CitiMap?${query}`;
               }}
             >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A2 2 0 013 15.382V6.618a2 2 0 011.553-1.894l7-2.105a2 2 0 011.894 0l7 2.105A2 2 0 0121 6.618v8.764a2 2 0 01-1.553 1.894L15 20m-6 0v-7m6 7v-7" /></svg>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-5 w-5"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M9 20l-5.447-2.724A2 2 0 013 15.382V6.618a2 2 0 011.553-1.894l7-2.105a2 2 0 011.894 0l7 2.105A2 2 0 0121 6.618v8.764a2 2 0 01-1.553 1.894L15 20m-6 0v-7m6 7v-7"
+                />
+              </svg>
               Xem trên bản đồ
             </button>
             <ParkingReview />

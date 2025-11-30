@@ -1,7 +1,7 @@
 "use client";
 
 import { Building2 } from "lucide-react";
-import CombinedParkingManagement from "@/components/VehicleManagement";
+import CombinedParkingManagement from "@/app/owner/VehicleManagement";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { useState } from "react";

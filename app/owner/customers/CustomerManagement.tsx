@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import api from "@/lib/api";
 import { fetchMyParkingLots } from "@/lib/parkingLot.api";
-import SelectParkingLotDropdown from "./SelectParkingLotDropdown";
+import SelectParkingLotDropdown from "../tickets/SelectParkingLotDropdown";
 import {
   Card,
   CardContent,
@@ -28,8 +28,8 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import CustomerForm from "./CustomerForm";
-import VehicleForm from "./VehicleForm";
+import CustomerForm from "../../../components/CustomerForm";
+import VehicleForm from "../../../components/VehicleForm";
 import type {
   Customer,
   CustomerManagementProps,
@@ -42,12 +42,17 @@ export default function CustomerManagement({
   setCustomers,
 }: CustomerManagementProps) {
   const [searchTerm, setSearchTerm] = useState("");
-  const [parkingLots, setParkingLots] = useState<import("@/app/owner/types").ParkingLot[]>([]);
+  const [parkingLots, setParkingLots] = useState<
+    import("@/app/owner/types").ParkingLot[]
+  >([]);
   const [selectedLotId, setSelectedLotId] = useState("");
   const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
-  const [addVehicleCustomer, setAddVehicleCustomer] = useState<Customer | null>(null);
-  const [viewVehicleCustomer, setViewVehicleCustomer] = useState<Customer | null>(null);
+  const [addVehicleCustomer, setAddVehicleCustomer] = useState<Customer | null>(
+    null
+  );
+  const [viewVehicleCustomer, setViewVehicleCustomer] =
+    useState<Customer | null>(null);
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
 
   // Fetch owner's parking lots on mount
@@ -143,7 +148,10 @@ export default function CustomerManagement({
     if (!addVehicleCustomer) return;
 
     try {
-      await api.post(`/api/v1/vehicles/for-user/${addVehicleCustomer.id}`, vehicleData);
+      await api.post(
+        `/api/v1/vehicles/for-user/${addVehicleCustomer.id}`,
+        vehicleData
+      );
       setAddVehicleCustomer(null);
     } catch (err) {
       console.error("Lỗi khi thêm phương tiện:", err);
@@ -152,7 +160,9 @@ export default function CustomerManagement({
 
   const handleViewVehicles = async (customer: Customer) => {
     try {
-      const res = await api.get<Vehicle[]>(`/api/v1/vehicles/by-user/${customer.id}`);
+      const res = await api.get<Vehicle[]>(
+        `/api/v1/vehicles/by-user/${customer.id}`
+      );
       setVehicles(res.data);
       setViewVehicleCustomer(customer);
     } catch (err) {
@@ -168,7 +178,9 @@ export default function CustomerManagement({
   );
 
   // per-customer selected lot (local mapping)
-  const [customerLotMap, setCustomerLotMap] = useState<Record<string, string>>({});
+  const [customerLotMap, setCustomerLotMap] = useState<Record<string, string>>(
+    {}
+  );
 
   return (
     <Card>
@@ -212,7 +224,10 @@ export default function CustomerManagement({
         </Dialog>
 
         {/* Edit Customer */}
-        <Dialog open={!!editingCustomer} onOpenChange={() => setEditingCustomer(null)}>
+        <Dialog
+          open={!!editingCustomer}
+          onOpenChange={() => setEditingCustomer(null)}
+        >
           <DialogContent>
             <DialogHeader>
               <DialogTitle>Chỉnh sửa khách hàng</DialogTitle>
@@ -230,7 +245,10 @@ export default function CustomerManagement({
         </Dialog>
 
         {/* Add Vehicle */}
-        <Dialog open={!!addVehicleCustomer} onOpenChange={() => setAddVehicleCustomer(null)}>
+        <Dialog
+          open={!!addVehicleCustomer}
+          onOpenChange={() => setAddVehicleCustomer(null)}
+        >
           <DialogContent>
             <DialogHeader>
               <DialogTitle>Thêm phương tiện</DialogTitle>
@@ -245,7 +263,10 @@ export default function CustomerManagement({
         </Dialog>
 
         {/* View Vehicles */}
-        <Dialog open={!!viewVehicleCustomer} onOpenChange={() => setViewVehicleCustomer(null)}>
+        <Dialog
+          open={!!viewVehicleCustomer}
+          onOpenChange={() => setViewVehicleCustomer(null)}
+        >
           <DialogContent>
             <DialogHeader>
               <DialogTitle>
@@ -253,12 +274,16 @@ export default function CustomerManagement({
               </DialogTitle>
             </DialogHeader>
             {vehicles.length === 0 ? (
-              <p className="text-sm text-gray-500">Không tìm thấy phương tiện.</p>
+              <p className="text-sm text-gray-500">
+                Không tìm thấy phương tiện.
+              </p>
             ) : (
               <div className="space-y-3 max-h-[60vh] overflow-y-auto">
                 {vehicles.map((v, idx) => (
                   <Card key={idx} className="p-3 border shadow-sm">
-                    <p><strong>Biển số:</strong> {v.licensePlate}</p>
+                    <p>
+                      <strong>Biển số:</strong> {v.licensePlate}
+                    </p>
                     {v.imageVehicle && (
                       <img
                         src={v.imageVehicle}
@@ -300,16 +325,34 @@ export default function CustomerManagement({
                   />
                 </TableCell>
                 <TableCell className="space-x-2 flex flex-wrap gap-2">
-                  <Button size="sm" variant="outline" onClick={() => setEditingCustomer(c)}>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => setEditingCustomer(c)}
+                  >
                     Sửa
                   </Button>
-                  <Button size="sm" variant="outline" onClick={() => console.log('Save mapping', c.id, customerLotMap[c.id])}>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() =>
+                      console.log("Save mapping", c.id, customerLotMap[c.id])
+                    }
+                  >
                     Lưu
                   </Button>
-                  <Button size="sm" variant="destructive" onClick={() => handleDeleteCustomer(c.id)}>
+                  <Button
+                    size="sm"
+                    variant="destructive"
+                    onClick={() => handleDeleteCustomer(c.id)}
+                  >
                     Xóa
                   </Button>
-                  <Button size="sm" variant="secondary" onClick={() => handleViewVehicles(c)}>
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    onClick={() => handleViewVehicles(c)}
+                  >
                     Xem phương tiện
                   </Button>
                   <Button size="sm" onClick={() => setAddVehicleCustomer(c)}>

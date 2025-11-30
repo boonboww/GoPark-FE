@@ -1,10 +1,15 @@
 "use client";
 
-
 import { useState } from "react";
 import { Users } from "lucide-react";
-import CustomerManagement from "@/components/CustomerManagement";
-import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/components/ui/card";
+import CustomerManagement from "@/app/owner/customers/CustomerManagement";
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardContent,
+  CardDescription,
+} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import type { Customer } from "@/app/owner/types";
 
@@ -45,13 +50,19 @@ export default function CustomersPage() {
       <div className="flex items-center gap-3">
         <Users className="w-8 h-8 text-green-600" />
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Quản lý khách hàng</h1>
-          <p className="text-gray-600 mt-2">Quản lý thông tin khách hàng và lịch sử sử dụng dịch vụ</p>
+          <h1 className="text-3xl font-bold text-gray-900">
+            Quản lý khách hàng
+          </h1>
+          <p className="text-gray-600 mt-2">
+            Quản lý thông tin khách hàng và lịch sử sử dụng dịch vụ
+          </p>
         </div>
       </div>
       <Card className="shadow-lg">
         <CardHeader>
-          <CardTitle className="text-2xl font-bold">Danh sách khách hàng</CardTitle>
+          <CardTitle className="text-2xl font-bold">
+            Danh sách khách hàng
+          </CardTitle>
           <CardDescription>Bộ lọc và tìm kiếm khách hàng</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">

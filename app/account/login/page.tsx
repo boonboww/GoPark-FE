@@ -1,6 +1,6 @@
 "use client";
 // app/account/login/page.tsx
-import { LoginForm } from "@/components/login-form";
+import { LoginForm } from "@/app/account/login/login-form";
 import { useRouter } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 

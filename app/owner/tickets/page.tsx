@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Ticket, Filter, Calendar, User, Car } from "lucide-react";
+import { Ticket } from "lucide-react";
 import {
   Card,
   CardHeader,
@@ -19,12 +19,11 @@ import {
 } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Select } from "@/components/ui/select";
 
 import TicketForm from "@/components/TicketForm";
 import API from "@/lib/api";
-import SelectParkingLotDropdown from "@/components/SelectParkingLotDropdown";
-import DetailBooking from "@/components/DetailBooking";
+import SelectParkingLotDropdown from "@/app/owner/tickets/SelectParkingLotDropdown";
+import DetailBooking from "@/app/owner/tickets/DetailBooking";
 import { fetchMyParkingLots } from "@/lib/parkingLot.api";
 import toast from "react-hot-toast";
 import { getBookingById } from "@/lib/booking.api";
