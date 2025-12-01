@@ -6,9 +6,8 @@ import "leaflet-routing-machine/dist/leaflet-routing-machine.css";
 
 // ✅ Nhúng ChatBot
 import ChatBot from "@/components/ChatBot"; // Đảm bảo file ChatBot.tsx đã có trong components/
-import { RememberLoginProvider } from "@/components/RememberLoginProvider";
 import ScrollToTop from "@/components/ScrollToTop";
-import { ChatProvider } from "@/contexts/ChatContext";
+import StoreProvider from "@/components/StoreProvider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -50,15 +49,12 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-
-        <RememberLoginProvider>
-          <ChatProvider>
-            {children}
-            <Toaster richColors position="top-center" />
-            <ChatBot /> {/* ✅ Nhúng chatbot AI tại đây */}
-            <ScrollToTop /> {/* ✅ Nút scroll to top */}
-          </ChatProvider>
-        </RememberLoginProvider>
+        <StoreProvider>
+          {children}
+          <Toaster richColors position="top-center" />
+          <ChatBot /> {/* ✅ Nhúng chatbot AI tại đây */}
+          <ScrollToTop /> {/* ✅ Nút scroll to top */}
+        </StoreProvider>
       </body>
     </html>
   );

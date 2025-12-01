@@ -5,7 +5,7 @@ import { Mail, Lock, LogIn, UserPlus, Globe } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { loginUser } from "@/app/account/login/action";
 import { cn } from "@/lib/utils";
-import { useRememberLogin } from "@/components/RememberLoginProvider";
+import { useRememberLogin } from "@/hooks/useRememberLogin";
 import { Button } from "@/components/ui/button";
 import {
   Card,

@@ -1,13 +1,19 @@
 "use client";
 
-import React from 'react';
-import { LogOut } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { useRememberLogin } from '@/components/RememberLoginProvider';
-import { useLogout } from '@/lib/logout';
+import React from "react";
+import { LogOut } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { useRememberLogin } from "@/hooks/useRememberLogin";
+import { useLogout } from "@/lib/logout";
 
 interface LogoutButtonProps {
-  variant?: "default" | "destructive" | "outline" | "secondary" | "ghost" | "link";
+  variant?:
+    | "default"
+    | "destructive"
+    | "outline"
+    | "secondary"
+    | "ghost"
+    | "link";
   size?: "default" | "sm" | "lg" | "icon";
   clearRememberedLogin?: boolean;
   redirectTo?: string;
@@ -21,7 +27,7 @@ export const LogoutButton: React.FC<LogoutButtonProps> = ({
   clearRememberedLogin = false,
   redirectTo = "/account/login",
   className = "",
-  children
+  children,
 }) => {
   const { clearLogin } = useRememberLogin();
   const { logout } = useLogout();
@@ -36,7 +42,7 @@ export const LogoutButton: React.FC<LogoutButtonProps> = ({
       // Thực hiện logout
       await logout({
         redirectTo,
-        clearRememberedLogin
+        clearRememberedLogin,
       });
     } catch (error) {
       console.error("Logout failed:", error);

@@ -2,10 +2,10 @@
 
 import { useState, useEffect } from "react";
 import { ChevronUp } from "lucide-react";
-import { useChatContext } from "@/contexts/ChatContext";
+import { useAppSelector } from "@/lib/redux/hooks";
 
 const ScrollToTop = () => {
-  const { isChatOpen } = useChatContext();
+  const isChatOpen = useAppSelector((state) => state.chat.isChatOpen);
   const [isVisible, setIsVisible] = useState(false);
 
   // Theo dõi scroll position
@@ -63,11 +63,11 @@ const ScrollToTop = () => {
       title="Lên đầu trang"
     >
       <ChevronUp className="w-6 h-6 group-hover:animate-pulse transition-all duration-200" />
-      
+
       {/* Hiệu ứng nhấp nháy ring */}
-      <div 
+      <div
         className="absolute inset-0 rounded-full bg-green-400 opacity-20 animate-ping pointer-events-none"
-        style={{ animationDuration: '2.5s' }}
+        style={{ animationDuration: "2.5s" }}
       />
     </button>
   );
