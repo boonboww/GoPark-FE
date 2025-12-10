@@ -102,6 +102,7 @@ export const cancelBooking = async (bookingId: string): Promise<{ status: string
 export const formatBookingForUI = (booking: Booking): UIBooking => {
   return {
     id: booking._id,
+    parkingId: booking.parkingSlotId?.parkingLot?._id || "",
     parkingName: booking.parkingSlotId?.parkingLot?.name || "Bãi đỗ xe",
     location: booking.parkingSlotId?.parkingLot?.address || "Địa chỉ không xác định",
     time: new Date(booking.startTime).toLocaleString("vi-VN"),

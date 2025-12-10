@@ -1,6 +1,7 @@
 // app/myBooking/types.ts
 export interface Booking {
   id: string;
+  parkingId: string;
   parkingName: string;
   location: string;
   time: string;
