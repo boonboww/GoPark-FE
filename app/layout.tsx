@@ -8,6 +8,7 @@ import "leaflet-routing-machine/dist/leaflet-routing-machine.css";
 import ChatBot from "@/components/ChatBot"; // Đảm bảo file ChatBot.tsx đã có trong components/
 import ScrollToTop from "@/components/ScrollToTop";
 import StoreProvider from "@/components/StoreProvider";
+import SessionExpiredModal from "@/components/SessionExpiredModal";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -54,6 +55,7 @@ export default function RootLayout({
           <Toaster richColors position="top-center" />
           <ChatBot /> {/* ✅ Nhúng chatbot AI tại đây */}
           <ScrollToTop /> {/* ✅ Nút scroll to top */}
+          <SessionExpiredModal />
         </StoreProvider>
       </body>
     </html>

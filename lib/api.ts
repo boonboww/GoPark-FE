@@ -70,6 +70,12 @@ API.interceptors.response.use(
           console.warn("[Auth] Refresh failed -> clearing auth data");
         }
         useAuthStore.clearAllAuthData();
+        
+        // Dispatch event to notify UI
+        if (typeof window !== "undefined") {
+          window.dispatchEvent(new Event("session-expired"));
+        }
+
         return Promise.reject(refreshErr);
       }
     }
