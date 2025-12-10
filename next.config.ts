@@ -1,8 +1,5 @@
 // next.config.js (nếu dùng .ts thì là next.config.ts)
 const nextConfig = {
-  eslint: {
-    ignoreDuringBuilds: true, // ✅ bỏ qua ESLint khi build
-  },
   images: {
     remotePatterns: [
       {

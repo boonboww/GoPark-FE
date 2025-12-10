@@ -8,6 +8,8 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { CITY_CENTERS } from "@/app/CitiMap/types";
 import { motion } from "framer-motion";
+import { MapPin, Calendar, Clock } from "lucide-react";
+import LottieBox from "./LottieBox";
 
 export const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
@@ -218,126 +220,160 @@ export default function HeroSection() {
       </div>
 
       {/* Nội dung chính */}
-      <div className="relative z-10 w-full max-w-6xl mx-auto">
-        {/* Heading with motion */}
-        <motion.div
-          initial={{ opacity: 0, y: -30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
-          className="text-white text-center mb-8"
-        >
-          <h1 className="text-3xl md:text-5xl font-extrabold drop-shadow-lg leading-tight text-white">
-            Đặt Chỗ Đậu Xe Dễ Dàng, Mọi Lúc Mọi Nơi
-          </h1>
-
-          <p className="mt-2 text-lg md:text-xl font-medium text-white/90 drop-shadow-sm">
-            Khám phá bãi đỗ xe gần bạn và đặt trước chỉ trong vài giây!
-          </p>
-        </motion.div>
-
-        {/* Select location */}
-        <div className="bg-white/80 backdrop-blur-md p-6 rounded-2xl w-full max-w-md shadow-md ring-1 ring-white/20 mb-4 mx-auto">
-          <select
-            value={selectedLocation?.id || ""}
-            onChange={handleSelectLocation}
-            className="w-full border border-gray-300 px-3 py-2 rounded-lg text-base font-bold text-gray-800 focus:ring-2 focus:ring-blue-400"
+      <div className="relative z-10 w-full max-w-7xl mx-auto grid lg:grid-cols-2 gap-8 items-center">
+        <div className="flex flex-col items-center lg:items-start w-full">
+          {/* Heading with motion */}
+          <motion.div
+            initial={{ opacity: 0, y: -30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+            className="text-white text-center lg:text-left mb-8 w-full"
           >
-            <option value="" disabled>
-              Chọn thành phố...
-            </option>
-            {allLocations.map((loc) => (
-              <option key={loc.id} value={loc.id}>
-                {loc.name}
-              </option>
-            ))}
-          </select>
+            <h1 className="text-3xl md:text-5xl font-extrabold drop-shadow-lg leading-tight text-white mb-4">
+              Đặt Chỗ Đậu Xe Dễ Dàng, Mọi Lúc Mọi Nơi
+            </h1>
+
+            <p className="text-lg md:text-xl font-medium text-white/90 drop-shadow-sm max-w-2xl mx-auto lg:mx-0">
+              Khám phá bãi đỗ xe gần bạn và đặt trước chỉ trong vài giây!
+            </p>
+          </motion.div>
+
+          {/* Booking Form Container */}
+          <div className="bg-white/80 backdrop-blur-md p-6 rounded-2xl w-full max-w-md shadow-md ring-1 ring-white/20 mx-auto lg:mx-0 transition-all duration-300">
+            {/* Location Selector */}
+            <div className="mb-4">
+              <label className="text-sm font-medium text-gray-800 block mb-1">
+                Bạn muốn đỗ xe ở đâu?
+              </label>
+              <div className="relative">
+                <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 w-5 h-5" />
+                <select
+                  value={selectedLocation?.id || ""}
+                  onChange={handleSelectLocation}
+                  className="w-full border border-gray-400 px-3 py-2 pl-10 rounded-lg text-base font-bold text-gray-800 focus:ring-2 focus:ring-blue-400 appearance-none"
+                >
+                  <option value="" disabled>
+                    Chọn thành phố...
+                  </option>
+                  {allLocations.map((loc) => (
+                    <option key={loc.id} value={loc.id}>
+                      {loc.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            {/* Time selection and button - Only show if location selected */}
+            {selectedLocation && (
+              <motion.div
+                initial={{ opacity: 0, height: 0, overflow: "hidden" }}
+                animate={{ opacity: 1, height: "auto", transitionEnd: { overflow: "visible" } }}
+                transition={{ duration: 0.3 }}
+              >
+                <div className="pt-2 border-t border-gray-200/50 mt-2">
+                  <div className="grid grid-cols-2 gap-3 mb-4">
+                    {/* Arriving */}
+                    <div>
+                      <label className="text-xs font-bold text-gray-600 uppercase tracking-wide block mb-1">
+                        Đến lúc
+                      </label>
+                      <div className="flex flex-col gap-2">
+                        <div className="relative">
+                          <Calendar className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-500 w-4 h-4 z-10" />
+                          <DatePicker
+                            selected={arriving}
+                            onChange={(date: Date | null) =>
+                              date && setArriving(date)
+                            }
+                            dateFormat="dd/MM/yyyy"
+                            popperPlacement="top-start"
+                            className="w-full bg-white border border-gray-400 px-2 py-1.5 pl-9 rounded text-sm font-medium text-gray-700 focus:ring-1 focus:ring-blue-500 outline-none"
+                          />
+                        </div>
+                        <div className="relative">
+                          <Clock className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-500 w-4 h-4 z-10" />
+                          <DatePicker
+                            selected={arriving}
+                            onChange={(time: Date | null) => {
+                              if (!time) return;
+                              const newTime = new Date(arriving);
+                              newTime.setHours(
+                                time.getHours(),
+                                time.getMinutes()
+                              );
+                              setArriving(newTime);
+                            }}
+                            showTimeSelect
+                            showTimeSelectOnly
+                            timeIntervals={15}
+                            timeCaption="Giờ"
+                            dateFormat="HH:mm"
+                            popperPlacement="top-start"
+                            className="w-full bg-white border border-gray-400 px-2 py-1.5 pl-9 rounded text-sm font-medium text-gray-700 focus:ring-1 focus:ring-blue-500 outline-none"
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Leaving */}
+                    <div>
+                      <label className="text-xs font-bold text-gray-600 uppercase tracking-wide block mb-1">
+                        Rời lúc
+                      </label>
+                      <div className="flex flex-col gap-2">
+                        <div className="relative">
+                          <Calendar className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-500 w-4 h-4 z-10" />
+                          <DatePicker
+                            selected={leaving}
+                            onChange={(date: Date | null) =>
+                              date && setLeaving(date)
+                            }
+                            dateFormat="dd/MM/yyyy"
+                            popperPlacement="top-start"
+                            className="w-full bg-white border border-gray-400 px-2 py-1.5 pl-9 rounded text-sm font-medium text-gray-700 focus:ring-1 focus:ring-blue-500 outline-none"
+                          />
+                        </div>
+                        <div className="relative">
+                          <Clock className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-500 w-4 h-4 z-10" />
+                          <DatePicker
+                            selected={leaving}
+                            onChange={(time: Date | null) => {
+                              if (!time) return;
+                              const newTime = new Date(leaving);
+                              newTime.setHours(time.getHours(), time.getMinutes());
+                              setLeaving(newTime);
+                            }}
+                            showTimeSelect
+                            showTimeSelectOnly
+                            timeIntervals={15}
+                            timeCaption="Giờ"
+                            dateFormat="HH:mm"
+                            popperPlacement="top-start"
+                            className="w-full bg-white border border-gray-400 px-2 py-1.5 pl-9 rounded text-sm font-medium text-gray-700 focus:ring-1 focus:ring-blue-500 outline-none"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <Button
+                    className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold py-2.5 rounded-lg shadow-lg hover:shadow-xl hover:from-blue-700 hover:to-indigo-700 transition-all transform active:scale-[0.98] cursor-pointer"
+                    onClick={handleFindParking}
+                    disabled={isSearching}
+                  >
+                    {isSearching ? "Đang Tìm..." : "Tìm Chỗ Đậu Xe Ngay"}
+                  </Button>
+                </div>
+              </motion.div>
+            )}
+          </div>
         </div>
 
-        {/* Time selection and button */}
-        {selectedLocation && (
-          <div className="bg-white/80 backdrop-blur-md p-6 rounded-2xl w-full max-w-md shadow-md ring-1 ring-white/20 mx-auto">
-            <div className="mb-4">
-              <h2 className="text-sm font-medium text-gray-800">
-                {selectedLocation.id === "current"
-                  ? "Vị trí hiện tại"
-                  : "Đã chọn"}
-              </h2>
-              <p className="text-xl font-bold text-blue-800">
-                {selectedLocation.name}
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="text-sm font-medium text-gray-800 block mb-1">
-                  Ngày đến
-                </label>
-                <DatePicker
-                  selected={arriving}
-                  onChange={(date: Date | null) => date && setArriving(date)}
-                  dateFormat="dd/MM/yyyy"
-                  className="w-full border px-3 py-2 rounded-lg text-sm"
-                />
-                <label className="text-sm font-medium text-gray-800 block mt-3 mb-1">
-                  Giờ đến
-                </label>
-                <DatePicker
-                  selected={arriving}
-                  onChange={(time: Date | null) => {
-                    if (!time) return;
-                    const newTime = new Date(arriving);
-                    newTime.setHours(time.getHours(), time.getMinutes());
-                    setArriving(newTime);
-                  }}
-                  showTimeSelect
-                  showTimeSelectOnly
-                  timeIntervals={15}
-                  timeCaption="Giờ"
-                  dateFormat="HH:mm"
-                  className="w-full border px-3 py-2 rounded-lg text-sm"
-                />
-              </div>
-
-              <div>
-                <label className="text-sm font-medium text-gray-800 block mb-1">
-                  Ngày rời
-                </label>
-                <DatePicker
-                  selected={leaving}
-                  onChange={(date: Date | null) => date && setLeaving(date)}
-                  dateFormat="dd/MM/yyyy"
-                  className="w-full border px-3 py-2 rounded-lg text-sm"
-                />
-                <label className="text-sm font-medium text-gray-800 block mt-3 mb-1">
-                  Giờ rời
-                </label>
-                <DatePicker
-                  selected={leaving}
-                  onChange={(time: Date | null) => {
-                    if (!time) return;
-                    const newTime = new Date(leaving);
-                    newTime.setHours(time.getHours(), time.getMinutes());
-                    setLeaving(newTime);
-                  }}
-                  showTimeSelect
-                  showTimeSelectOnly
-                  timeIntervals={15}
-                  timeCaption="Giờ"
-                  dateFormat="HH:mm"
-                  className="w-full border px-3 py-2 rounded-lg text-sm"
-                />
-              </div>
-            </div>
-
-            <Button
-              className="mt-6 w-full bg-gradient-to-r from-blue-500 to-indigo-600 text-white font-semibold py-3 rounded-lg hover:from-blue-600 hover:to-indigo-700 transition-colors"
-              onClick={handleFindParking}
-              disabled={isSearching}
-            >
-              {isSearching ? "Đang Tìm..." : "Tìm Chỗ Đậu Xe"}
-            </Button>
-          </div>
-        )}
+        {/* Right Column: 3D Box */}
+        <div className="hidden lg:block h-[600px] w-full relative">
+          <LottieBox cityId={selectedLocation?.id} />
+        </div>
       </div>
     </section>
   );
