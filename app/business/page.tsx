@@ -5,8 +5,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import Header from "@/components/Header";
-import Footer from "@/components/Footer";
+import Header from "@/components/layout/Header";
+import Footer from "@/components/layout/Footer";
 import { PolicyForm } from "./PolicyForm";
 import { User2, Send, ShieldCheck, AlertTriangle } from "lucide-react";
 import {
@@ -87,22 +87,21 @@ export default function BusinessPage() {
   };
 
   const handleCreateParkingLot = () => {
-  setLoading(true);
+    setLoading(true);
 
-  setTimeout(() => {
-    setFormData({
-      ownerName: "",
-      ownerEmail: "",
-      phone: "",
-      acceptPolicy: false,
-    });
+    setTimeout(() => {
+      setFormData({
+        ownerName: "",
+        ownerEmail: "",
+        phone: "",
+        acceptPolicy: false,
+      });
 
-    setLoading(false);
-    setShowConfirm(false);
-    setShowSuccess(true);
-  }, 500); // Giả lập delay
-};
-
+      setLoading(false);
+      setShowConfirm(false);
+      setShowSuccess(true);
+    }, 500); // Giả lập delay
+  };
 
   const renderInputError = (field: string) =>
     errors[field] && (

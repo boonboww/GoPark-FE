@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Save, X, Camera, AlertTriangle } from "lucide-react";
 import { useState } from "react";
 import API from "@/lib/api";
-import { useToast } from "@/components/ToastProvider";
+import { useToast } from "@/components/providers/ToastProvider";
 
 export default function EditVehicleForm({
   vehicle,
@@ -35,12 +35,13 @@ export default function EditVehicleForm({
 
     // Format mới và cũ cho ô tô
     const carFormat = /^[0-9]{2}[A-Z]{1}[-\s]?[0-9]{4,5}$/i;
-    
+
     // Format cho xe máy
-    const motorbikeFormat = /^[0-9]{2}[A-Z]{1}[-\s]?[0-9]{2}[-\s]?[0-9]{3}\.[0-9]{2}$/i;
+    const motorbikeFormat =
+      /^[0-9]{2}[A-Z]{1}[-\s]?[0-9]{2}[-\s]?[0-9]{3}\.[0-9]{2}$/i;
 
     const trimmedPlate = plate.trim().toUpperCase();
-    
+
     if (!carFormat.test(trimmedPlate) && !motorbikeFormat.test(trimmedPlate)) {
       setLicensePlateError(
         "Biển số không đúng định dạng. VD: 30A-12345, 51B-12345, 29C-123.45"
@@ -79,7 +80,8 @@ export default function EditVehicleForm({
 
   const handleSave = async () => {
     // Kiểm tra token
-    const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+    const token =
+      typeof window !== "undefined" ? localStorage.getItem("token") : null;
     if (!token) {
       toast.error("Bạn chưa đăng nhập. Vui lòng đăng nhập lại.");
       setTimeout(() => {
@@ -116,21 +118,17 @@ export default function EditVehicleForm({
       }
 
       // lưu cập nhật
-      const updatedVehicle = { 
-        ...edited, 
+      const updatedVehicle = {
+        ...edited,
         licensePlate: edited.licensePlate.toUpperCase().trim(),
-        imageVehicle: imageUrl 
+        imageVehicle: imageUrl,
       };
-      
+
       // Gọi callback để lưu (sẽ call API PUT)
       onSave(updatedVehicle);
-      
-      
-      
-      
     } catch (err: any) {
       console.error("Upload image failed:", err);
-      
+
       // Xử lý lỗi 401
       if (err.response?.status === 401) {
         toast.error("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.");
@@ -141,7 +139,7 @@ export default function EditVehicleForm({
         }, 2000);
         return;
       }
-      
+
       toast.error("Lỗi khi cập nhật phương tiện.");
     } finally {
       setLoading(false);
@@ -150,7 +148,7 @@ export default function EditVehicleForm({
 
   // Handle cancel với xác nhận nếu có thay đổi
   const handleCancel = () => {
-    const hasChanges = 
+    const hasChanges =
       edited.licensePlate !== vehicle.licensePlate ||
       edited.capacity !== vehicle.capacity ||
       file !== null;
@@ -161,7 +159,7 @@ export default function EditVehicleForm({
       );
       if (!confirmed) return;
     }
-    
+
     onClose();
   };
 
@@ -171,7 +169,9 @@ export default function EditVehicleForm({
         <h2 className="text-lg font-bold">Chỉnh sửa phương tiện</h2>
 
         <div>
-          <Label>Biển số xe <span className="text-red-500">*</span></Label>
+          <Label>
+            Biển số xe <span className="text-red-500">*</span>
+          </Label>
           <Input
             value={edited.licensePlate}
             onChange={(e) => {
@@ -194,7 +194,9 @@ export default function EditVehicleForm({
         </div>
 
         <div>
-          <Label>Sức chứa <span className="text-red-500">*</span></Label>
+          <Label>
+            Sức chứa <span className="text-red-500">*</span>
+          </Label>
           <Input
             type="number"
             min="1"
@@ -214,9 +216,7 @@ export default function EditVehicleForm({
               {capacityError}
             </p>
           )}
-          <p className="text-xs text-gray-500 mt-1">
-            Số chỗ ngồi (1-50)
-          </p>
+          <p className="text-xs text-gray-500 mt-1">Số chỗ ngồi (1-50)</p>
         </div>
 
         <div>
@@ -254,7 +254,11 @@ export default function EditVehicleForm({
           >
             <X className="w-4 h-4" /> Hủy
           </Button>
-          <Button onClick={handleSave} className="flex gap-1" disabled={loading}>
+          <Button
+            onClick={handleSave}
+            className="flex gap-1"
+            disabled={loading}
+          >
             <Save className="w-4 h-4" />
             {loading ? "Đang lưu..." : "Lưu thay đổi"}
           </Button>

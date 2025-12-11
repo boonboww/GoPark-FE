@@ -28,8 +28,8 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import CustomerForm from "../../../components/CustomerForm";
-import VehicleForm from "../../../components/VehicleForm";
+import CustomerForm from "@/components/features/customer/CustomerForm";
+import VehicleForm from "@/components/features/customer/VehicleForm";
 import type {
   Customer,
   CustomerManagementProps,

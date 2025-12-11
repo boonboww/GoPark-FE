@@ -1,0 +1,23 @@
+
+> gopark@0.1.0 build
+> cross-env NODE_OPTIONS='--max-old-space-size=4096' next build
+
+   Γû▓ Next.js 16.0.8 (Turbopack)
+   - Environments: .env.production
+
+   Creating an optimized production build ...
+ Γ£ô Compiled successfully in 5.4s
+   Running TypeScript ...
+Failed to compile.
+
+./components/features/booking/TicketManagement.tsx:59:12
+Type error: Property 'licensePlate' does not exist on type 'Ticket'.
+
+  57 |
+  58 |   const filteredTickets = tickets.filter(ticket =>
+> 59 |     ticket.licensePlate.toLowerCase().includes(searchTerm.toLowerCase()) ||
+     |            ^
+  60 |     ticket.customer.toLowerCase().includes(searchTerm.toLowerCase())
+  61 |   );
+  62 |
+Next.js build worker exited with code: 1 and signal: null

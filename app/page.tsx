@@ -1,17 +1,17 @@
 "use client";
-import Header from "@/components/Header";
-import Footer from "@/components/Footer";
-import HeroSection from "@/components/HeroSection";
-import MapSection from "@/components/MapSection";
-// import PromotionSection from "@/components/PromotionSection";
-import ContactSection from "@/components/ContactSection";
-// import HowItWorksSection from "@/components/HowItWorksSection";
-import TestimonialsSection from "@/components/TestimonialsSection";
-import WavyDivider from "@/components/WavyDivider";
-import PublicOnlyGuard from "@/components/PublicOnlyGuard";
-import HowItWorkUserSection from "@/components/HowItWorkUserSection";
-import HowItWorkOwnerSection from "@/components/HowItWorkOwnerSection";
-import VideoSection from "@/components/VideoSection";
+import Header from "@/components/layout/Header";
+import Footer from "@/components/layout/Footer";
+import HeroSection from "@/components/sections/HeroSection";
+import MapSection from "@/components/sections/MapSection";
+// import PromotionSection from "@/components/sections/PromotionSection";
+import ContactSection from "@/components/sections/ContactSection";
+// import HowItWorksSection from "@/components/sections/HowItWorksSection";
+import TestimonialsSection from "@/components/sections/TestimonialsSection";
+import WavyDivider from "@/components/common/WavyDivider";
+import PublicOnlyGuard from "@/components/features/auth/PublicOnlyGuard";
+import HowItWorkUserSection from "@/components/sections/HowItWorkUserSection";
+import HowItWorkOwnerSection from "@/components/sections/HowItWorkOwnerSection";
+import VideoSection from "@/components/sections/VideoSection";
 
 export default function Home() {
   return (
@@ -72,7 +72,7 @@ export default function Home() {
             <section id="contact" className="scroll-mt-20">
               <ContactSection />
             </section>
-            
+
             <Footer />
           </div>
         </div>

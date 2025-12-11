@@ -9,7 +9,7 @@ import { toast } from "sonner";
 import { CITY_CENTERS } from "@/app/CitiMap/types";
 import { motion } from "framer-motion";
 import { MapPin, Calendar, Clock } from "lucide-react";
-import LottieBox from "./LottieBox";
+import LottieBox from "@/components/common/LottieBox";
 
 export const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
@@ -268,7 +268,11 @@ export default function HeroSection() {
             {selectedLocation && (
               <motion.div
                 initial={{ opacity: 0, height: 0, overflow: "hidden" }}
-                animate={{ opacity: 1, height: "auto", transitionEnd: { overflow: "visible" } }}
+                animate={{
+                  opacity: 1,
+                  height: "auto",
+                  transitionEnd: { overflow: "visible" },
+                }}
                 transition={{ duration: 0.3 }}
               >
                 <div className="pt-2 border-t border-gray-200/50 mt-2">
@@ -341,7 +345,10 @@ export default function HeroSection() {
                             onChange={(time: Date | null) => {
                               if (!time) return;
                               const newTime = new Date(leaving);
-                              newTime.setHours(time.getHours(), time.getMinutes());
+                              newTime.setHours(
+                                time.getHours(),
+                                time.getMinutes()
+                              );
                               setLeaving(newTime);
                             }}
                             showTimeSelect

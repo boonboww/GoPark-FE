@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import ChangePasswordForm from "../app/owner/account/ChangePasswordForm";
+import ChangePasswordForm from "@/app/owner/account/ChangePasswordForm";
 import API from "@/lib/api";
 
 export default function AccountSettingsPanel() {

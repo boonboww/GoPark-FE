@@ -12,14 +12,15 @@ import {
   Moon,
   Loader2,
 } from "lucide-react";
-import Header from "@/components/Header";
+import Header from "@/components/layout/Header";
 
 export default function ChatAI() {
   const [messages, setMessages] = useState([
     {
       sender: "ai",
       type: "text",
-      content: "Hello! I'm GoPark AI. I can help you with parking information, directions, and more. How can I assist you today?",
+      content:
+        "Hello! I'm GoPark AI. I can help you with parking information, directions, and more. How can I assist you today?",
     },
   ]);
   const [input, setInput] = useState("");
@@ -48,7 +49,10 @@ export default function ChatAI() {
 
     // AI thinking indicator
     setThinking(true);
-    setMessages((prev) => [...prev, { sender: "ai", type: "text", content: "thinking" }]);
+    setMessages((prev) => [
+      ...prev,
+      { sender: "ai", type: "text", content: "thinking" },
+    ]);
 
     // Simulate AI response after delay
     setTimeout(() => {
@@ -69,7 +73,7 @@ export default function ChatAI() {
     if (hasImage) {
       return "Thanks for sharing the image. I can see the parking situation. What specific information do you need about this?";
     }
-    
+
     const lowerInput = userInput.toLowerCase();
     if (lowerInput.includes("parking") || lowerInput.includes("spot")) {
       return "I can help you find available parking spots. Would you like to search by location or see nearby parking options?";
@@ -78,7 +82,7 @@ export default function ChatAI() {
     } else if (lowerInput.includes("hello") || lowerInput.includes("hi")) {
       return "Hello there! How can I assist with your parking needs today?";
     }
-    
+
     return "I'm happy to help with parking-related questions. Could you provide more details about what you need?";
   };
 
@@ -106,29 +110,47 @@ export default function ChatAI() {
   }, [messages]);
 
   return (
-    <div className={`flex flex-col min-h-screen ${darkMode ? "bg-gray-900" : "bg-gray-50"}`}>
+    <div
+      className={`flex flex-col min-h-screen ${
+        darkMode ? "bg-gray-900" : "bg-gray-50"
+      }`}
+    >
       <Header />
 
       {/* Chat Container */}
       <div className="flex flex-col mt-16 flex-1 max-w-4xl w-full mx-auto">
         {/* Chat Header */}
-        <div className={`flex items-center gap-3 px-4 py-3 sticky top-16 z-10 ${
-          darkMode ? "bg-gray-900 border-b border-gray-700" : "bg-white border-b border-gray-200"
-        }`}>
-          <div className={`p-2 rounded-full ${
-            darkMode ? "bg-green-600" : "bg-green-100"
-          }`}>
-            <Bot className={`w-5 h-5 ${darkMode ? "text-white" : "text-green-700"}`} />
+        <div
+          className={`flex items-center gap-3 px-4 py-3 sticky top-16 z-10 ${
+            darkMode
+              ? "bg-gray-900 border-b border-gray-700"
+              : "bg-white border-b border-gray-200"
+          }`}
+        >
+          <div
+            className={`p-2 rounded-full ${
+              darkMode ? "bg-green-600" : "bg-green-100"
+            }`}
+          >
+            <Bot
+              className={`w-5 h-5 ${
+                darkMode ? "text-white" : "text-green-700"
+              }`}
+            />
           </div>
-          <h1 className={`text-lg font-semibold ${
-            darkMode ? "text-green-400" : "text-green-700"
-          }`}>
+          <h1
+            className={`text-lg font-semibold ${
+              darkMode ? "text-green-400" : "text-green-700"
+            }`}
+          >
             GoPark AI Assistant
           </h1>
           <button
             onClick={() => setDarkMode(!darkMode)}
             className={`ml-auto p-2 rounded-full ${
-              darkMode ? "bg-gray-700 hover:bg-gray-600" : "bg-gray-200 hover:bg-gray-300"
+              darkMode
+                ? "bg-gray-700 hover:bg-gray-600"
+                : "bg-gray-200 hover:bg-gray-300"
             } transition`}
             aria-label="Toggle dark mode"
           >
@@ -149,17 +171,21 @@ export default function ChatAI() {
                 msg.sender === "user" ? "justify-end" : "justify-start"
               }`}
             >
-              <div className={`flex items-start gap-3 max-w-[90%] md:max-w-[80%] ${
-                msg.sender === "user" ? "flex-row-reverse" : ""
-              }`}>
+              <div
+                className={`flex items-start gap-3 max-w-[90%] md:max-w-[80%] ${
+                  msg.sender === "user" ? "flex-row-reverse" : ""
+                }`}
+              >
                 {msg.sender === "ai" && (
-                  <div className={`flex-shrink-0 mt-1 ${
-                    darkMode ? "text-green-400" : "text-green-600"
-                  }`}>
+                  <div
+                    className={`flex-shrink-0 mt-1 ${
+                      darkMode ? "text-green-400" : "text-green-600"
+                    }`}
+                  >
                     <Bot className="w-5 h-5" />
                   </div>
                 )}
-                
+
                 <div
                   className={`p-3 rounded-2xl ${
                     msg.sender === "user"
@@ -167,8 +193,8 @@ export default function ChatAI() {
                         ? "bg-green-600 text-white rounded-br-none"
                         : "bg-green-500 text-white rounded-br-none"
                       : darkMode
-                        ? "bg-gray-800 text-gray-100 rounded-bl-none"
-                        : "bg-gray-100 text-gray-800 rounded-bl-none"
+                      ? "bg-gray-800 text-gray-100 rounded-bl-none"
+                      : "bg-gray-100 text-gray-800 rounded-bl-none"
                   }`}
                 >
                   {msg.type === "text" && msg.content === "thinking" ? (
@@ -206,7 +232,9 @@ export default function ChatAI() {
         {/* Input Area - Fixed at bottom */}
         <div
           className={`sticky bottom-0 p-4 ${
-            darkMode ? "bg-gray-900 border-t border-gray-700" : "bg-white border-t border-gray-200"
+            darkMode
+              ? "bg-gray-900 border-t border-gray-700"
+              : "bg-white border-t border-gray-200"
           }`}
         >
           {imagePreview && (

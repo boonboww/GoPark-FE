@@ -18,13 +18,32 @@ export interface Vehicle {
 }
 
 export interface Ticket {
-  id: string;
-  licensePlate: string;
-  customer: string;
-  type: "Daily" | "Monthly" | "Annual";
+  _id: string; // Backend uses _id
+  id?: string; // Keep for compatibility if needed, or mapped
+  vehicleNumber: string; // Changed from licensePlate to match query params/backend
+  // customer: string; // Replaced by populated userId object usually
+  userId?: {
+    _id: string;
+    userName: string;
+    phoneNumber: string;
+    email: string;
+  };
+  ticketType: "hours" | "date" | "guest" | "month"; // Changed from type
   price: number;
-  floor: string;
-  expiry: string;
+  floor?: string; // Might be in booking -> parkingSlot -> floor/zone
+  expiryDate?: string; // Backend might use endTime or specific expiry
+  status: "active" | "used" | "cancelled";
+  bookingId?: {
+    _id: string;
+    startTime: string;
+    endTime: string;
+    totalPrice?: number;
+    parkingSlotId?: {
+      _id: string;
+      slotNumber: string;
+      zone: string;
+    };
+  };
 }
 
 export interface ParkingLot {

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import RoleGuard from "@/components/RoleGuard";
+import RoleGuard from "@/components/features/auth/RoleGuard";
 import {
   Card,
   CardContent,
@@ -65,22 +65,34 @@ const initialData = {
 
   tickets: [
     {
-      id: "T001",
-      licensePlate: "51H-12345",
-      customer: "Nguyen Van A",
-      type: "Daily",
+      _id: "T001",
+      vehicleNumber: "51H-12345",
+      userId: {
+        _id: "u001",
+        userName: "Nguyen Van A",
+        email: "nva@example.com",
+        phoneNumber: "0901234567",
+      },
+      ticketType: "date",
       price: 50000,
       floor: "1",
-      expiry: "2025-07-02",
+      expiryDate: "2025-07-02",
+      status: "active",
     },
     {
-      id: "T002",
-      licensePlate: "51G-54321",
-      customer: "Tran Thi B",
-      type: "Monthly",
+      _id: "T002",
+      vehicleNumber: "51G-54321",
+      userId: {
+        _id: "u002",
+        userName: "Tran Thi B",
+        email: "ttb@example.com",
+        phoneNumber: "0909876543",
+      },
+      ticketType: "month",
       price: 1000000,
       floor: "2",
-      expiry: "2025-07-30",
+      expiryDate: "2025-07-30",
+      status: "active",
     },
   ] satisfies Ticket[],
 };

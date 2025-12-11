@@ -1,27 +1,33 @@
 "use client";
 
-import React from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { 
-  Search, 
-  Users, 
-  Building2, 
-  Ticket, 
+import React from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import {
+  Search,
+  Users,
+  Building2,
+  Ticket,
   BarChart3,
   Clock,
   Filter,
-  Command
-} from 'lucide-react';
-import QuickSearch from '@/components/QuickSearch';
-import { 
-  getAllSearchItems, 
-  getCustomerSearchItems, 
+  Command,
+} from "lucide-react";
+import QuickSearch from "@/components/search/QuickSearch";
+import {
+  getAllSearchItems,
+  getCustomerSearchItems,
   getParkingLotSearchItems,
   getTicketSearchItems,
-  getMenuSearchItems
-} from '@/lib/search-utils';
+  getMenuSearchItems,
+} from "@/lib/search-utils";
 
 export default function SearchDemo() {
   const allItems = getAllSearchItems();
@@ -32,47 +38,45 @@ export default function SearchDemo() {
 
   const stats = [
     {
-      title: 'Tổng số items',
+      title: "Tổng số items",
       value: allItems.length,
       icon: Search,
-      color: 'text-blue-600'
+      color: "text-blue-600",
     },
     {
-      title: 'Menu items',
+      title: "Menu items",
       value: menuItems.length,
       icon: Command,
-      color: 'text-purple-600'
+      color: "text-purple-600",
     },
     {
-      title: 'Khách hàng',
+      title: "Khách hàng",
       value: customerItems.length,
       icon: Users,
-      color: 'text-green-600'
+      color: "text-green-600",
     },
     {
-      title: 'Bãi đỗ xe',
+      title: "Bãi đỗ xe",
       value: parkingItems.length,
       icon: Building2,
-      color: 'text-orange-600'
+      color: "text-orange-600",
     },
     {
-      title: 'Vé đỗ xe',
+      title: "Vé đỗ xe",
       value: ticketItems.length,
       icon: Ticket,
-      color: 'text-red-600'
-    }
+      color: "text-red-600",
+    },
   ];
 
   return (
     <div className="p-6 max-w-6xl mx-auto space-y-6">
       {/* Header */}
       <div className="text-center space-y-4">
-        <h1 className="text-3xl font-bold text-gray-900">
-          Quick Search Demo
-        </h1>
+        <h1 className="text-3xl font-bold text-gray-900">Quick Search Demo</h1>
         <p className="text-gray-600 max-w-2xl mx-auto">
-          Demo chức năng tìm kiếm nhanh cho Owner Dashboard. 
-          Hỗ trợ tìm kiếm menu, khách hàng, bãi đỗ xe, vé và báo cáo.
+          Demo chức năng tìm kiếm nhanh cho Owner Dashboard. Hỗ trợ tìm kiếm
+          menu, khách hàng, bãi đỗ xe, vé và báo cáo.
         </p>
       </div>
 
@@ -130,11 +134,15 @@ export default function SearchDemo() {
           <CardContent className="space-y-3">
             <div className="flex items-center gap-2">
               <Badge variant="secondary">✨</Badge>
-              <span className="text-sm">Tìm kiếm realtime với fuzzy matching</span>
+              <span className="text-sm">
+                Tìm kiếm realtime với fuzzy matching
+              </span>
             </div>
             <div className="flex items-center gap-2">
               <Badge variant="secondary">⌨️</Badge>
-              <span className="text-sm">Keyboard shortcuts (Ctrl+K, Arrow keys)</span>
+              <span className="text-sm">
+                Keyboard shortcuts (Ctrl+K, Arrow keys)
+              </span>
             </div>
             <div className="flex items-center gap-2">
               <Badge variant="secondary">🏷️</Badge>
@@ -165,7 +173,9 @@ export default function SearchDemo() {
             </div>
             <div className="flex items-center gap-2">
               <Badge className="bg-green-100 text-green-700">Khách hàng</Badge>
-              <span className="text-sm">Thông tin và trạng thái khách hàng</span>
+              <span className="text-sm">
+                Thông tin và trạng thái khách hàng
+              </span>
             </div>
             <div className="flex items-center gap-2">
               <Badge className="bg-purple-100 text-purple-700">Bãi đỗ xe</Badge>
@@ -197,7 +207,9 @@ export default function SearchDemo() {
         <CardContent>
           <div className="grid md:grid-cols-2 gap-6">
             <div>
-              <h4 className="font-medium text-gray-900 mb-3">Khách hàng mẫu:</h4>
+              <h4 className="font-medium text-gray-900 mb-3">
+                Khách hàng mẫu:
+              </h4>
               <div className="space-y-2 text-sm">
                 <div>• Nguyễn Văn An (an.nguyen@email.com)</div>
                 <div>• Trần Thị Bình (binh.tran@email.com)</div>
@@ -220,16 +232,28 @@ export default function SearchDemo() {
       {/* Instructions */}
       <Card className="bg-blue-50 border-blue-200">
         <CardHeader>
-          <CardTitle className="text-blue-900">
-            Hướng dẫn sử dụng
-          </CardTitle>
+          <CardTitle className="text-blue-900">Hướng dẫn sử dụng</CardTitle>
         </CardHeader>
         <CardContent className="text-blue-800 space-y-2">
-          <p>1. <strong>Mở tìm kiếm:</strong> Nhấn Ctrl+K hoặc click vào ô tìm kiếm</p>
-          <p>2. <strong>Nhập từ khóa:</strong> Gõ tên khách hàng, bãi đỗ xe, hoặc menu</p>
-          <p>3. <strong>Điều hướng:</strong> Dùng mũi tên ↑↓ để chọn kết quả</p>
-          <p>4. <strong>Chọn kết quả:</strong> Nhấn Enter hoặc click để chuyển trang</p>
-          <p>5. <strong>Lọc danh mục:</strong> Click vào các nút danh mục để lọc kết quả</p>
+          <p>
+            1. <strong>Mở tìm kiếm:</strong> Nhấn Ctrl+K hoặc click vào ô tìm
+            kiếm
+          </p>
+          <p>
+            2. <strong>Nhập từ khóa:</strong> Gõ tên khách hàng, bãi đỗ xe, hoặc
+            menu
+          </p>
+          <p>
+            3. <strong>Điều hướng:</strong> Dùng mũi tên ↑↓ để chọn kết quả
+          </p>
+          <p>
+            4. <strong>Chọn kết quả:</strong> Nhấn Enter hoặc click để chuyển
+            trang
+          </p>
+          <p>
+            5. <strong>Lọc danh mục:</strong> Click vào các nút danh mục để lọc
+            kết quả
+          </p>
         </CardContent>
       </Card>
     </div>

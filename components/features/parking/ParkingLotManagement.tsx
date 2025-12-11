@@ -11,8 +11,8 @@ import {
 } from "@/components/ui/card";
 import type { ParkingLot } from "@/app/owner/types";
 import { fetchMyParkingLots, deleteParkingLot } from "@/lib/parkingLot.api";
-import AddParkingLotDialog from "@/components/AddParkingLotDialog";
-import EditParkingLotDialog from "@/components/EditParkingLotDialog";
+import AddParkingLotDialog from "@/components/features/parking/AddParkingLotDialog";
+import EditParkingLotDialog from "@/components/features/parking/EditParkingLotDialog";
 import SelectParkingLotDropdown from "@/app/owner/tickets/SelectParkingLotDropdown";
 
 export default function ParkingLotManagement() {

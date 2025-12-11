@@ -1,17 +1,21 @@
 "use client";
 import { useEffect, useState } from "react";
 import {
-  Card, CardHeader, CardTitle, CardDescription, CardContent,
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardContent,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { User as UserIcon, Car, Plus, Camera, Save} from "lucide-react";
+import { User as UserIcon, Car, Plus, Camera, Save } from "lucide-react";
 import QRCode from "react-qr-code";
 import Link from "next/link";
-import Header from "@/components/Header";
-import Footer from "@/components/Footer";
+import Header from "@/components/layout/Header";
+import Footer from "@/components/layout/Footer";
 import API from "@/lib/api";
 
 interface Vehicle {
@@ -32,7 +36,7 @@ export default function PersonInfoPage() {
   const [registeredVehicles, setRegisteredVehicles] = useState<Vehicle[]>([]);
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [loading, setLoading] = useState(false);
-  const [userId, setUserId] = useState<string>(""); 
+  const [userId, setUserId] = useState<string>("");
   const baseURL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
   // Fetch user info & vehicles
@@ -103,7 +107,7 @@ export default function PersonInfoPage() {
           headers: { "Content-Type": "multipart/form-data" },
         });
         avatarUrl = uploadRes.data.url;
-        setFormData(prev => ({ ...prev, avatar: avatarUrl }));
+        setFormData((prev) => ({ ...prev, avatar: avatarUrl }));
       }
 
       // PUT /users/:id
@@ -132,7 +136,9 @@ export default function PersonInfoPage() {
         <Card className="w-full max-w-3xl">
           <CardHeader>
             <CardTitle>Thông Tin Tài Khoản</CardTitle>
-            <CardDescription>Cập nhật thông tin cá nhân của bạn</CardDescription>
+            <CardDescription>
+              Cập nhật thông tin cá nhân của bạn
+            </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex flex-col md:flex-row gap-6">
@@ -144,7 +150,10 @@ export default function PersonInfoPage() {
                     {formData.avatar ? formData.name.charAt(0) : <UserIcon />}
                   </AvatarFallback>
                 </Avatar>
-                <label htmlFor="avatar-upload" className="flex items-center gap-2 mt-2 cursor-pointer">
+                <label
+                  htmlFor="avatar-upload"
+                  className="flex items-center gap-2 mt-2 cursor-pointer"
+                >
                   <Camera className="w-5 h-5" />
                   Chọn ảnh đại diện
                   <input
@@ -162,14 +171,20 @@ export default function PersonInfoPage() {
                 {["name", "email", "phone"].map((field) => (
                   <div key={field} className="flex flex-col gap-2">
                     <Label htmlFor={field}>
-                      {field === "name" ? "Tên" : field === "email" ? "Email" : "Số điện thoại"}
+                      {field === "name"
+                        ? "Tên"
+                        : field === "email"
+                        ? "Email"
+                        : "Số điện thoại"}
                     </Label>
                     <Input
                       id={field}
                       value={formData[field as "name" | "email" | "phone"]}
                       onChange={handleInputChange}
                     />
-                    {errors[field] && <p className="text-red-500 text-sm">{errors[field]}</p>}
+                    {errors[field] && (
+                      <p className="text-red-500 text-sm">{errors[field]}</p>
+                    )}
                   </div>
                 ))}
                 <Button onClick={handleUpdate} disabled={loading}>
@@ -191,16 +206,27 @@ export default function PersonInfoPage() {
               <Card key={v._id} className="p-4">
                 <CardContent>
                   {v.imageVehicle ? (
-                    <img src={v.imageVehicle} alt="Xe" className="w-full h-36 object-cover rounded-md" />
+                    <img
+                      src={v.imageVehicle}
+                      alt="Xe"
+                      className="w-full h-36 object-cover rounded-md"
+                    />
                   ) : (
                     <div className="w-full h-36 bg-gray-100 flex items-center justify-center rounded-md">
                       <Car className="w-8 h-8" />
                     </div>
                   )}
-                  <div className="font-semibold mt-2">Biển số: {v.licensePlate}</div>
-                  <div><strong>Dung tích:</strong> {v.capacity}</div>
+                  <div className="font-semibold mt-2">
+                    Biển số: {v.licensePlate}
+                  </div>
+                  <div>
+                    <strong>Dung tích:</strong> {v.capacity}
+                  </div>
                   <div className="pt-2">
-                    <QRCode value={`${baseURL}/addvehicle/${v._id}`} size={80} />
+                    <QRCode
+                      value={`${baseURL}/addvehicle/${v._id}`}
+                      size={80}
+                    />
                   </div>
                 </CardContent>
               </Card>

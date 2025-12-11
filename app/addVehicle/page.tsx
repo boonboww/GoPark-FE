@@ -9,9 +9,9 @@ import { Button } from "@/components/ui/button";
 import { Plus, Pencil, Trash2, Car, AlertTriangle, Lock } from "lucide-react";
 import QRCode from "react-qr-code";
 import EditVehicleForm from "./EditVehicleForm";
-import Header from "@/components/Header";
-import Footer from "@/components/Footer";
-import { ToastProvider, useToast } from "@/components/ToastProvider";
+import Header from "@/components/layout/Header";
+import Footer from "@/components/layout/Footer";
+import { ToastProvider, useToast } from "@/components/providers/ToastProvider";
 
 interface ApiError {
   response?: {
@@ -54,18 +54,23 @@ function AddVehicleContent() {
     // Y: Chữ cái (1 ký tự)
     // XXXX hoặc XXXXX: Số (4-5 chữ số)
     const newFormat = /^[0-9]{2}[A-Z]{1}[-\s]?[0-9]{4,5}$/i;
-    
+
     // Format cũ: XX(X)-YYYYY (ví dụ: 43A-12345, 29B-12345)
     // XX(X): Mã tỉnh (2-3 ký tự bao gồm số + chữ)
     // YYYYY: Số thứ tự (4-5 số)
     const oldFormat = /^[0-9]{2}[A-Z]{1}[-\s]?[0-9]{4,5}$/i;
-    
+
     // Format cho xe máy: XX-YY XXX.XX (có dấu chấm)
-    const motorbikeFormat = /^[0-9]{2}[A-Z]{1}[-\s]?[0-9]{2}[-\s]?[0-9]{3}\.[0-9]{2}$/i;
+    const motorbikeFormat =
+      /^[0-9]{2}[A-Z]{1}[-\s]?[0-9]{2}[-\s]?[0-9]{3}\.[0-9]{2}$/i;
 
     const trimmedPlate = plate.trim().toUpperCase();
-    
-    if (!newFormat.test(trimmedPlate) && !oldFormat.test(trimmedPlate) && !motorbikeFormat.test(trimmedPlate)) {
+
+    if (
+      !newFormat.test(trimmedPlate) &&
+      !oldFormat.test(trimmedPlate) &&
+      !motorbikeFormat.test(trimmedPlate)
+    ) {
       setLicensePlateError(
         "Biển số không đúng định dạng. VD: 30A-12345, 51B-12345, 29C-123.45"
       );
@@ -89,11 +94,13 @@ function AddVehicleContent() {
         return;
       }
 
-      const res = await API.get<{ data: Vehicle[] }>("/api/v1/vehicles/my-vehicles");
+      const res = await API.get<{ data: Vehicle[] }>(
+        "/api/v1/vehicles/my-vehicles"
+      );
       setVehicles(res.data.data || []);
     } catch (error: any) {
       console.error(error);
-      
+
       // Xử lý lỗi 401 Unauthorized
       if (error.response?.status === 401) {
         toast.error("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.");
@@ -104,7 +111,7 @@ function AddVehicleContent() {
         }, 2000);
         return;
       }
-      
+
       toast.error("Không thể tải danh sách phương tiện.");
     }
   };
@@ -141,9 +148,11 @@ function AddVehicleContent() {
 
     // Xác nhận thêm xe
     const confirmed = window.confirm(
-      `Xác nhận thêm phương tiện?\n\nBiển số: ${newVehicle.licensePlate.toUpperCase()}\nSức chứa: ${newVehicle.capacity} chỗ`
+      `Xác nhận thêm phương tiện?\n\nBiển số: ${newVehicle.licensePlate.toUpperCase()}\nSức chứa: ${
+        newVehicle.capacity
+      } chỗ`
     );
-    
+
     if (!confirmed) {
       return;
     }
@@ -154,17 +163,21 @@ function AddVehicleContent() {
         const formData = new FormData();
         formData.append("file", file);
 
-        const uploadRes = await API.post("/api/v1/upload?folder=vehicles", formData, {
-          headers: { "Content-Type": "multipart/form-data" },
-        });
+        const uploadRes = await API.post(
+          "/api/v1/upload?folder=vehicles",
+          formData,
+          {
+            headers: { "Content-Type": "multipart/form-data" },
+          }
+        );
 
         imageUrl = uploadRes.data.url;
       }
 
-      await API.post("/api/v1/vehicles", { 
-        ...newVehicle, 
+      await API.post("/api/v1/vehicles", {
+        ...newVehicle,
         licensePlate: newVehicle.licensePlate.toUpperCase().trim(),
-        imageVehicle: imageUrl 
+        imageVehicle: imageUrl,
       });
 
       toast.success("Thêm phương tiện thành công!");
@@ -174,7 +187,7 @@ function AddVehicleContent() {
       fetchMyVehicles();
     } catch (error) {
       const apiError = error as ApiError;
-      
+
       // Xử lý lỗi 401
       if (apiError.response?.status === 401) {
         toast.error("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.");
@@ -185,7 +198,7 @@ function AddVehicleContent() {
         }, 2000);
         return;
       }
-      
+
       if (apiError.response?.data?.field === "licensePlate") {
         toast.error("Biển số này đã được đăng ký.");
         return;
@@ -197,7 +210,7 @@ function AddVehicleContent() {
 
   const handleDelete = async (id?: string) => {
     if (!id || !confirm("Bạn có chắc chắn muốn xóa phương tiện này?")) return;
-    
+
     // Kiểm tra token
     const token = localStorage.getItem("token");
     if (!token) {
@@ -207,14 +220,14 @@ function AddVehicleContent() {
       }, 2000);
       return;
     }
-    
+
     try {
       await API.delete(`/api/v1/vehicles/${id}`);
       toast.success("Xóa phương tiện thành công!");
       fetchMyVehicles();
     } catch (error: any) {
       console.error(error);
-      
+
       // Xử lý lỗi 401
       if (error.response?.status === 401) {
         toast.error("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.");
@@ -225,7 +238,7 @@ function AddVehicleContent() {
         }, 2000);
         return;
       }
-      
+
       toast.error("Xóa phương tiện thất bại.");
     }
   };
@@ -264,7 +277,9 @@ function AddVehicleContent() {
 
     // Xác nhận lưu thay đổi
     const confirmed = window.confirm(
-      `Bạn có chắc chắn muốn lưu thay đổi?\n\nBiển số: ${vehicle.licensePlate.toUpperCase()}\nSức chứa: ${vehicle.capacity} chỗ`
+      `Bạn có chắc chắn muốn lưu thay đổi?\n\nBiển số: ${vehicle.licensePlate.toUpperCase()}\nSức chứa: ${
+        vehicle.capacity
+      } chỗ`
     );
 
     if (!confirmed) {
@@ -274,14 +289,14 @@ function AddVehicleContent() {
     try {
       await API.put(`/api/v1/vehicles/${vehicle._id}`, {
         ...vehicle,
-        licensePlate: vehicle.licensePlate.toUpperCase().trim()
+        licensePlate: vehicle.licensePlate.toUpperCase().trim(),
       });
       toast.success("Cập nhật phương tiện thành công!");
       setEditing(null);
       fetchMyVehicles();
     } catch (error) {
       const apiError = error as ApiError;
-      
+
       // Xử lý lỗi 401
       if (apiError.response?.status === 401) {
         toast.error("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.");
@@ -292,7 +307,7 @@ function AddVehicleContent() {
         }, 2000);
         return;
       }
-      
+
       if (apiError.response?.data?.field === "licensePlate") {
         alert("Lỗi: Biển số này đã được đăng ký.");
         return;
@@ -308,17 +323,22 @@ function AddVehicleContent() {
     <>
       <Header />
       <main className="max-w-4xl mx-auto px-4 pt-24 pb-16 space-y-10">
-        <h1 className="text-3xl font-bold text-center text-primary">Phương Tiện Của Tôi</h1>
+        <h1 className="text-3xl font-bold text-center text-primary">
+          Phương Tiện Của Tôi
+        </h1>
 
         {/* Form Thêm Vehicle */}
         <section className="bg-white p-6 rounded-xl shadow-md space-y-4 border">
           {vehicles.length >= MAX_VEHICLES && (
             <div className="text-red-600 flex gap-2 items-center">
-              <Lock className="w-4 h-4" /> Bạn chỉ được đăng ký tối đa 3 phương tiện.
+              <Lock className="w-4 h-4" /> Bạn chỉ được đăng ký tối đa 3 phương
+              tiện.
             </div>
           )}
           <div>
-            <Label>Biển số xe <span className="text-red-500">*</span></Label>
+            <Label>
+              Biển số xe <span className="text-red-500">*</span>
+            </Label>
             <Input
               value={newVehicle.licensePlate}
               onChange={(e) => {
@@ -340,18 +360,24 @@ function AddVehicleContent() {
               </p>
             )}
             <p className="text-xs text-gray-500 mt-1">
-              Format: XX[A-Z]-XXXXX (VD: 30A-12345) hoặc XX[A-Z]-XX-XXX.XX (xe máy)
+              Format: XX[A-Z]-XXXXX (VD: 30A-12345) hoặc XX[A-Z]-XX-XXX.XX (xe
+              máy)
             </p>
           </div>
           <div>
-            <Label>Sức chứa <span className="text-red-500">*</span></Label>
+            <Label>
+              Sức chứa <span className="text-red-500">*</span>
+            </Label>
             <Input
               type="number"
               min="1"
               max="50"
               value={newVehicle.capacity}
               onChange={(e) =>
-                setNewVehicle({ ...newVehicle, capacity: Number(e.target.value) })
+                setNewVehicle({
+                  ...newVehicle,
+                  capacity: Number(e.target.value),
+                })
               }
               placeholder="VD: 4"
             />
@@ -372,8 +398,12 @@ function AddVehicleContent() {
                 const allowedTypes = ["image/jpeg", "image/jpg", "image/png"];
                 if (!allowedTypes.includes(selected.type)) {
                   setFile(null);
-                  setImageError("Định dạng ảnh không hợp lệ. Vui lòng chọn file JPG hoặc PNG.");
-                  toast.error("Định dạng ảnh không hợp lệ. Vui lòng chọn file JPG hoặc PNG.");
+                  setImageError(
+                    "Định dạng ảnh không hợp lệ. Vui lòng chọn file JPG hoặc PNG."
+                  );
+                  toast.error(
+                    "Định dạng ảnh không hợp lệ. Vui lòng chọn file JPG hoặc PNG."
+                  );
                   return;
                 }
 
@@ -429,17 +459,27 @@ function AddVehicleContent() {
                   )}
                   <div className="flex-1">
                     <p className="font-semibold text-lg">{v.licensePlate}</p>
-                    <p className="text-sm text-gray-500">Sức chứa: {v.capacity} chỗ</p>
+                    <p className="text-sm text-gray-500">
+                      Sức chứa: {v.capacity} chỗ
+                    </p>
                     <div className="mt-2">
                       <QRCode value={vehicleUrl} size={80} />
                     </div>
                   </div>
                 </div>
                 <div className="flex gap-2 justify-end mt-4">
-                  <Button variant="outline" onClick={() => setEditing(v)} className="flex gap-1 items-center">
+                  <Button
+                    variant="outline"
+                    onClick={() => setEditing(v)}
+                    className="flex gap-1 items-center"
+                  >
                     <Pencil className="w-4 h-4" /> Sửa
                   </Button>
-                  <Button variant="destructive" onClick={() => handleDelete(v._id)} className="flex gap-1 items-center">
+                  <Button
+                    variant="destructive"
+                    onClick={() => handleDelete(v._id)}
+                    className="flex gap-1 items-center"
+                  >
                     <Trash2 className="w-4 h-4" /> Xóa
                   </Button>
                 </div>
@@ -453,7 +493,13 @@ function AddVehicleContent() {
           )}
         </section>
 
-        {editing && <EditVehicleForm vehicle={editing} onClose={() => setEditing(null)} onSave={handleUpdate} />}
+        {editing && (
+          <EditVehicleForm
+            vehicle={editing}
+            onClose={() => setEditing(null)}
+            onSave={handleUpdate}
+          />
+        )}
       </main>
       <Footer />
     </>

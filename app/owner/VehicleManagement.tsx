@@ -37,8 +37,8 @@ import type {
   ParkingSlot,
   Customer,
 } from "@/app/owner/types";
-import AddParkingLotDialog from "@/components/AddParkingLotDialog";
-import EditParkingLotDialog from "@/components/EditParkingLotDialog";
+import AddParkingLotDialog from "@/components/features/parking/AddParkingLotDialog";
+import EditParkingLotDialog from "@/components/features/parking/EditParkingLotDialog";
 import SelectParkingLotDropdown from "@/app/owner/tickets/SelectParkingLotDropdown";
 import { AxiosError } from "axios";
 

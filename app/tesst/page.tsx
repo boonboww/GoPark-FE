@@ -1,12 +1,12 @@
-import React from 'react'
-import LottieBox from '@/components/LottieBox'
+import React from "react";
+import LottieBox from "@/components/common/LottieBox";
 
 const page = () => {
   return (
     <div>
       <LottieBox />
     </div>
-  )
-}
+  );
+};
 
-export default page
+export default page;

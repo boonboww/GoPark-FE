@@ -5,10 +5,10 @@ import { Toaster } from "sonner";
 import "leaflet-routing-machine/dist/leaflet-routing-machine.css";
 
 // ✅ Nhúng ChatBot
-import ChatBot from "@/components/ChatBot"; // Đảm bảo file ChatBot.tsx đã có trong components/
-import ScrollToTop from "@/components/ScrollToTop";
-import StoreProvider from "@/components/StoreProvider";
-import SessionExpiredModal from "@/components/SessionExpiredModal";
+import ChatBot from "@/components/features/chat/ChatBot";
+import ScrollToTop from "@/components/layout/ScrollToTop";
+import StoreProvider from "@/components/providers/StoreProvider";
+import SessionExpiredModal from "@/components/common/SessionExpiredModal";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",

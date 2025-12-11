@@ -2,9 +2,12 @@
 
 import Image from "next/image";
 import dynamic from "next/dynamic";
-const MapFrame = dynamic(() => import("../../components/MapFrame"), {
-  ssr: false,
-});
+const MapFrame = dynamic(
+  () => import("@/components/features/parking/MapFrame"),
+  {
+    ssr: false,
+  }
+);
 import { useKeenSlider } from "keen-slider/react";
 import "keen-slider/keen-slider.min.css";
 import {
