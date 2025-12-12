@@ -100,15 +100,38 @@ export const cancelBooking = async (bookingId: string): Promise<{ status: string
 
 // Format booking data for UI
 export const formatBookingForUI = (booking: Booking): UIBooking => {
+  if (!booking) {
+    return {
+      id: "",
+      parkingId: "",
+      parkingName: "",
+      location: "",
+      time: "",
+      status: "pending",
+      image: "/default-parking.jpg",
+      feeEstimate: "0 VNĐ",
+      package: "",
+      plateNumber: "",
+      spotNumber: "",
+      zone: "",
+      ticketId: "",
+      startTime: "",
+      endTime: "",
+      paymentMethod: "pay-at-parking",
+      fee: "0 VNĐ",
+      bookingType: "hours",
+      discount: 0,
+    };
+  }
   return {
     id: booking._id,
     parkingId: booking.parkingSlotId?.parkingLot?._id || "",
     parkingName: booking.parkingSlotId?.parkingLot?.name || "Bãi đỗ xe",
     location: booking.parkingSlotId?.parkingLot?.address || "Địa chỉ không xác định",
-    time: new Date(booking.startTime).toLocaleString("vi-VN"),
+    time: booking.startTime ? new Date(booking.startTime).toLocaleString("vi-VN") : "N/A",
     status: booking.status,
     image: booking.parkingSlotId?.parkingLot?.image?.[0] || "/default-parking.jpg",
-    feeEstimate: `${booking.totalPrice.toLocaleString()} VNĐ`,
+    feeEstimate: booking.totalPrice ? `${booking.totalPrice.toLocaleString()} VNĐ` : "0 VNĐ",
     package: booking.bookingType === "hours" ? "Theo giờ" : 
              booking.bookingType === "date" ? "Theo ngày" : "Theo tháng",
     plateNumber: booking.vehicleNumber,
@@ -118,7 +141,7 @@ export const formatBookingForUI = (booking: Booking): UIBooking => {
     startTime: booking.startTime,
     endTime: booking.endTime,
     paymentMethod: booking.paymentMethod,
-    fee: `${booking.totalPrice.toLocaleString()} VNĐ`,
+    fee: booking.totalPrice ? `${booking.totalPrice.toLocaleString()} VNĐ` : "0 VNĐ",
     bookingType: booking.bookingType,
     discount: booking.discount || 0,
     createdAt: booking.createdAt,

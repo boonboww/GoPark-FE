@@ -15,7 +15,7 @@ export default function BookingDetail({
   const qrValue = `${booking.ticketId}|${booking.plateNumber}|${booking.zone}-${booking.spotNumber}`;
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-2">
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[70] px-2">
       <div className="bg-white rounded-lg max-w-md w-full p-4 relative">
         <button
           onClick={onClose}

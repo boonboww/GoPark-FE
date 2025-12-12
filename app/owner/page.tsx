@@ -11,8 +11,9 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import CombinedParkingManagement from "@/app/owner/VehicleManagement";
-import type { Customer, Vehicle, Ticket, ParkingLot } from "@/app/owner/types";
+import type { Customer, Vehicle, Ticket, ParkingLot, ParkingSlot } from "@/app/owner/types";
 import API from "@/lib/api";
+import { fetchMyParkingLots, fetchParkingLotDetails } from "@/lib/parkingLot.api";
 import {
   Building2,
   Car,
@@ -105,6 +106,14 @@ export default function OwnerDashboard() {
   const [ticketList] = useState<Ticket[]>(initialData.tickets);
   const [accountName, setAccountName] = useState<string>("");
   const [parkingLots, setParkingLots] = useState<ParkingLot[]>([]);
+  const [stats, setStats] = useState({
+    totalLots: 0,
+    totalSlots: 0,
+    occupiedSlots: 0,
+    revenue: 0,
+    todayBookings: 0,
+    activeCustomers: 0,
+  });
 
   useEffect(() => {
     const fetchAccountName = async () => {
@@ -118,15 +127,84 @@ export default function OwnerDashboard() {
     fetchAccountName();
   }, []);
 
-  // Mock statistics
-  const stats = {
-    totalLots: parkingLots.length || 3,
-    totalSlots: 150,
-    occupiedSlots: 87,
-    revenue: 12500000,
-    todayBookings: 24,
-    activeCustomers: customerList.length,
-  };
+  useEffect(() => {
+    const loadDashboardData = async () => {
+      try {
+        // 1. Fetch Parking Lots
+        const lotsRes = await fetchMyParkingLots();
+        const lots = lotsRes.data.data;
+        setParkingLots(lots);
+
+        // 2. Fetch Details for each lot to calculate stats
+        let totalSlots = 0;
+        let occupiedSlots = 0;
+        let revenue = 0;
+        let todayBookings = 0;
+
+        const now = new Date();
+        const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString();
+        const endOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59).toISOString();
+        
+        // Fetch data for a wider range to catch active bookings (e.g., last 30 days to future)
+        // Note: This is an approximation. Ideally backend should provide stats.
+        const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+        const endOfNextMonth = new Date(now.getFullYear(), now.getMonth() + 2, 0).toISOString();
+
+        await Promise.all(lots.map(async (lot) => {
+          try {
+            const detailsRes = await fetchParkingLotDetails(lot._id, startOfMonth, endOfNextMonth);
+            const slots = detailsRes.data.data.data as any[]; // Type assertion if needed
+            
+            if (slots) {
+              totalSlots += slots.length;
+              
+              slots.forEach(slot => {
+                // Count occupied slots
+                if (slot.status === 'booked' || slot.status === 'reserved') {
+                  occupiedSlots++;
+                }
+
+                // Calculate revenue and today's bookings from attached bookings
+                if (slot.bookings && Array.isArray(slot.bookings)) {
+                  slot.bookings.forEach((booking: any) => {
+                    // Revenue (sum of totalPrice of all visible bookings)
+                    if (booking.totalPrice) {
+                      revenue += booking.totalPrice;
+                    }
+
+                    // Today's bookings
+                    const bookingStart = new Date(booking.startTime);
+                    const todayStart = new Date(startOfDay);
+                    const todayEnd = new Date(endOfDay);
+                    
+                    if (bookingStart >= todayStart && bookingStart <= todayEnd) {
+                      todayBookings++;
+                    }
+                  });
+                }
+              });
+            }
+          } catch (err) {
+            console.error(`Failed to fetch details for lot ${lot._id}`, err);
+          }
+        }));
+
+        setStats({
+          totalLots: lots.length,
+          totalSlots,
+          occupiedSlots,
+          revenue,
+          todayBookings,
+          activeCustomers: customerList.length, // Keep mock for now or fetch if available
+        });
+
+      } catch (err) {
+        console.error("❌ Failed to load dashboard data", err);
+      }
+    };
+
+    loadDashboardData();
+  }, [customerList.length]); // Re-run if customer list changes (though it's static for now)
 
   return (
     <RoleGuard allowedRole="owner">
@@ -145,63 +223,63 @@ export default function OwnerDashboard() {
 
         {/* Statistics Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <Card>
+          <Card className="bg-blue-50 border-blue-100">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
+              <CardTitle className="text-sm font-medium text-blue-700">
                 Tổng số bãi đỗ
               </CardTitle>
-              <Building2 className="h-4 w-4 text-muted-foreground" />
+              <Building2 className="h-4 w-4 text-blue-600" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{stats.totalLots}</div>
-              <p className="text-xs text-muted-foreground">Đang hoạt động</p>
+              <div className="text-2xl font-bold text-blue-900">{stats.totalLots}</div>
+              <p className="text-xs text-blue-600">Đang hoạt động</p>
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="bg-orange-50 border-orange-100">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
+              <CardTitle className="text-sm font-medium text-orange-700">
                 Tỷ lệ lấp đầy
               </CardTitle>
-              <Car className="h-4 w-4 text-muted-foreground" />
+              <Car className="h-4 w-4 text-orange-600" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">
-                {Math.round((stats.occupiedSlots / stats.totalSlots) * 100)}%
+              <div className="text-2xl font-bold text-orange-900">
+                {stats.totalSlots > 0 ? Math.round((stats.occupiedSlots / stats.totalSlots) * 100) : 0}%
               </div>
-              <p className="text-xs text-muted-foreground">
+              <p className="text-xs text-orange-600">
                 {stats.occupiedSlots}/{stats.totalSlots} chỗ đậu
               </p>
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="bg-green-50 border-green-100">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
+              <CardTitle className="text-sm font-medium text-green-700">
                 Doanh thu tháng
               </CardTitle>
-              <DollarSign className="h-4 w-4 text-muted-foreground" />
+              <DollarSign className="h-4 w-4 text-green-600" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">
+              <div className="text-2xl font-bold text-green-900">
                 {(stats.revenue / 1000000).toFixed(1)}M
               </div>
-              <p className="text-xs text-muted-foreground">
+              <p className="text-xs text-green-600">
                 +20.1% so với tháng trước
               </p>
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="bg-purple-50 border-purple-100">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
+              <CardTitle className="text-sm font-medium text-purple-700">
                 Đặt chỗ hôm nay
               </CardTitle>
-              <Calendar className="h-4 w-4 text-muted-foreground" />
+              <Calendar className="h-4 w-4 text-purple-600" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{stats.todayBookings}</div>
-              <p className="text-xs text-muted-foreground">
+              <div className="text-2xl font-bold text-purple-900">{stats.todayBookings}</div>
+              <p className="text-xs text-purple-600">
                 +12% so với hôm qua
               </p>
             </CardContent>

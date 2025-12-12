@@ -25,6 +25,8 @@ import {
   CheckCircle2,
   XCircle,
   Timer,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import BookingDetail from "./BookingDetail";
 import { Booking } from "./types";
@@ -46,6 +48,10 @@ export default function MyBookingPage() {
   const [filterStatus, setFilterStatus] = useState<
     "all" | "active" | "completed" | "cancelled"
   >("all");
+  
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5;
 
   // Load bookings from API
   const loadBookings = async () => {
@@ -76,6 +82,11 @@ export default function MyBookingPage() {
   useEffect(() => {
     loadBookings();
   }, []);
+
+  // Reset page when filter changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [filterStatus]);
 
   const handleCancel = async (bookingId: string) => {
     try {
@@ -109,6 +120,13 @@ export default function MyBookingPage() {
       return true;
     });
   }, [bookings, filterStatus]);
+
+  // Pagination logic
+  const totalPages = Math.ceil(filteredBookings.length / itemsPerPage);
+  const currentBookings = filteredBookings.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
 
   const stats = useMemo(() => {
     return {
@@ -169,10 +187,10 @@ export default function MyBookingPage() {
         key={booking.id}
         className="group bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-all duration-200 overflow-hidden"
       >
-        <div className="flex flex-col md:flex-row">
+        <div className="flex flex-col sm:flex-row">
           {/* Image Section */}
           <div
-            className="relative w-full md:w-48 h-48 md:h-auto shrink-0 cursor-pointer"
+            className="relative w-full sm:w-32 h-32 shrink-0 cursor-pointer"
             onClick={() => router.push(`/detailParking/${booking.parkingId}`)}
           >
             <Image
@@ -184,10 +202,10 @@ export default function MyBookingPage() {
                 setImageErrors((prev) => new Set([...prev, booking.id]))
               }
             />
-            <div className="absolute top-3 left-3 md:hidden">
+            <div className="absolute top-2 left-2 sm:hidden">
               <Badge
                 className={cn(
-                  "font-medium border shadow-sm",
+                  "font-medium border shadow-sm text-[10px] px-2 py-0.5",
                   statusConfig.color
                 )}
               >
@@ -198,27 +216,42 @@ export default function MyBookingPage() {
           </div>
 
           {/* Content Section */}
-          <div className="flex-1 p-5 flex flex-col justify-between">
+          <div className="flex-1 p-3 flex flex-col justify-between min-w-0">
             <div>
-              <div className="flex justify-between items-start mb-2">
-                <div>
+              <div className="flex justify-between items-start mb-1">
+                <div className="min-w-0 flex-1 mr-2">
                   <h3
-                    className="font-bold text-lg text-gray-900 group-hover:text-blue-600 transition-colors cursor-pointer"
+                    className="font-bold text-base text-gray-900 group-hover:text-blue-600 transition-colors cursor-pointer truncate"
                     onClick={() =>
                       router.push(`/detailParking/${booking.parkingId}`)
                     }
                   >
                     {booking.parkingName}
                   </h3>
-                  <div className="flex items-center gap-1.5 text-gray-500 text-sm mt-1">
-                    <MapPin className="w-4 h-4 shrink-0" />
-                    <span className="line-clamp-1">{booking.location}</span>
+                  <div className="flex items-center gap-1.5 text-gray-500 text-xs mt-0.5">
+                    <MapPin className="w-3 h-3 shrink-0" />
+                    <span className="truncate">{booking.location}</span>
                   </div>
+                  {booking.createdAt && (
+                    <div className="flex items-center gap-1.5 text-gray-500 text-[10px] mt-0.5">
+                      <Clock className="w-3 h-3 shrink-0" />
+                      <span>
+                        Đã đặt:{" "}
+                        {new Date(booking.createdAt).toLocaleString("vi-VN", {
+                          day: "2-digit",
+                          month: "2-digit",
+                          year: "numeric",
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}
+                      </span>
+                    </div>
+                  )}
                 </div>
-                <div className="hidden md:block">
+                <div className="hidden sm:block shrink-0">
                   <Badge
                     className={cn(
-                      "font-medium border px-3 py-1",
+                      "font-medium border px-2 py-0.5 text-[10px]",
                       statusConfig.color
                     )}
                   >
@@ -228,16 +261,16 @@ export default function MyBookingPage() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-y-3 gap-x-6 mt-4">
-                <div className="flex items-center gap-2.5">
-                  <div className="p-1.5 rounded-full bg-blue-50 text-blue-600">
-                    <Calendar className="w-4 h-4" />
+              <div className="grid grid-cols-2 gap-y-1 gap-x-4 mt-2">
+                <div className="flex items-center gap-2">
+                  <div className="p-1 rounded-full bg-blue-50 text-blue-600 shrink-0">
+                    <Calendar className="w-3 h-3" />
                   </div>
-                  <div>
-                    <p className="text-xs text-gray-500 font-medium">
+                  <div className="min-w-0">
+                    <p className="text-[10px] text-gray-500 font-medium truncate">
                       Thời gian
                     </p>
-                    <p className="text-sm font-semibold text-gray-900">
+                    <p className="text-xs font-semibold text-gray-900 truncate">
                       {new Date(booking.startTime).toLocaleString("vi-VN", {
                         day: "2-digit",
                         month: "2-digit",
@@ -248,39 +281,39 @@ export default function MyBookingPage() {
                   </div>
                 </div>
 
-                <div className="flex items-center gap-2.5">
-                  <div className="p-1.5 rounded-full bg-purple-50 text-purple-600">
-                    <Car className="w-4 h-4" />
+                <div className="flex items-center gap-2">
+                  <div className="p-1 rounded-full bg-purple-50 text-purple-600 shrink-0">
+                    <Car className="w-3 h-3" />
                   </div>
-                  <div>
-                    <p className="text-xs text-gray-500 font-medium">Biển số</p>
-                    <p className="text-sm font-semibold text-gray-900">
+                  <div className="min-w-0">
+                    <p className="text-[10px] text-gray-500 font-medium truncate">Biển số</p>
+                    <p className="text-xs font-semibold text-gray-900 truncate">
                       {booking.plateNumber}
                     </p>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-2.5">
-                  <div className="p-1.5 rounded-full bg-green-50 text-green-600">
-                    <ParkingSquare className="w-4 h-4" />
+                <div className="flex items-center gap-2">
+                  <div className="p-1 rounded-full bg-green-50 text-green-600 shrink-0">
+                    <ParkingSquare className="w-3 h-3" />
                   </div>
-                  <div>
-                    <p className="text-xs text-gray-500 font-medium">Vị trí</p>
-                    <p className="text-sm font-semibold text-gray-900">
+                  <div className="min-w-0">
+                    <p className="text-[10px] text-gray-500 font-medium truncate">Vị trí</p>
+                    <p className="text-xs font-semibold text-gray-900 truncate">
                       {booking.zone}-{booking.spotNumber}
                     </p>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-2.5">
-                  <div className="p-1.5 rounded-full bg-orange-50 text-orange-600">
-                    <CreditCard className="w-4 h-4" />
+                <div className="flex items-center gap-2">
+                  <div className="p-1 rounded-full bg-orange-50 text-orange-600 shrink-0">
+                    <CreditCard className="w-3 h-3" />
                   </div>
-                  <div>
-                    <p className="text-xs text-gray-500 font-medium">
+                  <div className="min-w-0">
+                    <p className="text-[10px] text-gray-500 font-medium truncate">
                       Tổng phí
                     </p>
-                    <p className="text-sm font-semibold text-green-600">
+                    <p className="text-xs font-semibold text-green-600 truncate">
                       {booking.fee}
                     </p>
                   </div>
@@ -288,19 +321,19 @@ export default function MyBookingPage() {
               </div>
             </div>
 
-            <div className="flex items-center justify-end gap-3 mt-5 pt-4 border-t border-gray-100">
+            <div className="flex items-center justify-end gap-2 mt-2 pt-2 border-t border-gray-100">
               {isCancelable && (
                 <Button
                   variant="ghost"
                   size="sm"
                   onClick={() => setConfirmCancelId(booking.id)}
                   disabled={cancelling === booking.id}
-                  className="text-red-600 hover:text-red-700 hover:bg-red-50 cursor-pointer"
+                  className="h-7 text-xs text-red-600 hover:text-red-700 hover:bg-red-50 cursor-pointer px-2"
                 >
                   {cancelling === booking.id ? (
-                    <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                    <Loader2 className="w-3 h-3 animate-spin mr-1" />
                   ) : (
-                    <Trash2 className="w-4 h-4 mr-2" />
+                    <Trash2 className="w-3 h-3 mr-1" />
                   )}
                   Hủy
                 </Button>
@@ -309,9 +342,9 @@ export default function MyBookingPage() {
                 variant="outline"
                 size="sm"
                 onClick={() => setSelectedBooking(booking)}
-                className="border-blue-200 text-blue-700 hover:bg-blue-50 hover:text-blue-800 cursor-pointer"
+                className="h-7 text-xs border-blue-200 text-blue-700 hover:bg-blue-50 hover:text-blue-800 cursor-pointer px-2"
               >
-                <Eye className="w-4 h-4 mr-2" />
+                <Eye className="w-3 h-3 mr-1" />
                 Chi tiết
               </Button>
             </div>
@@ -364,86 +397,125 @@ export default function MyBookingPage() {
             </Button>
           </div>
 
-          {/* Stats Cards */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-            <div className="bg-white p-4 rounded-xl border shadow-sm">
-              <p className="text-sm text-gray-500 font-medium">Tổng đơn</p>
-              <p className="text-2xl font-bold text-gray-900 mt-1">
-                {stats.total}
-              </p>
-            </div>
-            <div className="bg-white p-4 rounded-xl border shadow-sm">
-              <p className="text-sm text-gray-500 font-medium">
-                Đang hoạt động
-              </p>
-              <p className="text-2xl font-bold text-green-600 mt-1">
-                {stats.active}
-              </p>
-            </div>
-            <div className="bg-white p-4 rounded-xl border shadow-sm">
-              <p className="text-sm text-gray-500 font-medium">Hoàn thành</p>
-              <p className="text-2xl font-bold text-blue-600 mt-1">
-                {stats.completed}
-              </p>
-            </div>
-            <div className="bg-white p-4 rounded-xl border shadow-sm">
-              <p className="text-sm text-gray-500 font-medium">Đã hủy</p>
-              <p className="text-2xl font-bold text-red-600 mt-1">
-                {stats.cancelled}
-              </p>
-            </div>
-          </div>
-
-          {/* Filter Section */}
-          <div className="bg-white p-1.5 rounded-lg border shadow-sm inline-flex mb-6 overflow-x-auto max-w-full">
-            {[
-              { id: "all", label: "Tất cả" },
-              { id: "active", label: "Đang hoạt động" },
-              { id: "completed", label: "Hoàn thành" },
-              { id: "cancelled", label: "Đã hủy" },
-            ].map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => setFilterStatus(tab.id as any)}
-                className={cn(
-                  "px-4 py-2 rounded-md text-sm font-medium transition-all whitespace-nowrap",
-                  filterStatus === tab.id
-                    ? "bg-gray-900 text-white shadow-sm"
-                    : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
-                )}
-              >
-                {tab.label}
-              </button>
-            ))}
-          </div>
-
-          {/* Bookings List */}
-          <div className="space-y-4">
-            {filteredBookings.length === 0 ? (
-              <div className="text-center py-16 bg-white rounded-2xl border border-dashed">
-                <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Car className="w-8 h-8 text-gray-400" />
-                </div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-1">
-                  Không tìm thấy đặt chỗ nào
-                </h3>
-                <p className="text-gray-500 max-w-sm mx-auto mb-6">
-                  {filterStatus === "all"
-                    ? "Bạn chưa có lịch sử đặt chỗ nào. Hãy thử tìm kiếm bãi đỗ xe ngay!"
-                    : "Không có đặt chỗ nào trong trạng thái này."}
+          {/* Main Content Grid */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            {/* Left Column: Stats */}
+            <div className="lg:col-span-3 space-y-4">
+              <div className="bg-white p-4 rounded-xl border shadow-sm">
+                <p className="text-sm text-gray-500 font-medium">Tổng đơn</p>
+                <p className="text-2xl font-bold text-gray-900 mt-1">
+                  {stats.total}
                 </p>
-                {filterStatus === "all" && (
-                  <Button
-                    onClick={() => router.push("/")}
-                    className="bg-blue-600 hover:bg-blue-700"
-                  >
-                    Tìm chỗ đỗ xe ngay
-                  </Button>
+              </div>
+              <div className="bg-white p-4 rounded-xl border shadow-sm">
+                <p className="text-sm text-gray-500 font-medium">
+                  Đang hoạt động
+                </p>
+                <p className="text-2xl font-bold text-green-600 mt-1">
+                  {stats.active}
+                </p>
+              </div>
+              <div className="bg-white p-4 rounded-xl border shadow-sm">
+                <p className="text-sm text-gray-500 font-medium">Hoàn thành</p>
+                <p className="text-2xl font-bold text-blue-600 mt-1">
+                  {stats.completed}
+                </p>
+              </div>
+              <div className="bg-white p-4 rounded-xl border shadow-sm">
+                <p className="text-sm text-gray-500 font-medium">Đã hủy</p>
+                <p className="text-2xl font-bold text-red-600 mt-1">
+                  {stats.cancelled}
+                </p>
+              </div>
+            </div>
+
+            {/* Right Column: Filters & List */}
+            <div className="lg:col-span-9">
+              {/* Filter and Pagination Header */}
+              <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+                <div className="bg-white p-1.5 rounded-lg border shadow-sm inline-flex overflow-x-auto max-w-full">
+                  {[
+                    { id: "all", label: "Tất cả" },
+                    { id: "active", label: "Đang hoạt động" },
+                    { id: "completed", label: "Hoàn thành" },
+                    { id: "cancelled", label: "Đã hủy" },
+                  ].map((tab) => (
+                    <button
+                      key={tab.id}
+                      onClick={() => setFilterStatus(tab.id as any)}
+                      className={cn(
+                        "px-4 py-2 rounded-md text-sm font-medium transition-all whitespace-nowrap",
+                        filterStatus === tab.id
+                          ? "bg-gray-900 text-white shadow-sm"
+                          : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+                      )}
+                    >
+                      {tab.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Bookings List */}
+              <div className="space-y-3">
+                {currentBookings.length === 0 ? (
+                  <div className="text-center py-16 bg-white rounded-2xl border border-dashed">
+                    <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <Car className="w-8 h-8 text-gray-400" />
+                    </div>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-1">
+                      Không tìm thấy đặt chỗ nào
+                    </h3>
+                    <p className="text-gray-500 max-w-sm mx-auto mb-6">
+                      {filterStatus === "all"
+                        ? "Bạn chưa có lịch sử đặt chỗ nào. Hãy thử tìm kiếm bãi đỗ xe ngay!"
+                        : "Không có đặt chỗ nào trong trạng thái này."}
+                    </p>
+                    {filterStatus === "all" && (
+                      <Button
+                        onClick={() => router.push("/")}
+                        className="bg-blue-600 hover:bg-blue-700"
+                      >
+                        Tìm chỗ đỗ xe ngay
+                      </Button>
+                    )}
+                  </div>
+                ) : (
+                  currentBookings.map((booking) => renderBookingCard(booking))
                 )}
               </div>
-            ) : (
-              filteredBookings.map((booking) => renderBookingCard(booking))
-            )}
+
+              {/* Pagination Controls */}
+              {filteredBookings.length > 0 && (
+                <div className="flex items-center justify-center gap-2 mt-8">
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() =>
+                      setCurrentPage((prev) => Math.max(prev - 1, 1))
+                    }
+                    disabled={currentPage === 1}
+                    className="h-8 w-8"
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                  </Button>
+                  <span className="text-sm font-medium text-gray-600">
+                    Trang {currentPage} / {totalPages}
+                  </span>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() =>
+                      setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+                    }
+                    disabled={currentPage === totalPages}
+                    className="h-8 w-8"
+                  >
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Modals */}

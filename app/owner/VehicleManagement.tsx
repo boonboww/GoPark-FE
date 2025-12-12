@@ -21,7 +21,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 import { AiOutlineScan } from "react-icons/ai";
-import { Car } from "lucide-react";
+import { Car, Ticket, MapPin, Clock, CreditCard, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import {
   fetchMyParkingLots,
@@ -30,6 +30,7 @@ import {
   updateSlotStatus,
   fetchSlotBookings,
 } from "@/lib/parkingLot.api";
+import { getBookingById, formatBookingForUI } from "@/lib/booking.api";
 import type {
   ParkingLot,
   Vehicle,
@@ -37,6 +38,15 @@ import type {
   ParkingSlot,
   Customer,
 } from "@/app/owner/types";
+import { Booking as UIBooking } from "@/app/myBooking/types";
+import BookingDetail from "@/app/myBooking/BookingDetail";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import AddParkingLotDialog from "@/components/features/parking/AddParkingLotDialog";
 import EditParkingLotDialog from "@/components/features/parking/EditParkingLotDialog";
 import SelectParkingLotDropdown from "@/app/owner/tickets/SelectParkingLotDropdown";
@@ -88,6 +98,20 @@ export default function CombinedParkingManagement({
   const [selectedDate, setSelectedDate] = useState<string>("");
   const [selectedStartTime, setSelectedStartTime] = useState<string>("00:00");
   const [selectedEndTime, setSelectedEndTime] = useState<string>("23:59");
+  const [isOverviewMode, setIsOverviewMode] = useState(false);
+
+  // Persist overview mode
+  useEffect(() => {
+    const savedMode = localStorage.getItem("parkingOverviewMode");
+    if (savedMode === "true") {
+      setIsOverviewMode(true);
+    }
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem("parkingOverviewMode", String(isOverviewMode));
+  }, [isOverviewMode]);
+
   const [slotBookings, setSlotBookings] = useState<Booking[]>([]);
   const [allSlotBookings, setAllSlotBookings] = useState<{
     [slotId: string]: Booking[];
@@ -347,6 +371,7 @@ export default function CombinedParkingManagement({
     const { s: rangeStart, e: rangeEnd } = buildRange();
 
     const hasOverlap = currentBookings.some((booking) => {
+      if (booking.status === "cancelled") return false;
       const bs = new Date(booking.startTime);
       const be = new Date(booking.endTime);
       return bs <= rangeEnd && be >= rangeStart;
@@ -357,6 +382,7 @@ export default function CombinedParkingManagement({
     // Next: red only if there's a booking currently active (real-time)
     const now = new Date();
     const hasActiveNow = currentBookings.some((booking) => {
+      if (booking.status === "cancelled") return false;
       const bs = new Date(booking.startTime);
       const be = new Date(booking.endTime);
       return bs <= now && be >= now;
@@ -463,6 +489,7 @@ export default function CombinedParkingManagement({
       for (const slot of slots) {
         const slotBookings = bookingsMap[slot._id] || [];
         for (const b of slotBookings) {
+          if (b.status === "cancelled") continue;
           const bs = new Date(b.startTime);
           const be = new Date(b.endTime);
           if (bs <= end && be >= start) {
@@ -586,6 +613,102 @@ export default function CombinedParkingManagement({
       } finally {
         setIsLoading(false);
       }
+    }
+  };
+
+  const [ticketDetailOpen, setTicketDetailOpen] = useState(false);
+  const [selectedBookingDetail, setSelectedBookingDetail] = useState<UIBooking | null>(null);
+
+  const handleViewTicket = async () => {
+    const targetVehicleNumber = selectedVehicle?.licensePlate;
+    let targetBooking = null;
+
+    if (targetVehicleNumber) {
+      targetBooking = slotBookings.find(
+        (b) =>
+          b.vehicleNumber === targetVehicleNumber &&
+          (b.status === "active" ||
+            b.status === "confirmed" ||
+            b.status === "pending")
+      );
+    }
+
+    if (!targetBooking) {
+      const now = new Date();
+      targetBooking = slotBookings.find((b) => {
+        const start = new Date(b.startTime);
+        const end = new Date(b.endTime);
+        return start <= now && end >= now && b.status !== "cancelled";
+      });
+    }
+
+    if (targetBooking) {
+      try {
+        setIsLoading(true);
+        const res = await getBookingById(targetBooking._id);
+        // Handle API response structure { data: { booking: ... } }
+        const bookingData = (res.data as any).booking || res.data;
+        const formattedBooking = formatBookingForUI(bookingData);
+        
+        if (!formattedBooking.zone && selectedSlot) {
+             formattedBooking.zone = selectedSlot.zone || `Zone ${selectedFloor}`;
+        }
+        if (!formattedBooking.spotNumber && selectedSlot) {
+             formattedBooking.spotNumber = selectedSlot.slotNumber;
+        }
+        if (!formattedBooking.plateNumber && selectedVehicle) {
+             formattedBooking.plateNumber = selectedVehicle.licensePlate;
+        }
+        
+        if (selectedLot) {
+          if (!formattedBooking.parkingName || formattedBooking.parkingName === "Bãi đỗ xe") {
+            formattedBooking.parkingName = selectedLot.name;
+          }
+          if (!formattedBooking.location || formattedBooking.location === "Địa chỉ không xác định") {
+            formattedBooking.location = selectedLot.address;
+          }
+        }
+
+        setSelectedBookingDetail(formattedBooking);
+        setTicketDetailOpen(true);
+      } catch (error) {
+        toast.error("Không thể tải thông tin vé");
+      } finally {
+        setIsLoading(false);
+      }
+    } else {
+      toast.error("Không tìm thấy vé đang hoạt động cho vị trí này");
+    }
+  };
+
+  const handleViewTicketDetail = async (bookingId: string) => {
+    try {
+      const res = await getBookingById(bookingId);
+      // Handle API response structure { data: { booking: ... } }
+      const bookingData = (res.data as any).booking || res.data;
+      const formattedBooking = formatBookingForUI(bookingData);
+
+      if (!formattedBooking.zone && selectedSlot) {
+           formattedBooking.zone = selectedSlot.zone || `Zone ${selectedFloor}`;
+      }
+      if (!formattedBooking.spotNumber && selectedSlot) {
+           formattedBooking.spotNumber = selectedSlot.slotNumber;
+      }
+      
+      if (selectedLot) {
+        if (!formattedBooking.parkingName || formattedBooking.parkingName === "Bãi đỗ xe") {
+          formattedBooking.parkingName = selectedLot.name;
+        }
+        if (!formattedBooking.location || formattedBooking.location === "Địa chỉ không xác định") {
+          formattedBooking.location = selectedLot.address;
+        }
+      }
+
+      setSelectedBookingDetail(formattedBooking);
+      setTicketDetailOpen(true);
+    } catch (error) {
+      console.error("Error fetching booking details:", error);
+      toast.error("Không thể tải thông tin vé");
     }
   };
 
@@ -821,25 +944,35 @@ export default function CombinedParkingManagement({
                   {currentFloor.slots.length} slots available
                 </CardDescription>
               </div>
-              <Select
-                value={selectedFloor.toString()}
-                onValueChange={(value) => setSelectedFloor(parseInt(value))}
-                disabled={parkingFloors.length === 0}
-              >
-                <SelectTrigger className="w-[200px]" aria-label="Chọn khu vực">
-                  <SelectValue placeholder="Select Zone" />
-                </SelectTrigger>
-                <SelectContent>
-                  {parkingFloors.map((floor) => (
-                    <SelectItem
-                      key={floor.number}
-                      value={floor.number.toString()}
-                    >
-                      {floor.name || `Zone ${floor.number}`}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <div className="flex items-center gap-2">
+                <Button 
+                  variant="outline" 
+                  onClick={() => setIsOverviewMode(true)}
+                  className="flex items-center gap-2"
+                >
+                  <AiOutlineScan className="w-4 h-4" />
+                  Tổng quan
+                </Button>
+                <Select
+                  value={selectedFloor.toString()}
+                  onValueChange={(value) => setSelectedFloor(parseInt(value))}
+                  disabled={parkingFloors.length === 0}
+                >
+                  <SelectTrigger className="w-[200px]" aria-label="Chọn khu vực">
+                    <SelectValue placeholder="Select Zone" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {parkingFloors.map((floor) => (
+                      <SelectItem
+                        key={floor.number}
+                        value={floor.number.toString()}
+                      >
+                        {floor.name || `Zone ${floor.number}`}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
           </CardHeader>
           <CardContent>
@@ -1014,7 +1147,8 @@ export default function CombinedParkingManagement({
               </div>
             </CardHeader>
             <CardContent className="space-y-6">
-              {selectedSlot.status === "available" ? (
+              {selectedSlot.status === "available" &&
+              slotBookings.length === 0 ? (
                 <div className="text-center py-8">
                   <div className="w-16 h-16 mx-auto bg-green-100 rounded-full flex items-center justify-center mb-4">
                     <span className="text-2xl">✅</span>
@@ -1030,9 +1164,20 @@ export default function CombinedParkingManagement({
                 <>
                   {selectedVehicle && (
                     <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                      <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                        Vehicle Information
-                      </h3>
+                      <div className="flex justify-between items-center mb-4">
+                        <h3 className="text-lg font-semibold text-gray-900">
+                          Vehicle Information
+                        </h3>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="bg-white hover:bg-blue-50 text-blue-600 border-blue-200"
+                          onClick={handleViewTicket}
+                        >
+                          <Ticket className="w-4 h-4 mr-2" />
+                          Xem chi tiết vé
+                        </Button>
+                      </div>
 
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                         <div>
@@ -1172,6 +1317,19 @@ export default function CombinedParkingManagement({
                                 </p>
                               </div>
                             </div>
+                            <div className="mt-2 flex justify-end">
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="text-xs h-7"
+                                onClick={() =>
+                                  handleViewTicketDetail(booking._id)
+                                }
+                              >
+                                <Ticket className="w-3 h-3 mr-1" />
+                                Chi tiết vé
+                              </Button>
+                            </div>
                           </div>
                         ))}
                       </div>
@@ -1191,6 +1349,179 @@ export default function CombinedParkingManagement({
             </CardContent>
           </Card>
         </div>
+      )}
+
+      {/* Overview Modal */}
+      {isOverviewMode && (
+        <div className="fixed inset-0 z-40 bg-white flex flex-col">
+          <div className="border-b px-6 py-4 flex items-center justify-between bg-white shadow-sm">
+            <div className="flex items-center gap-4">
+              <h2 className="text-2xl font-bold text-gray-900">Tổng quan bãi đỗ</h2>
+              <div className="h-6 w-px bg-gray-300"></div>
+              <div className="flex gap-2 items-center">
+                <Input
+                  type="date"
+                  value={selectedDate}
+                  onChange={(e) => setSelectedDate(e.target.value)}
+                  className="w-36"
+                />
+                <Input
+                  type="time"
+                  value={selectedStartTime}
+                  onChange={(e) => setSelectedStartTime(e.target.value)}
+                  className="w-32"
+                />
+                <span className="text-gray-500">-</span>
+                <Input
+                  type="time"
+                  value={selectedEndTime}
+                  onChange={(e) => setSelectedEndTime(e.target.value)}
+                  className="w-32"
+                />
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => {
+                    loadParkingLotDetails(selectedLotId, selectedDate);
+                  }}
+                  title="Refresh"
+                >
+                  <Clock className="w-4 h-4" />
+                </Button>
+                <Button
+                  variant="default"
+                  size="sm"
+                  onClick={() => {
+                    if (!selectedLotId)
+                      return toast.error("Vui lòng chọn bãi để xem");
+                    setShowOverlapBanner(true);
+                    loadParkingLotDetails(selectedLotId, selectedDate);
+                  }}
+                >
+                  Xem
+                </Button>
+              </div>
+              <div className="h-6 w-px bg-gray-300"></div>
+              <Select
+                value={selectedFloor.toString()}
+                onValueChange={(value) => setSelectedFloor(parseInt(value))}
+                disabled={parkingFloors.length === 0}
+              >
+                <SelectTrigger className="w-[200px]" aria-label="Chọn khu vực">
+                  <SelectValue placeholder="Select Zone" />
+                </SelectTrigger>
+                <SelectContent>
+                  {parkingFloors.map((floor) => (
+                    <SelectItem
+                      key={floor.number}
+                      value={floor.number.toString()}
+                    >
+                      {floor.name || `Zone ${floor.number}`}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <Button 
+              variant="ghost" 
+              onClick={() => setIsOverviewMode(false)}
+              className="hover:bg-gray-100"
+            >
+              <X className="w-6 h-6 mr-2" />
+              Đóng
+            </Button>
+          </div>
+          
+          <div className="flex-1 overflow-auto p-6 bg-gray-50">
+            <div className="max-w-7xl mx-auto">
+              {currentFloor ? (
+                <Card className="shadow-sm border mb-6">
+                  <CardHeader>
+                    <CardTitle className="text-lg font-semibold">
+                      Zone: {currentFloor.name}
+                    </CardTitle>
+                    <CardDescription>
+                      {currentFloor.slots.length} slots available
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-4 mb-6">
+                      {currentFloor.slots
+                        .sort(
+                          (a, b) =>
+                            parseInt(a.slotNumber.replace(/^\D+/g, "")) -
+                            parseInt(b.slotNumber.replace(/^\D+/g, ""))
+                        )
+                        .map((slot) => {
+                          const selected =
+                            selectedSlot?._id === slot._id
+                              ? "ring-4 ring-blue-500 ring-offset-2"
+                              : "";
+                          const statusColor = getStatusColor(slot.status, slot._id);
+
+                          let bgColor = "";
+                          if (statusColor.includes("green"))
+                            bgColor =
+                              "bg-green-100 cursor-pointer border-green-500 text-green-700 hover:bg-green-200";
+                          else if (statusColor.includes("yellow"))
+                            bgColor =
+                              "bg-yellow-100 cursor-pointer border-yellow-500 text-yellow-700 hover:bg-yellow-200";
+                          else if (statusColor.includes("red"))
+                            bgColor =
+                              "bg-red-100 cursor-pointer border-red-500 text-red-700 hover:bg-red-200";
+                          else
+                            bgColor =
+                              "bg-gray-100 cursor-pointer border-gray-400 text-gray-700 hover:bg-gray-200";
+
+                          return (
+                            <button
+                              key={slot._id}
+                              onClick={() => handleSlotClick(slot)}
+                              className={`border-2 rounded-xl h-24 flex flex-col items-center cursor-pointer justify-center transition-all duration-200 shadow-sm hover:shadow-md ${bgColor} ${selected}`}
+                              title={getSlotTooltip(slot, slot._id)}
+                            >
+                              <div className="mb-2">
+                                <Car className="w-8 h-8" />
+                              </div>
+                              <div className="text-lg font-bold">
+                                {slot.slotNumber}
+                              </div>
+                            </button>
+                          );
+                        })}
+                    </div>
+
+                    <div className="flex flex-wrap gap-6 justify-center mt-8">
+                      <div className="flex items-center gap-3 bg-white px-4 py-2 rounded-full border shadow-sm">
+                        <div className="w-6 h-6 bg-green-200 border border-green-500 rounded"></div>
+                        <span className="font-medium text-gray-700">Available</span>
+                      </div>
+                      <div className="flex items-center gap-3 bg-white px-4 py-2 rounded-full border shadow-sm">
+                        <div className="w-6 h-6 bg-yellow-200 border border-yellow-500 rounded"></div>
+                        <span className="font-medium text-gray-700">Booked</span>
+                      </div>
+                      <div className="flex items-center gap-3 bg-white px-4 py-2 rounded-full border shadow-sm">
+                        <div className="w-6 h-6 bg-red-200 border border-red-500 rounded"></div>
+                        <span className="font-medium text-gray-700">Occupied</span>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ) : (
+                <div className="flex justify-center items-center h-64">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {ticketDetailOpen && selectedBookingDetail && (
+        <BookingDetail
+          booking={selectedBookingDetail}
+          onClose={() => setTicketDetailOpen(false)}
+        />
       )}
     </div>
   );
