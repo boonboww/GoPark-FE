@@ -1,12 +1,14 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Mail, Lock, LogIn, UserPlus, Globe } from "lucide-react";
+import { Mail, Lock, LogIn, Globe, Check } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { loginUser } from "@/app/account/login/action";
 import { cn } from "@/lib/utils";
 import { useRememberLogin } from "@/hooks/useRememberLogin";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Card,
   CardContent,
@@ -14,8 +16,27 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { motion, AnimatePresence } from "framer-motion";
+
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.1,
+      delayChildren: 0.2,
+    },
+  },
+};
+
+const itemVariants = {
+  hidden: { y: 20, opacity: 0 },
+  visible: {
+    y: 0,
+    opacity: 1,
+    transition: { type: "spring" as const, stiffness: 100, damping: 10 },
+  },
+};
 
 export function LoginForm({
   className,
@@ -102,7 +123,7 @@ export function LoginForm({
           } else {
             router.push("/");
           }
-        }, 2500);
+        }, 1500);
       }
     } catch (error) {
       setMessage("❌ Có lỗi xảy ra khi đăng nhập");
@@ -113,211 +134,217 @@ export function LoginForm({
   };
 
   return (
-    <div className={cn("flex flex-col gap-6", className)} {...props}>
-      {showSuccessDialog && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none">
-          <div className="absolute inset-0 bg-black/20 backdrop-blur-sm [animation:fadeIn_0.3s_ease-out]" />
-
-          <div className="relative px-10 py-8 rounded-3xl shadow-2xl bg-white flex flex-col items-center pointer-events-auto min-w-[380px] [animation:slideUp_0.4s_ease-out]">
-            {/* Animated Check Circle */}
-            <div className="relative w-20 h-20 mb-5">
-              <div className="absolute inset-0 bg-green-100 rounded-full [animation:pulse_1s_ease-out]"></div>
-              <div className="absolute inset-2 bg-green-500 rounded-full flex items-center justify-center [animation:scaleIn_0.5s_ease-out_0.2s_both]">
-                <svg
-                  className="w-10 h-10 text-white [animation:checkmark_0.6s_ease-out_0.4s_both]"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  strokeWidth="3"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M5 13l4 4L19 7"
-                  />
-                </svg>
-              </div>
-            </div>
-
-            <h3 className="text-2xl font-bold text-gray-800 mb-2 [animation:fadeIn_0.5s_ease-out_0.3s_both]">
-              Đăng nhập thành công!
-            </h3>
-            <p className="text-gray-600 text-center mb-6 [animation:fadeIn_0.5s_ease-out_0.4s_both]">
-              {loginRole === "admin" &&
-                "Chào mừng Quản trị viên đến với hệ thống GoPark"}
-              {loginRole === "owner" &&
-                "Chào mừng Chủ bãi xe đến với hệ thống GoPark"}
-              {(loginRole === "user" || !loginRole) &&
-                "Chào mừng bạn đến với hệ thống GoPark"}
-            </p>
-
-            {/* Progress Bar */}
-            <div className="w-full bg-gray-100 rounded-full h-1.5 overflow-hidden">
-              <div className="bg-gradient-to-r from-green-500 to-emerald-500 h-full rounded-full [animation:progressBar_2.5s_ease-out]"></div>
-            </div>
-
-            <style>{`
-              @keyframes fadeIn {
-                from { opacity: 0; }
-                to { opacity: 1; }
-              }
-              @keyframes slideUp {
-                from { 
-                  opacity: 0;
-                  transform: translateY(20px);
-                }
-                to { 
-                  opacity: 1;
-                  transform: translateY(0);
-                }
-              }
-              @keyframes pulse {
-                0%, 100% { 
-                  transform: scale(1);
-                  opacity: 1;
-                }
-                50% { 
-                  transform: scale(1.1);
-                  opacity: 0.8;
-                }
-              }
-              @keyframes scaleIn {
-                from { 
-                  transform: scale(0);
-                  opacity: 0;
-                }
-                to { 
-                  transform: scale(1);
-                  opacity: 1;
-                }
-              }
-              @keyframes checkmark {
-                0% {
-                  stroke-dasharray: 0 50;
-                  stroke-dashoffset: 0;
-                }
-                100% {
-                  stroke-dasharray: 50 50;
-                  stroke-dashoffset: 0;
-                }
-              }
-              @keyframes progressBar {
-                from { width: 0%; }
-                to { width: 100%; }
-              }
-            `}</style>
-          </div>
-        </div>
+    <div
+      className={cn(
+        "flex flex-col items-center justify-center p-4 w-full",
+        className
       )}
+      {...props}
+    >
+      <AnimatePresence>
+        {showSuccessDialog && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/20 backdrop-blur-sm"
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.9, opacity: 0, y: 20 }}
+              className="bg-white p-8 rounded-2xl shadow-xl max-w-sm w-full text-center relative overflow-hidden"
+            >
+              <div className="absolute top-0 left-0 w-full h-1 bg-slate-100">
+                <motion.div
+                  initial={{ width: "0%" }}
+                  animate={{ width: "100%" }}
+                  transition={{ duration: 1.5 }}
+                  className="h-full bg-blue-500"
+                />
+              </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Đăng nhập tài khoản</CardTitle>
-          <CardDescription>
-            Vui lòng nhập thông tin đăng nhập để truy cập tài khoản của bạn.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit}>
-            <div className="flex flex-col gap-6">
-              <div className="grid gap-3">
-                <Label htmlFor="email">Email</Label>
-                <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
-                    <Mail className="w-4 h-4" />
-                  </span>
-                  <Input
-                    id="email"
-                    type="email"
-                    placeholder="email@example.com"
-                    required
-                    onChange={handleChange}
-                    className="pl-10"
-                    value={formData.email}
-                  />
-                </div>
+              <div className="mx-auto w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center mb-4">
+                <Check className="w-8 h-8 text-blue-600" />
               </div>
-              <div className="grid gap-3">
-                <div className="flex items-center">
-                  <Label htmlFor="password">Mật khẩu</Label>
-                  <a
-                    href="/account/reset"
-                    tabIndex={-1}
-                    className="ml-auto text-sm underline"
+              <h3 className="text-xl font-bold text-slate-800 mb-2">
+                Đăng nhập thành công
+              </h3>
+              <p className="text-slate-500 mb-4 text-sm">
+                Chào mừng bạn quay trở lại với GoPark
+              </p>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <motion.div
+        variants={containerVariants}
+        initial="hidden"
+        animate="visible"
+        className="w-full max-w-[500px]"
+      >
+        <Card className="border border-white/60 bg-white/70 backdrop-blur-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] rounded-2xl overflow-hidden">
+          <CardHeader className="space-y-1 text-center pb-4 pt-6 px-16">
+            <motion.div
+              variants={itemVariants}
+              className="mx-auto w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center mb-2"
+            >
+              <LogIn className="w-5 h-5 text-blue-600" />
+            </motion.div>
+            <motion.div variants={itemVariants}>
+              <CardTitle className="text-xl font-bold text-slate-800">
+                Đăng nhập
+              </CardTitle>
+              <CardDescription className="text-slate-500 font-medium text-xs mt-1">
+                Chào mừng bạn quay trở lại
+              </CardDescription>
+            </motion.div>
+          </CardHeader>
+          <CardContent className="px-16 pb-8">
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <motion.div variants={itemVariants} className="space-y-3">
+                <div className="space-y-1.5">
+                  <Label
+                    htmlFor="email"
+                    className="text-slate-600 font-semibold text-xs"
                   >
-                    Quên mật khẩu?
-                  </a>
+                    Email
+                  </Label>
+                  <div className="relative group">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-blue-500 transition-colors">
+                      <Mail className="w-4 h-4" />
+                    </span>
+                    <Input
+                      id="email"
+                      type="email"
+                      placeholder="name@example.com"
+                      required
+                      onChange={handleChange}
+                      value={formData.email}
+                      className="pl-9 h-10 bg-slate-50/50 border-slate-200 focus:border-blue-500 focus:ring-blue-500/20 rounded-lg text-sm transition-all"
+                    />
+                  </div>
                 </div>
-                <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
-                    <Lock className="w-4 h-4" />
-                  </span>
-                  <Input
-                    id="password"
-                    type="password"
-                    required
-                    onChange={handleChange}
-                    className="pl-10"
-                    value={formData.password}
-                  />
+
+                <div className="space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <Label
+                      htmlFor="password"
+                      className="text-slate-600 font-semibold text-xs"
+                    >
+                      Mật khẩu
+                    </Label>
+                    <a
+                      href="/account/reset"
+                      className="text-[10px] font-medium text-blue-600 hover:text-blue-700 hover:underline"
+                    >
+                      Quên mật khẩu?
+                    </a>
+                  </div>
+                  <div className="relative group">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-blue-500 transition-colors">
+                      <Lock className="w-4 h-4" />
+                    </span>
+                    <Input
+                      id="password"
+                      type="password"
+                      placeholder="••••••••"
+                      required
+                      onChange={handleChange}
+                      value={formData.password}
+                      className="pl-9 h-10 bg-slate-50/50 border-slate-200 focus:border-blue-500 focus:ring-blue-500/20 rounded-lg text-sm transition-all"
+                    />
+                  </div>
                 </div>
-              </div>
-              <div className="flex items-center gap-2">
+              </motion.div>
+
+              <motion.div
+                variants={itemVariants}
+                className="flex items-center gap-2"
+              >
                 <input
                   type="checkbox"
                   id="remember"
                   checked={isRememberEnabled}
                   onChange={handleRememberChange}
-                  className="mr-2 cursor-pointer w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
+                  className="w-3.5 h-3.5 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
                 />
                 <Label
                   htmlFor="remember"
-                  className="cursor-pointer select-none text-sm font-medium"
+                  className="cursor-pointer select-none text-xs font-medium text-slate-600"
                 >
                   Ghi nhớ đăng nhập
                   {hasRemembered && (
-                    <span className="ml-1 text-xs text-green-600">
-                      (đã lưu)
+                    <span className="ml-1 text-emerald-600 font-bold">
+                      (Đã lưu)
                     </span>
                   )}
                 </Label>
-              </div>
-              <div className="flex flex-col gap-3">
-                <Button
-                  type="submit"
-                  className="w-full flex items-center justify-center gap-2 cursor-pointer"
-                  disabled={loading}
+              </motion.div>
+
+              <motion.div variants={itemVariants} className="space-y-2 pt-1">
+                <motion.div
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
                 >
-                  <LogIn className="w-4 h-4 cursor-pointer" />
-                  {loading ? "Đang đăng nhập..." : "Đăng nhập"}
-                </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="w-full flex items-center justify-center gap-2 cursor-pointer"
+                  <Button
+                    type="submit"
+                    className="w-full h-10 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm shadow-md shadow-blue-500/20 transition-all"
+                    disabled={loading}
+                  >
+                    {loading ? (
+                      <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    ) : (
+                      "Đăng nhập"
+                    )}
+                  </Button>
+                </motion.div>
+                <motion.div
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
                 >
-                  <Globe className="w-4 h-4 text-red-500 cursor-pointer" />
-                  Đăng nhập bằng Google
-                </Button>
-              </div>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="w-full h-10 rounded-lg border-slate-200 text-slate-600 hover:bg-slate-50 hover:text-slate-900 font-medium text-sm"
+                  >
+                    <Globe className="w-3.5 h-3.5 mr-2 text-rose-500" />
+                    Đăng nhập bằng Google
+                  </Button>
+                </motion.div>
+              </motion.div>
+
               {message && (
-                <p className="text-sm text-center text-muted-foreground">
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: "auto" }}
+                  className={`p-2.5 rounded-lg text-xs text-center font-medium ${
+                    message.includes("✅")
+                      ? "bg-emerald-50 text-emerald-600 border border-emerald-100"
+                      : "bg-rose-50 text-rose-600 border border-rose-100"
+                  }`}
+                >
                   {message}
-                </p>
+                </motion.div>
               )}
-            </div>
-            <div className="mt-4 text-center text-sm">
-              Chưa có tài khoản?{" "}
-              <a
-                href="/account/signup"
-                className="inline-flex items-center gap-1 underline text-blue-600 font-medium cursor-pointer"
+
+              <motion.div
+                variants={itemVariants}
+                className="mt-4 text-center text-xs"
               >
-                <UserPlus className="w-4 h-4 cursor-pointer" /> Đăng ký ngay
-              </a>
-            </div>
-          </form>
-        </CardContent>
-      </Card>
+                <span className="text-slate-500">Chưa có tài khoản? </span>
+                <a
+                  href="/account/signup"
+                  className="font-semibold text-blue-600 hover:text-blue-700 hover:underline"
+                >
+                  Đăng ký ngay
+                </a>
+              </motion.div>
+            </form>
+          </CardContent>
+        </Card>
+      </motion.div>
     </div>
   );
 }

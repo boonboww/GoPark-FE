@@ -1,6 +1,12 @@
-// app/signup/page.tsx
+"use client";
+// app/account/signup/page.tsx
 import SignupForm from "@/app/account/signup/SignupForm";
+import { AuthWrapper } from "@/components/features/auth/AuthWrapper";
 
 export default function SignupPage() {
-  return <SignupForm />;
+  return (
+    <AuthWrapper>
+      <SignupForm />
+    </AuthWrapper>
+  );
 }
