@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { Mail, Lock, LogIn, Globe, Check } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
+import Link from "next/link";
 import { loginUser } from "@/app/account/login/action";
 import { cn } from "@/lib/utils";
 import { useRememberLogin } from "@/hooks/useRememberLogin";
@@ -48,6 +49,13 @@ export function LoginForm({
   const [showSuccessDialog, setShowSuccessDialog] = useState(false);
   const [loginRole, setLoginRole] = useState<string | undefined>(undefined);
   const router = useRouter();
+  const searchParams = useSearchParams();
+
+  useEffect(() => {
+    if (searchParams.get("success") === "1") {
+      setMessage("✅ Đăng ký thành công! Vui lòng kiểm tra email để kích hoạt tài khoản.");
+    }
+  }, [searchParams]);
 
   const {
     rememberedData,
@@ -235,12 +243,12 @@ export function LoginForm({
                     >
                       Mật khẩu
                     </Label>
-                    <a
+                    <Link
                       href="/account/reset"
                       className="text-[10px] font-medium text-blue-600 hover:text-blue-700 hover:underline"
                     >
                       Quên mật khẩu?
-                    </a>
+                    </Link>
                   </div>
                   <div className="relative group">
                     <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-blue-500 transition-colors">
@@ -334,12 +342,12 @@ export function LoginForm({
                 className="mt-4 text-center text-xs"
               >
                 <span className="text-slate-500">Chưa có tài khoản? </span>
-                <a
+                <Link
                   href="/account/signup"
                   className="font-semibold text-blue-600 hover:text-blue-700 hover:underline"
                 >
                   Đăng ký ngay
-                </a>
+                </Link>
               </motion.div>
             </form>
           </CardContent>

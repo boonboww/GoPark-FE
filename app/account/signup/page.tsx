@@ -5,7 +5,7 @@ import { AuthWrapper } from "@/components/features/auth/AuthWrapper";
 
 export default function SignupPage() {
   return (
-    <AuthWrapper>
+    <AuthWrapper align="left">
       <SignupForm />
     </AuthWrapper>
   );
