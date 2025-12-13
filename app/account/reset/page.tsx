@@ -14,12 +14,12 @@ function ResetContent() {
       {/* Nút back về trang đăng nhập */}
       <button
         onClick={() => router.push("/account/login")}
-        className="absolute top-4 left-4 p-2 rounded-full hover:bg-gray-100 focus:outline-none cursor-pointer z-10"
+        className="absolute top-4 left-4 p-2 rounded-full hover:bg-gray-100 focus:outline-none cursor-pointer z-10 pointer-events-auto"
         aria-label="Quay lại trang đăng nhập"
       >
         <ArrowLeft className="w-6 h-6" />
       </button>
-      <div className="w-full max-w-sm">
+      <div className="w-full max-w-sm pointer-events-auto">
         <ResetTable
           successMessage={
             success === "true"

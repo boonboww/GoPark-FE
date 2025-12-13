@@ -19,7 +19,11 @@ export default function SessionExpiredModal() {
 
   // Dùng useCallback để tránh tạo lại hàm mỗi lần re-render
   const handleSessionExpired = useCallback(() => {
-    setIsOpen(true);
+    // Chỉ mở modal nếu chưa mở để tránh spam
+    setIsOpen((prev) => {
+      if (prev) return prev;
+      return true;
+    });
   }, []);
 
   useEffect(() => {
@@ -44,7 +48,7 @@ export default function SessionExpiredModal() {
   return (
     <Dialog open={isOpen} onOpenChange={handleCloseAttempt}>
       <DialogContent
-        className="sm:max-w-md"
+        className="sm:max-w-md pointer-events-auto"
         // Ngăn đóng khi click ngoài hoặc nhấn Esc (trải nghiệm tốt hơn khi bắt buộc đăng nhập lại)
         onInteractOutside={(e) => e.preventDefault()}
         onEscapeKeyDown={(e) => e.preventDefault()}
@@ -69,7 +73,7 @@ export default function SessionExpiredModal() {
           <Button
             onClick={handleLoginRedirect}
             size="lg"
-            className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-medium"
+            className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-medium pointer-events-auto cursor-pointer"
             autoFocus // Tự động focus để người dùng có thể nhấn Enter ngay
           >
             Đăng nhập lại

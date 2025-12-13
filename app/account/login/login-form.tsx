@@ -245,6 +245,7 @@ export function LoginForm({
                     </Label>
                     <Link
                       href="/account/reset"
+                      tabIndex={-1}
                       className="text-[10px] font-medium text-blue-600 hover:text-blue-700 hover:underline"
                     >
                       Quên mật khẩu?

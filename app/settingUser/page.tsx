@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import {
   ArrowLeft,
@@ -16,14 +16,17 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
+import API from "@/lib/api";
+import { ToastProvider, useToast } from "@/components/providers/ToastProvider";
 
-export default function SettingUserPage() {
+function SettingUserContent() {
   const router = useRouter();
+  const toast = useToast();
 
   const [userInfo, setUserInfo] = useState({
-    name: "Nguyen Van A",
-    email: "nguyenvana@example.com",
-    phone: "0123456789",
+    name: "",
+    email: "",
+    phone: "",
   });
 
   const [oldPassword, setOldPassword] = useState("");
@@ -34,13 +37,62 @@ export default function SettingUserPage() {
   const [notifications, setNotifications] = useState(true);
   const [shareLocation, setShareLocation] = useState(true);
 
-  const handleSave = () => {
-    if (newPassword && newPassword !== confirmPassword) {
-      alert("❌ Mật khẩu mới không khớp!");
+  useEffect(() => {
+    const fetchUserInfo = async () => {
+      try {
+        const res = await API.get("/api/v1/users/me");
+        if (res.data) {
+          setUserInfo({
+            name: res.data.userName || "",
+            email: res.data.email || "",
+            phone: res.data.phoneNumber || "",
+          });
+        }
+      } catch (error) {
+        console.error("Failed to fetch user info:", error);
+        toast.error("Không thể tải thông tin người dùng.");
+      }
+    };
+
+    fetchUserInfo();
+  }, [toast]);
+
+  const handleUpdatePassword = async () => {
+    if (!oldPassword || !newPassword || !confirmPassword) {
+      toast.error("Vui lòng điền đầy đủ các trường mật khẩu.");
       return;
     }
-    // Ở đây bạn sẽ call API cập nhật
-    alert("✅ Cài đặt đã được lưu thành công!");
+    if (newPassword !== confirmPassword) {
+      toast.error("Mật khẩu mới không khớp!");
+      return;
+    }
+    
+    try {
+      await API.patch("/api/v1/users/updateMyPassword", {
+        passwordCurrent: oldPassword,
+        password: newPassword,
+        passwordConfirm: confirmPassword
+      });
+      toast.success("Mật khẩu đã được cập nhật thành công!");
+      setOldPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+    } catch (error: any) {
+      console.error("Change password error:", error);
+      let errorMessage = error.response?.data?.message || "Đổi mật khẩu thất bại.";
+      
+      // Nếu lỗi 401 (Unauthorized) thường là do sai mật khẩu hiện tại ở endpoint này
+      if (error.response?.status === 401) {
+        errorMessage = "Mật khẩu hiện tại không đúng.";
+      }
+      
+      toast.error(errorMessage);
+    }
+  };
+
+  const handleSave = () => {
+    // Currently only simulating save for other settings
+    toast.success("Cài đặt đã được lưu thành công!");
   };
 
   return (
@@ -129,21 +181,7 @@ export default function SettingUserPage() {
             </div>
 
             <Button
-              onClick={() => {
-                if (!oldPassword || !newPassword || !confirmPassword) {
-                  alert("❌ Vui lòng điền đầy đủ các trường mật khẩu.");
-                  return;
-                }
-                if (newPassword !== confirmPassword) {
-                  alert("❌ Mật khẩu mới không khớp!");
-                  return;
-                }
-                // TODO: Call real API here
-                alert("✅ Mật khẩu đã được cập nhật thành công!");
-                setOldPassword("");
-                setNewPassword("");
-                setConfirmPassword("");
-              }}
+              onClick={handleUpdatePassword}
               className="flex items-center gap-2 bg-black text-white hover:bg-gray-900 w-max"
             >
               <Lock className="w-4 h-4" /> Cập Nhật Mật Khẩu
@@ -207,5 +245,13 @@ export default function SettingUserPage() {
         </Button>
       </div>
     </main>
+  );
+}
+
+export default function SettingUserPage() {
+  return (
+    <ToastProvider>
+      <SettingUserContent />
+    </ToastProvider>
   );
 }

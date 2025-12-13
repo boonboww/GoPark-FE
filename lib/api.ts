@@ -47,7 +47,7 @@ API.interceptors.response.use(
       }
       try {
         // Gọi refresh bằng instance API để đảm bảo withCredentials + baseURL
-        const refreshPath = `${apiVersion}/users/refresh`;
+        const refreshPath = `${URL_BE}/${apiVersion}/users/refresh`;
         const refreshRes = await axios.post(
           refreshPath,
           {},

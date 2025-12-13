@@ -20,6 +20,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import QuickSearch from "@/components/search/QuickSearch";
+import LogoutConfirmDialog from "@/components/common/LogoutConfirmDialog";
 
 interface SidebarItem {
   title: string;
@@ -70,6 +71,7 @@ export default function OwnerSidebar({ className = "" }: OwnerSidebarProps) {
   const [expandedItems, setExpandedItems] = useState<string[]>([]);
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const pathname = usePathname();
   const router = useRouter();
 
@@ -95,6 +97,10 @@ export default function OwnerSidebar({ className = "" }: OwnerSidebarProps) {
   };
 
   const handleLogout = () => {
+    setShowLogoutConfirm(true);
+  };
+
+  const confirmLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("role");
     router.push("/account/login");
@@ -269,7 +275,7 @@ export default function OwnerSidebar({ className = "" }: OwnerSidebarProps) {
 
       {/* Sidebar */}
       <div
-        className={`fixed lg:relative left-0 top-0 z-50 bg-white border-r border-gray-200 shadow-lg transition-all duration-300 lg:z-10
+        className={`fixed lg:sticky left-0 top-0 z-50 bg-white border-r border-gray-200 shadow-lg transition-all duration-300 lg:z-10
         ${isCollapsed ? "w-16 min-w-[56px]" : "w-72"}
         h-screen flex flex-col
         ${isMobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
@@ -374,6 +380,12 @@ export default function OwnerSidebar({ className = "" }: OwnerSidebarProps) {
           )}
         </div>
       </div>
+
+      <LogoutConfirmDialog 
+        isOpen={showLogoutConfirm}
+        onClose={() => setShowLogoutConfirm(false)}
+        onConfirm={confirmLogout}
+      />
     </>
   );
 }
