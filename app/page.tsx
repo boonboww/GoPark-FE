@@ -23,15 +23,15 @@ export default function Home() {
         </div>
 
         {/* Scrollable Content Layer */}
-        <div className="relative z-10">
+        <div className="relative z-10 pointer-events-none">
           {/* Header & Hero - Wrapped to ensure they cover the map */}
-          <div className="bg-white">
+          <div className="bg-white pointer-events-auto">
             <Header isHomepage />
             <HeroSection />
           </div>
 
           {/* Upper Content Sections - White background covers the map */}
-          <div className="bg-white pb-20">
+          <div className="bg-white pb-20 pointer-events-auto">
             <WavyDivider targetId="video" />
             <section id="video" className="scroll-mt-20">
               <VideoSection />
@@ -54,10 +54,10 @@ export default function Home() {
           </div>
 
           {/* Transparent Window - Reveals the fixed MapSection behind */}
-          <div className="h-screen w-full pointer-events-none"></div>
+          <div className="h-screen w-full"></div>
 
           {/* Lower Content Sections - White background covers the map again */}
-          <div className="bg-white pt-20">
+          <div className="bg-white pt-20 pointer-events-auto">
             {/* <WavyDivider targetId="promotion" />
             <section id="promotion" className="scroll-mt-20">
               <PromotionSection />
