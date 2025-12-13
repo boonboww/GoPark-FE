@@ -24,10 +24,11 @@ import TicketForm from "@/components/features/booking/TicketForm";
 import API from "@/lib/api";
 import { getTicketsByParkingLotId } from "@/lib/ticket.api";
 import SelectParkingLotDropdown from "@/app/owner/tickets/SelectParkingLotDropdown";
-import DetailBooking from "@/app/owner/tickets/DetailBooking";
+import ActiveTimeModal, {
+  getTimeIndicatorColor,
+} from "@/app/owner/tickets/ActiveTimeModal";
 import { fetchMyParkingLots } from "@/lib/parkingLot.api";
 import toast from "react-hot-toast";
-import { getBookingById } from "@/lib/booking.api";
 import type {
   Ticket as TicketType,
   Customer,
@@ -46,12 +47,11 @@ export default function TicketsPage() {
   const [filterDate, setFilterDate] = useState(""); // Changed from expiry to date for overlap check
 
   const [loading, setLoading] = useState(false);
-  const [selectedTicket, setSelectedTicket] = useState<TicketType | null>(null);
-  const [ticketModalOpen, setTicketModalOpen] = useState(false);
-  const [ticketLoading, setTicketLoading] = useState(false);
-  const [selectedBooking, setSelectedBooking] = useState<any | null>(null);
-  const [selectedBookingPartial, setSelectedBookingPartial] =
-    useState<boolean>(false);
+
+  // Active time modal state
+  const [activeTimeModalOpen, setActiveTimeModalOpen] = useState(false);
+  const [selectedActiveTicket, setSelectedActiveTicket] =
+    useState<TicketType | null>(null);
 
   const [parkingLots, setParkingLots] = useState<any[]>([]);
   const [parkingLotsLoading, setParkingLotsLoading] = useState(false);
@@ -120,19 +120,12 @@ export default function TicketsPage() {
   };
 
   const handleTicketClick = async (ticket: TicketType) => {
-    // Logic to open ticket/booking detail
-    // Map backend fields to what DetailBooking expects if needed
-    // For now reusing existing logic but adapting to new fields
-    setSelectedTicket(ticket);
-    setTicketModalOpen(true);
-
-    // If we have populated booking info in ticket, use it directly?
-    if (ticket.bookingId && typeof ticket.bookingId === "object") {
-      setSelectedBooking(ticket.bookingId);
-      setSelectedBookingPartial(true); // It's populated, so partial info is there
-    } else {
-      // fetch if needed
+    // Chỉ vé active mới mở modal thời gian
+    if (ticket.status === "active") {
+      setSelectedActiveTicket(ticket);
+      setActiveTimeModalOpen(true);
     }
+    // Các trạng thái khác (used, cancelled) -> không làm gì
   };
 
   const formatDate = (dateString?: string) => {
@@ -305,15 +298,27 @@ export default function TicketsPage() {
                         )}
                       </TableCell>
                       <TableCell>
-                        <span
-                          className={`px-2 py-1 rounded-full text-xs ${
-                            ticket.status === "active"
-                              ? "bg-green-100 text-green-800"
-                              : "bg-gray-100 text-gray-800"
-                          }`}
-                        >
-                          {ticket.status}
-                        </span>
+                        <div className="flex items-center gap-2">
+                          <span
+                            className={`px-2 py-1 rounded-full text-xs ${
+                              ticket.status === "active"
+                                ? "bg-green-100 text-green-800"
+                                : ticket.status === "used"
+                                ? "bg-gray-100 text-gray-800"
+                                : "bg-red-100 text-red-800"
+                            }`}
+                          >
+                            {ticket.status}
+                          </span>
+                          {ticket.status === "active" && (
+                            <span
+                              className={`inline-block w-2.5 h-2.5 rounded-full ${getTimeIndicatorColor(
+                                ticket
+                              )} animate-pulse`}
+                              title="Thời gian còn lại"
+                            />
+                          )}
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))
@@ -330,34 +335,11 @@ export default function TicketsPage() {
         </CardContent>
       </Card>
 
-      {/* Booking detail modal */}
-      <DetailBooking
-        open={ticketModalOpen}
-        onClose={() => setTicketModalOpen(false)}
-        bookingInfo={
-          selectedBooking
-            ? {
-                name:
-                  selectedBooking.userId?.userName ||
-                  selectedTicket?.userId?.userName ||
-                  "-",
-                vehicle:
-                  selectedBooking.vehicleNumber ||
-                  selectedTicket?.vehicleNumber ||
-                  "-",
-                zone: selectedBooking.parkingSlotId?.zone || "-",
-                spot: selectedBooking.parkingSlotId?.slotNumber || "-",
-                startTime: selectedBooking.startTime || "-",
-                endTime: selectedBooking.endTime || "-",
-                paymentMethod: selectedBooking.paymentMethod || "-",
-                estimatedFee: (
-                  selectedBooking.totalPrice ||
-                  selectedTicket?.price ||
-                  0
-                ).toString(),
-              }
-            : null
-        }
+      {/* Active time modal */}
+      <ActiveTimeModal
+        open={activeTimeModalOpen}
+        onClose={() => setActiveTimeModalOpen(false)}
+        ticket={selectedActiveTicket}
       />
     </div>
   );
