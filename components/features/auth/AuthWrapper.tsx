@@ -15,9 +15,9 @@ export function AuthWrapper({ children, align = "right" }: AuthWrapperProps) {
   const router = useRouter();
 
   return (
-    <div className="relative min-h-screen w-full overflow-hidden">
+    <div className="relative min-h-screen w-full overflow-hidden pointer-events-none">
       {/* Back Button */}
-      <div className="absolute top-6 left-6 z-20">
+      <div className="absolute top-6 left-6 z-20 pointer-events-auto">
         <Button
           variant="ghost"
           size="icon"

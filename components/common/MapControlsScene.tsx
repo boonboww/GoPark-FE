@@ -280,32 +280,13 @@ export default function MapControlsScene() {
         });
         const textMesh = new THREE.Mesh(textGeo, textMaterial);
         
-        // Load Logo
-        const textureLoader = new THREE.TextureLoader();
-        textureLoader.load('/logo.png', (texture) => {
-            const logoSize = 60;
-            const gap = 20;
-            const totalWidth = logoSize + gap + textWidth;
-            
-            // Position Logo (Left)
-            const logoGeometry = new THREE.BoxGeometry(logoSize, logoSize, logoSize);
-            const logoMaterial = new THREE.MeshBasicMaterial({ map: texture });
-            logoMesh = new THREE.Mesh(logoGeometry, logoMaterial);
-            
-            // X position: Start from -totalWidth/2 + logoSize/2
-            logoMesh.position.set(-totalWidth / 2 + logoSize / 2, 0, 0);
-            
-            // Position Text (Right)
-            // Text starts at X=0 in its local coords. We need to move it.
-            // Start X for text = -totalWidth/2 + logoSize + gap
-            textMesh.position.set(-totalWidth / 2 + logoSize + gap, 0, 0);
+        // Center text horizontally
+        textMesh.position.set(-textWidth / 2, 0, 0);
 
-            group.add(logoMesh);
-            group.add(textMesh);
-            
-            // Lift the whole group up
-            group.position.y = 80;
-        });
+        group.add(textMesh);
+        
+        // Lift the whole group up
+        group.position.y = 80;
       });
       // --------------------------
 

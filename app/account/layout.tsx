@@ -13,7 +13,7 @@ export default function AccountLayout({
       </div>
 
       {/* Content */}
-      <div className="relative z-10 w-full h-full">
+      <div className="relative z-10 w-full h-full pointer-events-none">
         {children}
       </div>
     </div>
