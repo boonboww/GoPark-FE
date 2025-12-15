@@ -45,6 +45,24 @@ const MapComponent = ({
     []
   );
 
+  const sovereigntyIcon = useMemo(
+    () =>
+      L.divIcon({
+        className: "custom-sovereignty-icon",
+        html: `
+          <div class="flex flex-col items-center justify-center" style="width: 400px; transform: translateX(-50%);">
+            <img src="/vn.png" alt="Vietnam Flag" class="w-16 h-10 object-cover shadow-md mb-2 animate-bounce" style="animation-duration: 3s;" />
+            <span class="text-red-600 font-bold text-base md:text-lg uppercase text-center drop-shadow-md bg-white/90 px-3 py-1 rounded-full border-2 border-red-600 shadow-lg animate-pulse">
+              Hoàng Sa - Trường Sa là của Việt Nam
+            </span>
+          </div>
+        `,
+        iconSize: [0, 0],
+        iconAnchor: [0, 40],
+      }),
+    []
+  );
+
   useEffect(() => {
     if (typeof window !== "undefined" && window.L && window.L.Routing && window.L.Routing.Control) {
       if ("defaultErrorHandler" in window.L.Routing.Control.prototype.options) {
@@ -93,6 +111,19 @@ const MapComponent = ({
         .addTo(mapInstance)
         .bindPopup("Vị trí hiện tại của bạn");
     }
+
+    // Sovereignty Marker
+    L.marker([16.357171574838386, 112.13422725639053], {
+      icon: sovereigntyIcon,
+      interactive: false,
+      zIndexOffset: 1000,
+    }).addTo(mapInstance);
+
+    L.marker([10.291870785189131, 114.27515383485546], {
+      icon: sovereigntyIcon,
+      interactive: false,
+      zIndexOffset: 1000,
+    }).addTo(mapInstance);
 
     // Parking markers
     const parkingMarkers: L.Marker[] = [];

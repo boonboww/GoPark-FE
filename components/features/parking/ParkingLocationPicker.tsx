@@ -16,6 +16,21 @@ const icon = L.icon({
   shadowSize: [41, 41],
 });
 
+// Sovereignty Marker Icon
+const sovereigntyIcon = L.divIcon({
+  className: "custom-sovereignty-icon",
+  html: `
+    <div class="flex flex-col items-center justify-center" style="width: 400px; transform: translateX(-50%);">
+      <img src="/vn.png" alt="Vietnam Flag" class="w-16 h-10 object-cover shadow-md mb-2 animate-bounce" style="animation-duration: 3s;" />
+      <span class="text-red-600 font-bold text-base md:text-lg uppercase text-center drop-shadow-md bg-white/90 px-3 py-1 rounded-full border-2 border-red-600 shadow-lg animate-pulse">
+        Hoàng Sa - Trường Sa là của Việt Nam
+      </span>
+    </div>
+  `,
+  iconSize: [0, 0],
+  iconAnchor: [0, 40],
+});
+
 function LocationPicker({ position, onLocationSelect }: { position: [number, number], onLocationSelect: (lat: number, lng: number) => void }) {
   const map = useMap();
   
@@ -49,6 +64,18 @@ export default function ParkingLocationPicker({ lat, lng, onLocationSelect }: Pa
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+        />
+        <Marker 
+          position={[16.357171574838386, 112.13422725639053]} 
+          icon={sovereigntyIcon} 
+          interactive={false} 
+          zIndexOffset={1000}
+        />
+        <Marker 
+          position={[10.291870785189131, 114.27515383485546]} 
+          icon={sovereigntyIcon} 
+          interactive={false} 
+          zIndexOffset={1000}
         />
         <LocationPicker position={[lat, lng]} onLocationSelect={onLocationSelect} />
       </MapContainer>
