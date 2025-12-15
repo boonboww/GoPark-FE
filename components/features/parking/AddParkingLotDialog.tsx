@@ -23,8 +23,14 @@ import {
 } from "lucide-react";
 import LoadingModal from "@/components/common/LoadingModal";
 import { createParkingLot } from "@/lib/parkingLot.api";
-import toast from "react-hot-toast";
+import { useToast } from "@/components/providers/ToastProvider";
 import API from "@/lib/api";
+import dynamic from "next/dynamic";
+
+const ParkingLocationPicker = dynamic(
+  () => import("./ParkingLocationPicker"),
+  { ssr: false }
+);
 
 interface Props {
   open: boolean;
@@ -37,6 +43,7 @@ export default function AddParkingLotDialog({
   onOpenChange,
   onCreated,
 }: Props) {
+  const toast = useToast();
   const [newParkingLot, setNewParkingLot] = useState({
     name: "",
     address: "",
@@ -77,6 +84,32 @@ export default function AddParkingLotDialog({
   const [loadingMessage, setLoadingMessage] = useState("");
 
   const handleAdd = async () => {
+    // Validation
+    if (!newParkingLot.name.trim()) {
+      toast.error("Vui lòng nhập tên bãi đỗ xe");
+      return;
+    }
+    if (!street.trim() || !district.trim() || !city.trim()) {
+      toast.error("Vui lòng nhập đầy đủ địa chỉ (Đường, Quận/Huyện, Thành phố)");
+      return;
+    }
+    if (!latitude || !longitude) {
+      toast.error("Vui lòng nhập hoặc chọn tọa độ bãi đỗ xe");
+      return;
+    }
+    if (newParkingLot.pricePerHour < 0) {
+      toast.error("Vui lòng nhập giá tiền hợp lệ (>= 0)");
+      return;
+    }
+    if (paymentMethods.length === 0) {
+      toast.error("Vui lòng chọn ít nhất một phương thức thanh toán");
+      return;
+    }
+    if (zoneValues.length === 0) {
+      toast.error("Vui lòng thêm ít nhất một khu vực đỗ xe");
+      return;
+    }
+
     setIsLoading(true);
     setLoadingMessage("Đang tạo bãi đỗ xe...");
 
@@ -445,6 +478,21 @@ export default function AddParkingLotDialog({
               value={latitude}
               onChange={(e) => setLatitude(e.target.value)}
               placeholder="Nhập vĩ độ (VD: 21.028511)"
+            />
+          </div>
+
+          <div className="md:col-span-2 space-y-1">
+            <Label className="text-sm font-medium flex items-center gap-2">
+              <MapPin className="w-4 h-4 text-green-600" />
+              Chọn vị trí trên bản đồ
+            </Label>
+            <ParkingLocationPicker
+              lat={parseFloat(latitude) || 21.028511}
+              lng={parseFloat(longitude) || 105.854444}
+              onLocationSelect={(lat, lng) => {
+                setLatitude(lat.toString());
+                setLongitude(lng.toString());
+              }}
             />
           </div>
 

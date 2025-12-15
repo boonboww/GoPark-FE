@@ -12,7 +12,7 @@ const markerIcon = L.icon({
 
 export default function MapFrame({ lat, lon, name }: { lat: number; lon: number; name: string }) {
   return (
-    <div className="relative z-0">
+    <div className="relative z-0 h-full w-full">
       <MapContainer
       center={[lat, lon]}
       zoom={17}

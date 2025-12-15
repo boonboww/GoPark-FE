@@ -9,6 +9,7 @@ import ChatBot from "@/components/features/chat/ChatBot";
 import ScrollToTop from "@/components/layout/ScrollToTop";
 import StoreProvider from "@/components/providers/StoreProvider";
 import SessionExpiredModal from "@/components/common/SessionExpiredModal";
+import { ToastProvider } from "@/components/providers/ToastProvider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -51,11 +52,13 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <StoreProvider>
-          {children}
-          <Toaster richColors position="top-center" />
-          <ChatBot /> {/* ✅ Nhúng chatbot AI tại đây */}
-          <ScrollToTop /> {/* ✅ Nút scroll to top */}
-          <SessionExpiredModal />
+          <ToastProvider>
+            {children}
+            <Toaster richColors position="top-center" />
+            <ChatBot /> {/* ✅ Nhúng chatbot AI tại đây */}
+            <ScrollToTop /> {/* ✅ Nút scroll to top */}
+            <SessionExpiredModal />
+          </ToastProvider>
         </StoreProvider>
       </body>
     </html>
